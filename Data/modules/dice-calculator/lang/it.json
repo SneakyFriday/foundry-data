@@ -1,0 +1,122 @@
+{
+	"DICE_TRAY": {
+		"Adv": "Vant",
+		"Advantage": "Vantaggio",
+		"DiceTray": "Dice Tray",
+		"Dis": "Svan",
+		"Disadvantage": "Svantaggio",
+		"FateDice": "Fate Dice",
+		"For": "For",
+		"Fortune": "Fortuna (kh)",
+		"Misfortune": "Sfortuna (kl)",
+		"Mis": "Sfor",
+		"Wild": "Wild",
+		"Ace": "Ace",
+		"WildDie": "Wild Die",
+		"ExplodingDie": "Exploding Die",
+		"PlusOneDie": "+1d",
+		"MinusOneDie": "-1d",
+		"PlusOneDieLong": "Aumenta Taglia Dadi",
+		"MinusOneDieLong": "Diminuisci Taglia Dadi",
+		"KeepHighest": "Tieni il più alto",
+		"KeepLowest": "Tieni il più basso",
+		"Roll": "Tira",
+
+		"Optional": "Opzionale",
+
+		"DiceCreator": {
+			"CreateDice": "Crea Dadi",
+			"Formula": {
+				"name": "Formula",
+				"hint": "La formula che sarà aggiunta alla chat."
+			},
+			"Row": {
+				"name": "Fila",
+				"hint": "Fila sulla quale verrà posizionato il pulsante."
+			},
+			"Image": {
+				"name": "Immagine"
+			},
+			"Label": {
+				"name": "Etichetta",
+				"hint": "L'etichetta mostrata in caso il dado non abbia immagine."
+			},
+			"Tooltip": {
+				"name": "Suggerimento",
+				"hint": "Il suggerimento mostrato quando si passa con il mouse sul pulsante. Impostazioni predefinite della formula."
+			},
+			"Color": {
+				"name": "Colore",
+				"hint": "Il colore che riempie l'immagine."
+			}
+		},
+
+		"DiceRows": {
+			"compactMode": {
+				"label": "Modalità Compatta",
+				"hint": "Disattiva tutte le file di dadi aggiuntive e unisce le due file originali."
+			},
+			"hideNumberInput": {
+				"label": "Nascondi inserimento numerico"
+			},
+			"hideNumberButtons": {
+				"label": "Nascondi Pulsanti +/-"
+			},
+			"hideRollButton": {
+				"label": "Nascondi Pulsante Tiro"
+			},
+			"Instruction1": "Fare clic su qualsiasi dado per modificarlo. Clic con il pulsante destro su qualsiasi dado per eliminarlo."
+		},
+
+		"KEYBINGINDS": {
+			"popout": {
+				"name": "Attiva/Disattiva Dice Tray Popout"
+			}
+		},
+
+		"SETTINGS": {
+			"DiceCreator": "Creatore Dado",
+			"DiceRowSettings": "Configurazione Posizione Dadi",
+			"autoOpenPopout": {
+				"name": "Auto Apertura Popout",
+				"hint": "Apre automaticamente il popout Dice Tray al caricamento della pagina."
+			},
+			"enableDiceTray": {
+				"name": "Abilita Scorciatoia Dadi",
+				"hint": "Abilita la visualizzazione di una scorciatoia per i dadi sotto l'area dei messaggi della chat. Questa è un'impostazione utente per i giocatori che non la desiderano."
+			},
+			"hideAdv": {
+				"name": "Nascondi pulsanti extra",
+				"hint": "Nasconde i pulsanti KH/KL"
+			},
+			"popout": {
+				"name": "Pulsante popout Dice Tray",
+				"hint": "Aggiunge un pulsante sulla barra dei controlli per attivare/disattivare il popout di Dice Tray. Puoi anche attivare/disattivare il popout impostando una combinazione di tasti.",
+				"options": {
+					"all": "Tutti i controlli"
+				}
+			},
+			"rightClickCommand": {
+				"name": "Comando Tasto Destro",
+				"hint": "Imposta il comportamento da adottare quando si fa clic con il pulsante destro del mouse su un pulsante di un dado.",
+				"options": {
+					"decrease": "Predefinito (Diminuisci Dadi)",
+					"roll": "Tira un solo dado"
+				}
+			},
+			"PF2E": {
+				"flatCheckLabel": "{text} {dc}",
+				"flatCheck": {
+					"name": "Aggiungi Pulsanti Flat Check",
+					"hint": "Sostituisce i pulsanti Fortuna/Sfortuna con i pulsanti Flat Check CD 5/11."
+				}
+			},
+			"SWADE": {
+				"wildDieBehavior": {
+					"name": "Usa Dice Pool per il Wild Button",
+					"hint": "Facendo clic sugli stessi dadi mentre Wild è attivo verranno aggiunti dadi alla riserva anziché aumentare i dadi correnti nell'elenco."
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,10 @@
+{
+"WELCOME.Title": "Willkommen zu Foundry Virtual Tabletop",
+"WELCOME.Description": "Diese Tour bietet neuen Anwendern eine Anlaufstelle, um die Grundlagen von Foundry VTT zu erlernen.",
+"WELCOME.WelcomeTitle": "Willkommen zu Foundry Virtual Tabletop",
+"WELCOME.WelcomeContent": "Wir hoffen, dass unsere Software ein hilfreiches Werkzeug für dich und deine Gruppe sein wird. Foundry Virtual Tabletop hat eine große Anzahl von Funktionen, die es zu erlernen gilt, aber es gibt Tutorials, Leitfäden und andere Ressourcen, die dir helfen können, deinen Weg zu finden.\nDies ist eine \"Tour\", die dich mit den grundlegenden Funktionen der Software vertraut macht. Mit den Schaltflächen am unteren Rand dieses Fensters kannst du die einzelnen Schritte vor- und zurückspulen.",
+"WELCOME.HelpTitle": "Verfügbare Ressourcen",
+"WELCOME.HelpContent": "Du bist beim Erlernen von Foundry Virtual Tabletop nicht allein, es gibt eine Fülle von Ressourcen, die dir helfen können. Einige der besten Ressourcen sind unsere offizielle <a href='https://foundryvtt.com/kb/' target='_blank'>Wissensdatenbank</a> und das <a href='https://foundryvtt.wiki/' target='_blank'>Community-Wiki</a>. Du kannst auch unserem offiziellen <a href='https://discord.gg/FoundryVTT' target='_blank'>Discord-Server</a> beitreten, wo wir eine einladende Gemeinschaft haben, die dich auf deiner Reise unterstützt!",
+"WELCOME.ToursTitle": "Erste Schritte",
+"WELCOME.ToursContent": "Wenn du ein neuer Nutzer bist, empfehlen wir, dir 10 Minuten Zeit zu nehmen, um die verfügbaren Touren durchzugehen. Du kannst deinen Fortschritt durch die Touren sehen oder Touren wiederholen, die du zuvor abgeschlossen hast, indem du auf die Schaltfläche \"Tourenverwaltung\" in der Seitenleiste \"Einstellungen\" klickst."
+}

@@ -1,0 +1,14 @@
+<menu {{#if menu-id}}id="{{menu-id}}" {{/if}}class="scene-navigation-menu flexcol">
+    {{#each menu-item.folders as |folder|}}
+    <li class="ui-control folder {{folder.cssClass}}" data-folder-id="{{folder.id}}" data-uuid="{{folder.uuid}}" data-action="toggleFolder" {{#if folder.color}}style="background-color: {{folder.color}}"{{/if}}>
+        <span class="folder-name ellipsis">{{folder.name}}</span>
+        {{> "modules/monks-scene-navigation/templates/navigation-menu-partial.hbs" menu-id=false menu-item=folder }}
+    </li>
+    {{/each}}
+    {{#each menu-item.scenes as |scene|}}
+    <li class="ui-control scene {{scene.cssClass}}" data-scene-id="{{scene.id}}" data-action="viewScene"
+        {{#if scene.tooltip}} data-tooltip-text="{{scene.tooltip}}" {{/if}}>
+        <span class="scene-name ellipsis">{{scene.name}}</span>
+    </li>
+    {{/each}}
+</menu>

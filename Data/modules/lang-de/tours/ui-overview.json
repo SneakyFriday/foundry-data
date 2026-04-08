@@ -1,0 +1,18 @@
+{
+"UIOVERVIEW.Title": "UI Übersicht",
+"UIOVERVIEW.Description": "Diese Tour gibt dir einen allgemeinen Überblick über die Benutzeroberfläche",
+"UIOVERVIEW.CanvasTitle": "Die Spielfläche",
+"UIOVERVIEW.CanvasContent": "Der große zentrale Bereich ist die <span class='reference'>Spielfläche</span>. Hier werden <span class='reference'>Szenen</span> für Theatre of the mind, Erkundungen und Kämpfe angezeigt.",
+"UIOVERVIEW.SidebarTitle": "Die Seitenleiste",
+"UIOVERVIEW.SidebarContent": "In der Seitenleiste findest du all deine Inhalte, wie das <span class='reference'>Chatprotokoll</span>, das Nachrichten und Würfelwürfe enthält, <span class='reference'>Akteure</span> für Spielercharaktere und NSCs, <span class='reference'>Items</span>, aus denen deine Ausrüstung und Fähigkeiten bestehen, und vieles mehr.",
+"UIOVERVIEW.HotbarTitle": "Die Schnellleiste",
+"UIOVERVIEW.HotbarContent": "Du kannst häufig verwendete Gegenstände, Fähigkeiten und Kräfte aus deinem Charakterbogen auf die <span class='reference'>Schnellleiste</span> ziehen, um leichter darauf zuzugreifen, oder eigene <span class='reference'>Makros</span> erstellen und ausführen.",
+"UIOVERVIEW.HotbarCollapseTitle": "Schnellleiste einklappen",
+"UIOVERVIEW.HotbarCollapseContent": "Wenn du die Schnellleiste nicht brauchst, kannst du sie einklappen, um sie aus dem Weg zu räumen.",
+"UIOVERVIEW.PlayersTitle": "Die Spielerliste",
+"UIOVERVIEW.PlayersContent": "Die Spielerliste zeigt die Nutzer, die derzeit verbunden sind, und ihren Hauptcharakter. Ein SL kann mit der rechten Maustaste auf einen Nutzer klicken, um ihn zu konfigurieren, zu kicken oder zu verbannen sowie ihn in die aktuell ausgewählte Szene zu ziehen.",
+"UIOVERVIEW.CanvasControlsTitle": "Spielflächen-Steuerung",
+"UIOVERVIEW.CanvasControlsContent": "Mit der <span class='reference'>Spielflächen-Steuerung</span> kannst du  <span class='reference'>Figuren</span>, <span class='reference'>Lichter</span>, <span class='reference'>Wände</span> und andere Elemente steuern, die in einer <span class='reference'>Szene</span> platziert werden können. Einige dieser Werkzeuge sind nur für SLs verfügbar.",
+"UIOVERVIEW.NavigationTitle": "Szenen-Navigation",
+"UIOVERVIEW.NavigationContent": "Die <span class='reference'>Navigationsleiste</span> zeigt die aktuelle <span class='reference'>Szene</span> und andere, auf die du vielleicht schnell zugreifen möchtest. Spielleiter können festlegen, welche <span class='reference'>Szenen</span> hier sichtbar sind. Wenn du mit der rechten Maustaste auf eine Szene klickst, kannst du sie als Hauptszene <span class='reference'>aktivieren</span>, wodurch alle <span class='reference'>Nutzer</span> zu ihr hingezogen werden, oder die Szene für Nutzer mit einer schlechten Internetverbindung <span class='reference'>vorladen</span>."
+}

@@ -1,0 +1,20 @@
+{
+"CREATINGAWORLD.Title": "Eine Welt erstellen",
+"CREATINGAWORLD.Description": "Diese Tour führt dich durch die Erstellung deiner ersten Welt",
+"CREATINGAWORLD.WorldsTabTitle": "Die Welten-Registerkarte",
+"CREATINGAWORLD.WorldsTabContent": "Auf dieser Registerkarte siehst du alle deine derzeit erstellten Welten. Da du noch keine erstellt hast, werden wir dich bei der Erstellung einer Welt unterstützen.",
+"CREATINGAWORLD.CreateWorldTitle": "Eine Welt erstellen",
+"CREATINGAWORLD.CreateWorldContent": "Die Schaltfläche Welt erstellen befindet sich unten rechts und öffnet ein Konfigurationsfenster.",
+"CREATINGAWORLD.WorldTitleTitle": "Welt-Titel",
+"CREATINGAWORLD.WorldTitleContent": "Der Welttitel ist der Name deiner Welt. Er wird verwendet, um deine Welt auf der Registerkarte \"Welten\" zu identifizieren.",
+"CREATINGAWORLD.WorldIdTitle": "Welt-ID",
+"CREATINGAWORLD.WorldIdContent": "Die Welt-ID ist der eindeutige Bezeichner deiner Welt. Es wird ein Ordner mit der gleichen ID erstellt, in dem deine Weltdaten gespeichert werden. Die ID wird automatisch auf eine maschinenfreundliche Version des Titels gesetzt, kann aber überschrieben werden.",
+"CREATINGAWORLD.WorldSystemTitle": "Welt-System",
+"CREATINGAWORLD.WorldSystemContent": "In der System-Auswahlliste kannst du auswählen, für welches Spielsystem du deine Welt erstellen möchtest. Du kannst jedes Spielsystem wählen, das du auf deinem Computer installiert hast. Für den Moment werden wir das System wählen, das du gerade installiert hattest.",
+"CREATINGAWORLD.WorldDescriptionTitle": "Andere Felder",
+"CREATINGAWORLD.WorldDescriptionContent": "Andere Felder wie Beschreibung sind nicht erforderlich. Du kannst mehr über sie in unserer <a href='https://foundryvtt.com/article/game-worlds/' target='_blank'>Welt-Dokumentation</a> lesen.",
+"CREATINGAWORLD.CreateTitle": "Welt erstellen",
+"CREATINGAWORLD.CreateContent": "Wenn du mit den Einstellungen fertig bist, kannst du mit der Schaltfläche \"Erstellen\" deine Welt anlegen. Du kannst die meisten Welteinstellungen später ändern, indem du eine bestehende Welt bearbeitest.",
+"CREATINGAWORLD.LaunchingTitle": "Starten",
+"CREATINGAWORLD.LaunchingContent": "Du bist fertig! Du kannst nun in deiner Welt spielen, indem du auf die Schaltfläche \"Welt starten\" klickst."
+}

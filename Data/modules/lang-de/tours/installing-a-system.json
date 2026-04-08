@@ -1,0 +1,12 @@
+{
+"INSTALLINGASYSTEM.Title": "Ein System installieren",
+"INSTALLINGASYSTEM.Description": "Diese Tour führt dich durch den Prozess der Installation deines ersten Systems.",
+"INSTALLINGASYSTEM.SystemsTabTitle": "Der Spielsysteme-Reiter",
+"INSTALLINGASYSTEM.SystemsTabContent": "Auf dieser Registerkarte siehst du alle derzeit installierten Systeme. Du hast derzeit keines installiert – lass uns das ändern.",
+"INSTALLINGASYSTEM.BrowseTitle": "System-Installieren-Schaltfläche",
+"INSTALLINGASYSTEM.BrowseContent": "Diese Schaltfläche öffnet einen Browser mit den verfügbaren Systemen",
+"INSTALLINGASYSTEM.SearchingTitle": "Suchen",
+"INSTALLINGASYSTEM.SearchingContent": "Es gibt Hunderte von Systemen, die für Foundry verfügbar sind, und es werden regelmäßig weitere hinzugefügt. Wenn das Rollenspiel deiner Wahl noch nicht implementiert ist, gibt es auch generische Systeme. Lass uns eines davon finden - \"Simple World Building\".",
+"INSTALLINGASYSTEM.InstallTitle": "Das System installieren",
+"INSTALLINGASYSTEM.InstallContent": "Wenn du ein System gefunden hast, das dir gefällt, klicke auf die Schaltfläche Installieren. Du kannst so viele Systeme installieren, wie du willst – probier es einfach aus – und gehe dann auf die Registerkarte \"Spielwelten\", wenn du bereit bist, deine erste Welt zu erstellen."
+}

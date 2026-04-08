@@ -1,0 +1,52 @@
+<section class="fxmaster-filters-container">
+  {{#each filters as |filter type|}}
+    <div
+      class="fxmaster-filters-row{{#if (lookup ../activeFilters type)}} open{{/if}}"
+      data-type="{{type}}"
+      data-action="toggleCollapse"
+    >
+      <div class="fxmaster-filter-name">
+        <i class="{{filter.icon}}"></i>
+        {{localize filter.label}}
+      </div>
+
+      <span class="fxmaster-collapse-arrow">
+        <i class="fa-solid fa-chevron-down"></i>
+      </span>
+
+      <button
+        type="button"
+        class="fxmaster-filter-toggle {{#if (lookup ../activeFilters type)}}enabled{{/if}}"
+        data-action="toggleFilter"
+        data-filter="{{type}}"
+      >
+        <span class="fa-solid fa-power-off"></span>
+      </button>
+    </div>
+
+    <div class="fxmaster-filter-expand">
+      <div class="fxmaster-filter-params">
+        {{#each filter.parameters as |parameterConfig parameterName|}}
+          {{#if (fxmasterShouldRenderParam "filter" type parameterName)}}
+            <label>
+              {{localize parameterConfig.label}}
+              {{{fxmasterParameter
+                    filter
+                    parameterConfig
+                    parameterName
+                    (getEffectParams ../../activeFilters ../../passiveFilters type)
+                 }}}
+            </label>
+          {{else}}
+            {{{fxmasterHiddenParameter
+                  filter
+                  parameterConfig
+                  parameterName
+                  (getEffectParams ../../activeFilters ../../passiveFilters type)
+            }}}
+          {{/if}}
+        {{/each}}
+      </div>
+    </div>
+  {{/each}}
+</section>

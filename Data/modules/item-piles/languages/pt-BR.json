@@ -1,0 +1,976 @@
+{
+  "ITEM-PILES": {
+    "Items": "Itens",
+    "Currencies": "Moedas",
+    "Currency": "Moeda",
+    "ContextMenu": {
+      "ShowToPlayers": "Mostrar aos Jogadores",
+      "RequestTrade": "Solicitar Negociação",
+      "GiveToCharacter": "Dar ao Personagem"
+    },
+    "Hints": {
+      "CtrlClear": "Control + Clique para limpar"
+    },
+    "PlayerList": {
+      "TradeButton": "Trocar"
+    },
+    "HeaderButtons": {
+      "Configure": "Configurar",
+      "ShowToPlayers": "Mostrar aos Jogadores"
+    },
+    "Types": {
+      "pile": "Pilha de Itens",
+      "container": "Recipiente",
+      "merchant": "Comerciante",
+      "vault": "Cofre"
+    },
+    "Notifications": {
+      "SystemSupportFound": "Suporte ao sistema encontrado! Aplicando configurações padrão do sistema ao Item Piles",
+      "UpdateItemPileSuccess": "Pilha de Itens atualizada com sucesso.",
+      "UpdateMerchantSuccess": "Comerciante atualizado com sucesso.",
+      "ItemTransferred": "{item_name} de {source_actor_name} foi dado para {target_actor_name}.",
+      "ItemAdded": "{item_name} foi adicionado a {target_actor_name}.",
+      "GiveItemAccepted": "{user_name} aceitou sua oferta de item.",
+      "ShownToPlayers": "Exibindo {actor_name} para os jogadores",
+      "CreatedJournal": "Criado Diário de Registro de Cofre do Item Piles."
+    },
+    "Errors": {
+      "DisallowedItemDrop": "Você não pode descartar itens \"{type}\"",
+      "DisallowedItemTrade": "Você não pode negociar itens \"{type}\"",
+      "DisallowedItemSell": "Este comerciante não aceita itens \"{type}\"",
+      "NoSourceDrop": "Você não pode descartar itens da barra de itens, a menos que seja um Mestre.",
+      "PileTooFar": "Você está muito longe para interagir com esta pilha.",
+      "NoTokenFound": "Não foi possível encontrar um token ou personagem que represente você.",
+      "PileLocked": "Este recipiente está trancado e não pode ser aberto. Você não pode soltar itens nele.",
+      "DropNoToken": "Você não tem um token nesta cena, então não pode soltar nenhum item aqui.",
+      "NoVaultAccess": "Você não tem permissão para visualizar este cofre.",
+      "NoVaultAccessActor": "{actor_name} não tem permissão para visualizar este cofre.",
+      "ItemNoQuantity": "{item_name} tem quantidade 0, então você não pode transferir este item!"
+    },
+    "Warnings": {
+      "NoGMsConnected": "AVISO - Nenhum Mestre conectado - O Item Piles requer um Mestre conectado para que os jogadores possam utilizar a maioria das funcionalidades do módulo.",
+      "NoResponseFromGM": "AVISO - Mestre \"{user_name}\" não respondeu à solicitação - Item Piles exigem que um Mestre esteja conectado e responda para que os jogadores possam utilizar a maioria dos recursos do módulo.",
+      "NoResponseFromGMTimeout": "AVISO - Mestre \"{user_name}\" não respondeu à última solicitação - aguarde {time} segundos antes de fazer outra solicitação com o Item Piles.",
+      "TransactionNoGMConnected": "Nenhum Mestre está conectado - a transação atual foi cancelada, nada foi adicionado, removido ou transferido",
+      "GiveItemNoGM": "Não há Mestre ativo para receber o item que você está tentando dar.",
+      "GiveItemDeclined": "{user_name} recusou a oferta do seu item.",
+      "NoPlayersActive": "Não há jogadores ativos para realizar esta ação",
+      "NoGMsConnectedAction": "AVISO - Não foi possível executar \"{action}\" porque não há Mestres ativos.",
+      "VaultFull": "Este item não cabe neste cofre!",
+      "CantSortVault": "Falha ao organizar itens - ou há muitos itens, ou algo deu errado",
+      "VaultItemNotExpander": "Este item não é um expansor de cofre",
+      "DroppedIsNotItem": "Você não pode soltar documentos do tipo \"{type}\" nesta pilha de itens!",
+      "DroppedFolderNotSupported": "Você não pode soltar pastas contendo o tipo \"{type}\" nesta pilha de itens!",
+      "ItemPileInvalidItemDropped": "Você não pode soltar este tipo de item nesta pilha de itens!",
+      "VaultSameItemOrigin": "Você não pode soltar itens no cofre que se originam do próprio cofre!",
+      "VaultNoGmItemSidebar": "Apenas Mestres podem soltar itens da barra lateral!",
+      "LogEmpty": "O log para \"{actor_name}\" está vazio e não tem nada para exportar"
+    },
+    "Inspect": {
+      "Title": "Inspecionando Conteúdo da Pilha",
+      "AsActor": "Você está inspecionando esta pilha como {actorName}.",
+      "Change": "Mudar",
+      "Owner": "Como dono desta Pilha de Itens, você pode editar seu conteúdo.",
+      "Empty": "Esta pilha está vazia.",
+      "Destroyed": "Esta pilha de itens não existe mais e está destruída.",
+      "TakeAll": "Pegar Todos Itens",
+      "Take": "Pegar",
+      "Close": "Fechar",
+      "Leave": "Sair",
+      "NoShareLeft": "Sem partes restantes...",
+      "NoneLeft": "Nada restou...",
+      "OpenSheet": "Abrir Ficha",
+      "AddCurrency": "Adicionar moeda",
+      "SplitAll": "Dividir em {num_players}",
+      "SplitItems": "Dividir itens em {num_players}",
+      "SplitCurrencies": "Dividir moedas em {num_players}",
+      "SplitNoPlayers": "Nenhum personagem foi encontrado para dividir o conteúdo."
+    },
+    "Trade": {
+      "Title": "Item Piles: Negociação",
+      "Accept": "Aceitar",
+      "Decline": "Recusar",
+      "Mute": "Silenciar",
+      "AutoDecline": "Você não respondeu à solicitação de negociação com rapidez, por isso ela foi recusada automaticamente.",
+      "Declined": "O outro usuário recusou a solicitação de negociação.",
+      "SameActor": "Ambos usuários não podem escolher o mesmo personagem. Você não pode negociar com E o mesmo personagem. Pare com isso.",
+      "Private": "Torne esta negociação privada",
+      "PrivateExplanation": "Nenhum cartão de chat é exibido e ninguém pode assistir",
+      "Over": "Esta negociação não está mais ativa.",
+      "Between": "Negociação entre {actor_1} e {actor_2}",
+      "DragDrop": "Arraste e solte itens para começar a negociar",
+      "Prompt": {
+        "Title": "Item Piles: Enviar Solicitação de Negociação",
+        "User": "Escolha com qual usuário você quer negociar:",
+        "PickActor": "Escolha qual ator você representará na negociação:",
+        "PickedActor": "O ator que você representará na negociação:",
+        "PickToken": "Escolha o token selecionado",
+        "DropActor": "Arraste e solte o ator aqui",
+        "Label": "Enviar solicitação de negociação"
+      },
+      "NoActiveUsers": {
+        "Title": "Item Piles: Nenhum Usuário Ativo",
+        "Content": "Nenhum jogador está ativo, então você não tem ninguém com quem negociar."
+      },
+      "Request": {
+        "Title": "Item Piles: Solicitação de Negociação",
+        "Content": "{trading_actor_name} (usuário {trading_user_name}) quer negociar com você.",
+        "PrivateContent": "{trading_actor_name} (usuário {trading_user_name}) deseja negociar de forma <strong>privada</strong> com você.",
+        "AcceptQuery": "Você aceita?"
+      },
+      "OngoingRequest": {
+        "Content": "Aguarde resposta de {user_name}...",
+        "Label": "Cancelar solicitação de negociação"
+      },
+      "CancelledRequest": {
+        "Content": "A solicitação de negociação foi cancelada por {user_name}."
+      },
+      "AddCurrency": {
+        "Title": "Adicionar Moedas",
+        "Content": "Adicione moedas à negociação ativa com {trader_actor_name}",
+        "Label": "Atualizar Moedas"
+      },
+      "GMAddCurrency": "Adicionar Moeda (Modo Mestre)",
+      "Closed": {
+        "Title": "Negociação Fechada",
+        "You": "Você fechou a janela de negociação, então a negociação foi cancelada.",
+        "Them": "O usuário \"{user_name}\" fechou a janela de negociação, então a negociação foi cancelada.",
+        "Someone": "Um dos usuários fechou a janela de negociação, então a negociação foi cancelada."
+      },
+      "Disconnected": "Um dos usuários foi desconectado, então a negociação foi cancelada.",
+      "UserCharacterWarning": "Você escolheu o ator \"{actor_name}\" que é o personagem atribuído ao jogador \"{player_name}\".<br><br>Tem certeza que deseja fazer isso?",
+      "UserActiveCharacterWarning": "Você escolheu o ator \"{actor_name}\" que é o personagem atribuído ao jogador \"{player_name}\", que está <strong>ativo</strong>.<br><br>Tem certeza que deseja fazer isso?",
+      "ActorOwnerWarning": "Você não possui este ator, então não pode negociar com ele."
+    },
+    "Merchant": {
+      "Title": "Comerciante: {actor_name}",
+      "BuyItems": "Comprar Itens",
+      "BuyServices": "Comprar Serviços",
+      "SellItems": "Vender Itens",
+      "PopulateItems": "Itens Populares",
+      "AllTypes": "Todos os tipos",
+      "Buy": "Comprar",
+      "NoMatchFound": "Nada corresponde à sua pesquisa",
+      "NoItemsForSale": "O comerciante não tem nada à venda",
+      "NoItemsToSell": "Você não tem nada para vender para este comerciante",
+      "OpenTimes": "Horários Abertos",
+      "OpenCloseAuto": "Automático",
+      "Open": "Aberto",
+      "Closed": "Fechado",
+      "Hours": "Horas",
+      "Minutes": "Minutos",
+      "MerchantClosed": "O comerciante está fechado, volte mais tarde.",
+      "Sell": "Vender",
+      "SortBy": "Ordenar por:",
+      "Description": "Descrição",
+      "Settings": "Configurações",
+      "Override": "Sobrepor",
+      "EditTypePrices": "Editar Modificadores Custo por Tipo",
+      "EditTypePricesExplanation": "Alterne a visibilidade dos controles deslizantes por tipo na aba Comprar Itens",
+      "BuyNoItems": "Comerciante não tem itens",
+      "CurrentItems": "Itens atuais",
+      "CurrentServices": "Serviços atuais",
+      "NoRollTables": "Não existem tabelas de rolagem, crie uma para começar",
+      "ClickRoll": "Clique em rolar para começar",
+      "RolledTimes": "Rolou {rolls} vezes",
+      "KeepRolled": "Manter rolado",
+      "AddAll": "Adicionar Todos Itens",
+      "ClearAllItems": "Limpar Todos Itens do Ator",
+      "ClearAllServices": "Limpar Todos Serviços do Ator",
+      "AddItem": "Adicionar",
+      "RemoveItem": "Remover",
+      "ItemFree": "Grátis",
+      "RollableTables": "Tabelas Roláveis",
+      "Service": "Serviços",
+      "AddTable": "Adicionar Tabela",
+      "RollAllTables": "Role Todas Tabelas",
+      "ToolTipRemoveTable": "Remover Tabela",
+      "TooltipConfigureTable": "Configurar Tabela",
+      "TooltipRollTable": "Rolar Tabela",
+      "ToolTipRemoveAllRolledItems": "Remover Todos Itens Rolados",
+      "ShoppingAs": "Comprando como {actorName}",
+      "TableAddAllItems": "Adicionar todos itens:",
+      "TableTimesToRoll": "Vezes para rolar na tabela:",
+      "TableCustomCategory": "Adicionar itens à categoria personalizada:",
+      "Log": "Registro de Atividade",
+      "LogSearch": "Pesquisa de Registros:",
+      "LogUserActor": "{actor_name} ({user_name})",
+      "LogBought": "comprado",
+      "LogSold": "vendido",
+      "LogQuantity": "{quantity} x ",
+      "LogSetQuantity": "{instigator} definiu a <span>quantidade</span> de <strong>{item}</strong> para {quantity}",
+      "LogSetForSale": "{instigator} definiu o <strong>{item}</strong> <span>à venda</span",
+      "LogSetNotForSale": "{instigator} definiu o <strong>{item}</strong> <span>não disponível para venda</span",
+      "LogSetVisible": "{instigator} definiu o <strong>{item}</strong> como <span>visível</span",
+      "LogSetHidden": "{instigator} definiu o <strong>{item}</strong> como <span>oculto</span",
+      "LogTransaction": "{instigator} {action} {quantity}{item} por {price}",
+      "LogFreeTransaction": "{instigator} {action} {quantity}{item} de graça",
+      "SetNotForSale": "Não está à venda",
+      "SetForSale": "À venda",
+      "SetHidden": "Ocultar",
+      "SetVisible": "Exibir"
+    },
+    "Vault": {
+      "VaultTab": "Cofre",
+      "ExpandersTab": "Expansores",
+      "LogTab": "Registros",
+      "ViewingAs": "Vendo como {actor_name}",
+      "NeedsCapacity": "Este cofre tem capacidade total de {total_capacity}, mas nada disso estará disponível até que os expansores do cofre sejam adicionados",
+      "CapacityLeft": "Este cofre tem capacidade de {capacity}, com no máximo {total_capacity}. Arraste e solte expansores de cofre para aumentar a capacidade",
+      "CapacityFull": "Este cofre atingiu a capacidade máxima de {total_capacity}",
+      "ExpandsCols": "{cols} colunas",
+      "ExpandsRows": "{rows} linhas",
+      "Withdraw": "Retirar",
+      "Deposit": "Depositar",
+      "SortItems": "Classificar Itens",
+      "SortItemsTooltip": "Classificar itens. Segure CTRL para mesclar itens semelhantes",
+      "LogUserActor": "{actor_name} ({user_name})",
+      "Deposited": "depositado",
+      "Withdrew": "retirado",
+      "LogEntry": "{instigator} {action} {quantity}{item_name}",
+      "LogQuantity": "{quantity} x "
+    },
+    "General": {
+      "Primary": "Primário",
+      "Exchange": "Câmbio",
+      "Name": "Nome",
+      "Cost": "Custo",
+      "Fixed": "Fixo",
+      "Short": "Curto",
+      "Icon": "Ícone",
+      "Data": "Dados"
+    },
+    "Dialogs": {
+      "TypeWarning": {
+        "Title": "Aviso de Tipo de Item",
+        "DropContent": "Você está descartando um item do tipo (\"{type}\") que normalmente não pode ser descartado. Tem certeza que quer fazer isso?",
+        "TradeContent": "Você está tentando negociar um item do tipo (\"{type}\") que normalmente não pode ser negociado. Tem certeza que quer fazer isso?",
+        "SellContent": "Você está tentando vender um item do tipo (\"{type}\") que normalmente o comerciante não aceita. Tem certeza que quer fazer isso?"
+      },
+      "ResetSettings": {
+        "Title": "Redefinir Configurações do Módulo",
+        "Content": "Tem certeza que deseja redefinir todas as configurações do módulo Item Piles para os padrões atuais do sistema? <strong>ISSO NÃO PODE SER DESFEITO!</strong>",
+        "Confirm": "Redefinir Configurações do Módulo"
+      },
+      "LinkedActorWarning": {
+        "Title": "Item Piles e Atores Vinculados",
+        "Content": "Tem certeza de que deseja transformar este <strong>ator vinculado</strong> em uma pilha de itens? O token deste ator está vinculado e todos os tokens deste ator compartilharão seu inventário e moedas."
+      },
+      "NoSystemFound": {
+        "Title": "Sistema Não Reconhecido",
+        "Content": "<p><strong></strong>Este sistema não é suportado.</strong></p><p>Isso significa que o módulo não sabe como melhor lidar com os itens deste sistema, mas ainda pode operar de forma limitada.</p><p>Você mesmo pode definir as configurações do módulo, mas isso requer um pouco de conhecimento técnico. </p><p>Se você tiver alguma dúvida, tire um print da caixa de diálogo que irá abrir após você fechar isto e peça por ajuda no canal do seu sistema no servidor do discord do Foundry.</p>"
+      },
+      "NewSystemVersion": {
+        "Title": "Nova Versão do Sistema",
+        "Content": "As configurações padrão do sistema que você está usando com o Item Piles foram atualizadas. Gostaria de substituir as configurações específicas do seu sistema pelas atualizadas?",
+        "Content2": "Não fazer isso pode quebrar o Item Pile. Você redefine as configurações específicas do sistema do módulo para corrigi-lo.",
+        "Confirm": "Atualizar Configurações"
+      },
+      "ResetSharingData": {
+        "Title": "Redefinir Dados de Divisão",
+        "Content": "Isso redefinirá todo o histórico de jogadores que retiraram sua parte desta pilha.<br><br>Tem certeza que deseja fazer isso?",
+        "Confirm": "Redefinir Dados de Divisão"
+      },
+      "ClearAllItems": {
+        "Title": "Limpar Todos Itens do Ator",
+        "Content": "Isso limpará todos os itens do comerciante. Tem certeza que deseja fazer isso?"
+      },
+      "ClearAllServices": {
+        "Title": "Limpar Todos Serviços do Ator",
+        "Content": "Isso limpará todos os serviços do comerciante. Tem certeza que deseja fazer isso?"
+      },
+      "GiveItemUserNotActive": {
+        "Title": "Dando Item",
+        "Content": "\"{actor_name}\" pertence ao jogador \"{user_name}\" mas ele não está ativo, então você não pode dar este item a ele."
+      },
+      "RemoveMerchantTable": {
+        "Title": "Remover Tabela de Comerciante",
+        "Content": "Tem certeza de que deseja remover a tabela \"{table_name}\" deste comerciante? Isso não é reversível."
+      },
+      "CantRemoveVaultExpander": {
+        "Title": "Não é Possível Remover Expansor",
+        "Content": "Você não pode remover este expansor, os itens no cofre não caberiam sem ele. Remova {num_items} itens antes de tentar remover este expansor!"
+      },
+      "GiveItems": {
+        "Title": "Dando Itens",
+        "Header": "Dando Item: {item_name}",
+        "SelectPlaceholder": "Escolha o personagem para enviar o item",
+        "ContentMultipleQuantity": "Você tem {quantity} deste item. Quantos você quer dar?",
+        "Secret": "Dar o(s) item(s) sem que outros saibam (exceto Mestres)",
+        "Submit": "Enviar"
+      },
+      "ReceiveItem": {
+        "Title": "Recebendo Item",
+        "Header": "Item Piles: Recebendo Item",
+        "Content": "{source_actor_name} quer dar um item para {target_actor_name}, você aceita?",
+        "Ignore": "Ignorar Usuário"
+      },
+      "TextEditor": {
+        "Title": "Editor de Texto"
+      },
+      "UserSelect": {
+        "Title": "Selecionar Usuários",
+        "Content": "Mostrar para quais usuários?"
+      },
+      "ClearVaultLog": {
+        "Title": "Limpar Registro do Cofre?",
+        "Content": "Tem certeza que deseja limpar o log do cofre \"{actor_name}\"?"
+      },
+      "ClearMerchantLog": {
+        "Title": "Limpar Registro do Comerciante?",
+        "Content": "Tem certeza que deseja limpar o log do comerciante \"{actor_name}\"?"
+      },
+      "SortMergeVaultItems": {
+        "Title": "Classificar e Mesclar Itens Semelhantes?",
+        "Content": "Tem certeza de que deseja mesclar itens semelhantes ao classificá-los? A mesclagem não pode ser desfeita."
+      }
+    },
+    "Applications": {
+      "DropItem": {
+        "Title": "Soltando Item",
+        "Header": "Você está soltando: {item_name}",
+        "Content": "Você está adicionando este item à pilha de itens \"{target_name}\".",
+        "ContentMultipleQuantity": "Você tem {quantity} deste item. Quantos você quer soltar?",
+        "ContentInfiniteQuantity": "Quantos você quer soltar?",
+        "Submit": "Adicionar à pilha",
+        "SubmitNoTarget": "Criar nova pilha"
+      },
+      "GiveItem": {
+        "Title": "Dando Item",
+        "Header": "Você está dando: {item_name}",
+        "Content": "Você quer dar este item para \"{target_name}\"?",
+        "ContentMultipleQuantity": "Você tem {quantity} deste item. Quantos você quer dar?",
+        "ContentInfiniteQuantity": "Quantos você quer dar para \"{target_name}\"?",
+        "Submit": "Dar"
+      },
+      "DepositItem": {
+        "Title": "Depositar Item",
+        "Header": "Você está depositando: {item_name}",
+        "Content": "Você quer depositar este item em \"{target_name}\"?",
+        "ContentMultipleQuantity": "Você tem {quantity} deste item. Quantos você quer depositar?",
+        "ContentInfiniteQuantity": "Quantos você quer depositar?",
+        "Submit": "Depositar"
+      },
+      "WithdrawItem": {
+        "Title": "Retirar Item",
+        "Header": "Você está retirando: {item_name}",
+        "Content": "Você deseja retirar este item de \"{target_name}\"?",
+        "ContentMultipleQuantity": "Há {quantity} deste item. Quantos você deseja retirar?",
+        "ContentInfiniteQuantity": "",
+        "Submit": "Retirar"
+      },
+      "SplitItem": {
+        "Title": "Dividir Pilha de Itens",
+        "Header": "Você está dividindo uma pilha de {item_name}",
+        "Content": "Deseja dividir esta pilha de itens?",
+        "ContentMultipleQuantity": "Há {quantity} deste item. Quantos você deseja na nova pilha?",
+        "ContentInfiniteQuantity": "",
+        "Submit": "Dividir Pilha"
+      },
+      "EditCurrencies": {
+        "Title": "Editando Moedas",
+        "Content": "Como Mestre, você pode atualizar as moedas nesta pilha de itens:",
+        "Secondary": "Moedas Secundárias:",
+        "NoCurrency": "{actor_name} não tem moedas válidas",
+        "Submit": "Enviar"
+      },
+      "DropCurrencies": {
+        "Title": "Soltando Moedas",
+        "Content": "Você pode adicionar as seguintes moedas a esta pilha de itens:",
+        "NoCurrency": "{actor_name} não tem moedas válidas.",
+        "Submit": "Adicionar"
+      },
+      "DepositCurrencies": {
+        "Title": "Depositar Mordas",
+        "Content": "Você pode depositar as seguintes moedas neste cofre:",
+        "NoCurrency": "{actor_name} não tem moedas para depositar.",
+        "Submit": "Depositar"
+      },
+      "WithdrawCurrencies": {
+        "Title": "Retirar Item",
+        "Content": "Você pode retirar as seguintes moedas deste cofre:",
+        "NoCurrency": "Não há moedas para retirar.",
+        "Submit": "Retirar"
+      },
+      "TradeMerchantItem": {
+        "Title": "Negociando Item: {item_name}",
+        "BuyItem": "Comprar Item",
+        "SellItem": "Vender Item",
+        "YouPay": "Você paga",
+        "YouReceive": "Você recebe",
+        "TheyReceive": "Eles recebem",
+        "Quantity": "Quantidade",
+        "Change": "Mudar",
+        "YouCantAfford": "Você não pode pagar esse preço",
+        "TheyCantAfford": "Eles não podem pagar esse preço",
+        "YouLackQuantity": "Você não tem o suficiente deste item para vender. Você tem {quantity}, mas precisa de {requiredQuantity}",
+        "TheyLackQuantity": "Você não têm o suficiente deste item para vender. Eles têm {quantity}, mas precisam de {requiredQuantity}",
+        "MaxQuantity": "Máx: {quantity}"
+      },
+      "Settings": {
+        "Title": "Configuração do Módulo Item Piles",
+        "Local": "Configurações Locais",
+        "Module": "Configurações do Módulo",
+        "Styles": "Configurações de Estilo",
+        "System": "Configurações Específicas do Sistema",
+        "Export": "Exportar Configurações",
+        "Import": "Importar Configurações",
+        "Donate": "Se você gosta deste módulo, considere fazer uma doação para mantê-lo funcionando!",
+        "MoreToCome": "E com mais opções de configuração por vir...",
+        "Request": "Solicite novos recursos aqui.",
+        "Submit": "Enviar Configurações"
+      },
+      "CurrenciesEditor": {
+        "Title": "Editor de Moedas do Item Piles",
+        "TitleActor": "Editor de Moedas do Item Piles: {actor_name}",
+        "Explanation": "Aqui você pode definir quais moedas dos personagens podem ser retiradas das pilhas de itens, como moedas.",
+        "ExplanationSmallAttributes": "Em D&D5e, as moedas existem em atores no caminho do atributo \"actor.system.currency.gp\", então você adicionaria a sua própria com o nome \"Moedas de Ouro\" e o caminho do atributo \"system.currency.gp\". Adicione uma moeda clicando no sinal de adição do cabeçalho.",
+        "ExplanationSmallItems": "Em outros sistemas, eles podem ser itens reais do ator. Neste caso, você pode arrastar e soltar itens nesta lista para adicioná-los às moedas.",
+        "DragDrop": "Arraste e solte um item para adicioná-lo à lista",
+        "Name": "Nome da moeda",
+        "Exchange": "Intercâmbio",
+        "Data": "Caminho",
+        "Icon": "Ícone",
+        "AddNew": "Adicionar nova moeda",
+        "CreateNew": "Solte um item ou clique no botão de adição para começar!",
+        "Drop": "Solte para adicionar"
+      },
+      "SecondaryCurrenciesEditor": {
+        "Title": "Editor de Moedas Secundárias do Item Piles",
+        "TitleActor": "Editor de Moedas Secundárias do Item Piles: {actor_name}",
+        "Explanation": "Aqui você pode definir quais moedas secundárias podem ser retiradas e soltas por personagens."
+      },
+      "ItemEditor": {
+        "Title": "Editor de Itens do Item Piles: {item_name}",
+        "Update": "Atualizar Item",
+        "General": "Configurações Gerais",
+        "Price": "Configurações de Preço",
+        "Vault": "Configurações de Cofre",
+        "GeneralTab": {
+          "NotForSale": "Item Não Está à Venda",
+          "NotForSaleExplanation": "Quando ativado, este item não estará à venda e não poderá ser comprado. Ele ainda aparecerá na lista de itens do comerciante, a menos que ele também esteja oculto.",
+          "CustomCategory": "Categoria de Item Personalizado",
+          "CustomCategoryExplanation": "Quando não estiver em branco, este item será listado em um tipo diferente do que é.",
+          "Hidden": "Item Está Oculto",
+          "HiddenExplanation": "Quando ativado, este item não aparecerá nas listas de itens do comerciante.",
+          "CanStack": "Pode Empilhar",
+          "CanStackExplanation": "Isso configura se este item será empilhado com outros itens semelhantes a ele.",
+          "CanStackDefault": "Padrão para configuração da pilha de itens",
+          "CanStackYes": "Sim, sempre pode empilhar",
+          "CanStackNo": "Não, não pode empilhar",
+          "DisplayQuantity": "Visibilidade da Quantidade de Itens",
+          "DisplayQuantityExplanation": "Isso configura como a quantidade deste item na loja é mostrada, se for o caso.",
+          "DisplayQuantityDefault": "Padrão para configuração de comerciante",
+          "DisplayQuantityYes": "Sim, sempre mostrar a quantidade",
+          "DisplayQuantityNo": "Não, sempre ocultar a quantidade",
+          "InfiniteQuantity": "Quantidade Infinita",
+          "InfiniteQuantityExplanation": "Quando ativado, este item não pode ficar sem quantidade quando vendido por um comerciante.",
+          "InfiniteQuantityDefault": "Padrão para configuração de comerciante",
+          "InfiniteQuantityYes": "Sim, quantidade infinita",
+          "InfiniteQuantityNo": "Não, quantidade padrão",
+          "KeepZero": "Manter Quantidade Zero",
+          "KeepZeroExplanation": "Quando totalmente esgotado, o comerciante não remove este item, mas o define como não à venda.",
+          "KeepOnMerchant": "Manter no Comerciante",
+          "KeepOnMerchantExplanation": "Quando os itens são limpos na aba de preenchimento de itens dos comerciantes ou pela integração de atualização de inventário do Simple Calendar (veja a configuração do comerciante na parte inferior), este item sempre permanecerá.",
+          "PriceExplanation": "Nesta aba, você pode configurar o preço deste item, incluindo se este item custará outros itens para sua compra."
+        },
+        "PriceTab": {
+          "BasePrice": "Preço Base",
+          "BasePriceExplanation": "Isso configura o preço normal deste item.",
+          "QuantityForPrice": "Quantidade Por Preço",
+          "QuantityForPriceExplanation": "Isso configura quantos deste item você deve obter ao comprar este item.",
+          "Service": "Item É Serviço",
+          "ServiceExplanation": "Isso faz com que este item não adicione nenhum item ao inventário do comprador. O \"item\" de serviço ainda pode ter quantidade, mas se acabar, não será excluído do comerciante, mas definido como não à venda.",
+          "PurchaseMacro": "Macro de Compra",
+          "PurchaseMacroExplanation": "Nome da macro a ser executada quando o item for comprado.",
+          "Free": "Item é Gratuito",
+          "FreeExplanation": "Quando ativado, este item não custará dinheiro para ser comprado do comerciante.",
+          "DisableNormalCost": "Desativar Custo Normal",
+          "DisableNormalCostExplanation": "Quando ativado, o item não pode ser comprado com a moeda principal e deve ser adquirido com uma das opções de compra abaixo.",
+          "PurchaseOptionsAsSellOption": "Opção de Compra como Opção de Venda",
+          "PurchaseOptionsAsSellOptionExplanation": "Quando ativado, as opções de compra abaixo podem ser usadas ao vender o item de volta a um comerciante. Por padrão, apenas as opções de venda abaixo podem ser usadas.",
+          "PurchaseOptions": "Opções de Compra",
+          "PurchaseOptionsExplanation": "Aqui você pode configurar as formas alternativas de compra deste item. Cada grupo representa uma maneira diferente pela qual um personagem pode comprar este item de outros.",
+          "SellOptions": "Opções de Venda",
+          "SellOptionsExplanation": "Aqui você pode configurar as formas alternativas de vender este item. Cada grupo representa uma maneira diferente de um personagem vender este item aos comerciantes.",
+          "CantBeSoldToMerchants": "Não Pode Ser Vendido Para Comerciantes",
+          "CantBeSoldToMerchantsExplanation": "Quando ativado, este item não pode ser vendido de volta aos comerciantes, apenas comprado.",
+          "AddPurchaseOption": "Adicionar Opção de Compra",
+          "AddSellOption": "Adicionar Opção de Venda",
+          "DropMeClickMe": "Clique para adicionar um atributo ou arraste e solte um item para adicionar",
+          "PricePreset": "Ou selecione um preço predefinido:",
+          "SelectPreset": "Selecione predefinição de preço",
+          "AddOverheadCostOption": "Adicionar Custos Indiretos",
+          "OverheadCostOptions": "Opções de Custos Indiretos",
+          "OverheadCostOptionsExplanation": "Aqui você pode configurar um custo indireto que será sempre adicionado ao preço deste item quando um comerciante o vender. Isso é afetado por modificadores de preço."
+        },
+        "VaultTab": {
+          "GridSize": "Tamanho da Grade",
+          "GridSizeExplanation": "Isto configura quantos espaços de grade este item ocupa.",
+          "VaultImage": "Imagem do Cofre",
+          "VaultImageExplanation": "Isto substitui a imagem do item quando exibido em um cofre.",
+          "VaultImageRotated": "Imagem do Cofre Girado",
+          "VaultImageRotatedExplanation": "Isto substitui a imagem do item quando exibido em um cofre enquanto ele é girado.",
+          "GridWidth": "Largura",
+          "GridHeight": "Altura",
+          "VaultExpander": "Expansor de Cofre",
+          "VaultExpanderExplanation": "Quando ativado, este item não atua como um item normal em um cofre. Em vez disso, aumenta o número de slots disponíveis, conforme determinado abaixo.",
+          "ExpandColumnsRows": "Expansão de Colunas e Linhas",
+          "ExpandColumnsRowsExplanation": "Se a configuração acima estiver habilitada, ela define quantas colunas e/ou linhas ficam disponíveis no cofre. Isso não pode se estender além da capacidade do cofre.",
+          "PriceModifierTitle": "Modificadores Preço de Compra e Venda",
+          "PriceModifierExplanation": "Isto configura os modificadores para o custo deste item quando comprado e vendido. Isso multiplica o preço base do item antes de qualquer outro modificador de preço. Se o modificador do preço de venda do comerciante for 50%, o modificador do preço de venda do item teria que ser 200% para anular o modificador do comerciante."
+        }
+      },
+      "FilterEditor": {
+        "Title": "Editor de Filtros do Item Piles",
+        "TitleActor": "Editor de Filtros do Item Piles: {actor_name}",
+        "Explanation": "Aqui você pode definir vários tipos de filtros que excluirão certos tipos de itens. Com base no caminho do atributo fornecido, a pilha de itens pode encontrar o \"tipo\" de um item e, com base nos filtros, oculta esses itens na interface do inventário da pilha de itens.",
+        "Filters": "Filtros",
+        "Path": "Caminho da Propriedade",
+        "AddNew": "Adicionar novo filtro"
+      },
+      "RequiredItemPropertiesEditor": {
+        "Title": "Editor de Propriedades Obrigatórias do Item Piles",
+        "TitleActor": "Editor de Propriedades Obrigatórias do Item Piles: {actor_name}",
+        "Explanation": "Aqui você pode definir vários tipos de propriedades obrigatórias de item que os itens transferidos para esta pilha de itens devem ter. Com base no caminho do atributo fornecido, a pilha de itens poderia encontrar o \"tipo\" de um item e com base nos requisitos, impediria a transferência de itens que não correspondam a essas propriedades para esta pilha de itens.",
+        "Filters": "Propriedades Obrigatórias",
+        "Path": "Caminho da Propriedade",
+        "AddNew": "Adicionar novo filtro"
+      },
+      "SimilaritiesEditor": {
+        "Title": "Editor de Semelhanças do Item Piles",
+        "Explanation": "Aqui você pode definir vários tipos de identificadores que ajudam as pilhas de itens a diferenciar itens semelhantes. Em quase todos os sistemas, os itens podem ser diferenciados pelo seu \"nome\" e \"tipo\". Mas em alguns casos, como no Pathfinder 2ª Edição, os itens temporários podem ser compartilhados com os itens permanentes. Portanto, ao adicionar \"system.temporary.value\", seus itens temporários são considerados \"únicos\" e separados dos permanentes.",
+        "Path": "Caminho do atributo"
+      },
+      "CustomItemCategoriesEditor": {
+        "Title": "Editor de Categorias de Itens Personalizados",
+        "Explanation": "Aqui você pode configurar quais categorias de itens personalizados estão disponíveis em seu mundo. Eles são adicionados dinamicamente quando você adiciona um novo para um item.",
+        "Category": "Categoria"
+      },
+      "UnstackableItemTypesEditor": {
+        "Title": "Editor de Tipos de Itens Não-Empilháveis",
+        "Explanation": "Aqui você pode definir quais tipos de itens não podem ser empilhados.",
+        "Type": "Tipo de Item"
+      },
+      "VaultStylesEditor": {
+        "Title": "Editor dos Estilos de Cofre do Item Piles",
+        "Explanation": "Aqui você pode definir vários estilos para itens em cofres. Por exemplo, você pode fazer com que um estilo que apareça \"system.rarity\" seja \"rare\", além de aplicar um estilo aos itens que correspondam à configuração.",
+        "Path": "Caminho do atributo",
+        "Value": "Valor Correspondente",
+        "Style": "Configurar Estilo",
+        "AddNew": "Adicionar nova regra de estilo"
+      },
+      "StylesEditor": {
+        "Title": "Editor de Estilos",
+        "Style": "Estilo",
+        "Variable": "Variável",
+        "Value": "Valor"
+      },
+      "ItemTypePriceModifiersEditor": {
+        "Title": "Editor de Modificadores Preço de Tipo de Item",
+        "TitleActor": "Editor de Modificadores Preço de Tipo de Item: {actor_name}",
+        "Explanation": "Aqui você pode definir o preço e os modificadores do preço de venda para este comerciante em relação a tipos de itens específicos. A configuração \"Substituir\" significa que ela substitui os modificadores de preço normais do comerciante.",
+        "ItemType": "Tipo de Item",
+        "Override": "Substituir"
+      },
+      "PriceModifiersEditor": {
+        "Title": "Editor de Modificador de Preço do Item Piles",
+        "TitleActor": "Editor de Modificador de Preço do Item Piles: {actor_name}",
+        "Explanation": "Aqui você pode definir o preço e os modificadores do preço de venda para este comerciante em relação a atores específicos. A configuração \"Substituir\" significa que ela substitui os modificadores de preço normais do comerciante, incluindo modificadores de preço específicos do tipo de item.",
+        "DragDrop": "Arraste e solte um ator para adicioná-lo à lista",
+        "Actor": "Ator",
+        "Override": "Substituir"
+      },
+      "ItemPileConfig": {
+        "Title": "Configurações da Pilha de Itens: {actor_name}",
+        "Configure": "Pilha de Item",
+        "Update": "Atualizar Config.",
+        "Main": {
+          "Title": "Configurações Principais",
+          "EnabledPile": "Habilitado",
+          "EnabledPileExplanation": "Se isso deve funcionar como uma pilha de itens.",
+          "InspectItems": "Habilitar Inspeção de Item",
+          "InspectItemsExplanation": "Clicar nos nomes dos itens abrirá a ficha do item.",
+          "DisplayItemTypes": "Dividir Itens por Tipos de Itens",
+          "DisplayItemTypesExplanation": "Exibe cada tipo de item separadamente na pilha de itens, classificados por tipo de item.",
+          "Distance": "Distância de Interação",
+          "GridUnits": "Unidades de Grade (deixe em branco para infinito)",
+          "Macro": "Ao Interagir Macro",
+          "MacroExplanation": "Nome da macro a ser executada quando interagirem com esta pilha.",
+          "MacroPlaceholder": "Inserir nome da macro",
+          "EditDescription": "Editar Descrição",
+          "EditDescriptionExplanation": "Esta descrição é mostrada nas interfaces relevantes quando a pilha de itens é visualizada",
+          "DeleteWhenEmpty": "Excluir Quando Vazio",
+          "DeleteWhenEmptyExplanation": "Faz com que esta pilha de itens seja excluída automaticamente quando estiver vazia.",
+          "DeleteWhenEmptyDefault": "Configuração padrão do módulo",
+          "DeleteWhenEmptyYes": "Sim, exclua quando estiver vazio",
+          "DeleteWhenEmptyNo": "Não, não exclua quando estiver vazio",
+          "CanStackItems": "Pode Empilhar Itens",
+          "CanStackItemsExplanation": "Com esta configuração, os itens adicionados à pilha de itens serão empilhados com itens semelhantes. Isso também pode ser controlado por item em sua configuração. Nota: Isso também depende do sistema, pois alguns itens não possuem quantidade e nunca podem ser empilhados.",
+          "CanStackItemsYes": "Sim, empilhe itens (a menos que o item diga o contrário)",
+          "CanStackItemsNo": "Não, empilhe itens (a menos que o item diga o contrário)",
+          "CanStackItemsYesAlways": "Sim, sempre empilhe itens",
+          "CanStackItemsNoAlways": "Não, nunca empilhe itens",
+          "OverrideCurrencies": "Substituir Moedas",
+          "OverrideCurrenciesExplanation": "Configure se esta pilha deverá ser capaz de transferir outras moedas além da padrão.",
+          "ConfigureOverrideCurrencies": "Configurar Substituição de Moedas",
+          "OverrideSecondaryCurrencies": "Substituir Moedas Secundárias",
+          "OverrideSecondaryCurrenciesExplanation": "Configure as substituições de moeda secundária desta pilha de itens.",
+          "ConfigureOverrideSecondaryCurrencies": "Configurar Substituição de Moedas Secundárias",
+          "OverrideItemFilters": "Substituir Filtros de Item",
+          "OverrideItemFiltersExplanation": "Configure se esta pilha deve ser capaz de transferir outros tipos de itens além do padrão.",
+          "ConfigureOverrideItemFilters": "Configurar Substituição de Filtros de Item",
+          "RequiredItemProperties": "Propriedades Obrigatórias de Item",
+          "RequiredItemPropertiesExplanation": "Configure se esta pilha de itens deve exigir que os itens transferidos para ela tenham certas propriedades.",
+          "ConfigureRequiredItemProperties": "Configurar Propriedades Obrigatórias de Item"
+        },
+        "Other": {
+          "Title": "Outras Configurações",
+          "Type": "Tipo Pilha de Item",
+          "TypeExplanation": "Isso configura a forma como esta pilha de itens será exibida."
+        },
+        "SingleItem": {
+          "Title": "Configurações de Item Único",
+          "DisplayOneContainerWarning": "Aviso! Você tem ambos \"Exibir Imagem de Item Único\" e \"É Recipiente\" ativados. Neste caso, as imagens do recipiente têm prioridade.",
+          "DisplayOne": "Exibir Imagem de Item Único",
+          "DisplayOneExplanation": "Se a pilha for composta por um único item, isso define a imagem da ficha da pilha como a imagem do item.",
+          "OverrideScale": "Substituir Escala de Token de Item Único",
+          "Scale": "Escala de token de item único",
+          "ItemName": "Usar Nome do Item",
+          "ItemNameExplanation": "Faz com que a pilha de itens receba o nome do único item que ela contém."
+        },
+        "Container": {
+          "Title": "Configurações de Recipiente",
+          "IsContainer": "É Recipiente",
+          "Locked": "Está Trancado",
+          "Closed": "Está Fechado",
+          "ClosedImagePath": "Imagem Fechado",
+          "EmptyImagePath": "Imagem Vazio",
+          "OpenedImagePath": "Imagem Aberto",
+          "LockedImagePath": "Imagem Trancado",
+          "CloseSoundPath": "Som Fechando",
+          "OpenSoundPath": "Som Abrindo",
+          "LockedSoundPath": "Som Trancando"
+        },
+        "Sharing": {
+          "Title": "Configurações de Divisão",
+          "ShareItemsEnabled": "Divisão Ativada: Items",
+          "ShareItemsEnabledExplanation": "Quando ativado, os jogadores só podem receber sua parte nas quantidades de itens. Desativado significa que eles podem pegar o quanto quiserem.",
+          "ShareCurrenciesEnabled": "Divisão Ativado: Moedas",
+          "ShareCurrenciesEnabledExplanation": "Quando ativado, os jogadores só podem receber sua parte nas quantidades de moedas. Desativado significa que eles podem pegar o quanto quiserem.",
+          "TakeAllEnabled": "Habilitar Botão Pegar Tudo",
+          "TakeAllEnabledExplanation": "Ativa o botão \"Pegar Tudo\" ao saquear esta pilha de itens. Requer que ambas as configurações de divisão acima sejam desativadas.",
+          "SplitAllEnabled": "Ativar Botão Dividir com Jogadores",
+          "SplitAllEnabledExplanation": "Ativa o botão \"Dividir [number] vezes\" ao saquear esta pilha de itens. Pressionar este botão faz com que todos os jogadores (ou apenas os jogadores ativos, veja abaixo) recebam sua parte na pilha de itens.",
+          "InactivePlayers": "Dividir Apenas com Jogadores Ativos",
+          "InactivePlayersExplanation": "Somente os jogadores que estiverem ativos quando esta pilha de itens for saqueada receberão sua parte na pilha.",
+          "ResetSharingData": "Redefinir Dados de Divisão",
+          "ResetSharingDataExplanation": "Se o conteúdo da pilha de itens foi alterado manualmente enquanto as pessoas a saqueavam, os dados de divisão podem ficar fora de sincronia com as divisões reais dos jogadores. Pressionar este botão redefinirá a participação de todos nesta pilha."
+        },
+        "Merchant": {
+          "Title": "Configurações do Comerciante",
+          "Enabled": "É Comerciante",
+          "EnabledExplanation": "Os jogadores não podem pegar itens de comerciantes, mas devem comprá-los",
+          "MerchantImage": "Imagem do Comerciante",
+          "MerchantImageExplanation": "Esta é a imagem que será exibida na interface do comerciante",
+          "InfiniteQuantity": "Quantidade Infinita",
+          "InfiniteQuantityExplanation": "Quando ativado, este comerciante não ficará sem itens.",
+          "InfiniteCurrency": "Moedas Infinitas",
+          "InfiniteCurrencyExplanation": "Quando ativado, a venda de itens para este comerciante não será subtraída de suas moedas.",
+          "KeepZero": "Manter Quantidade Zero",
+          "KeepZeroExplanation": "Quando os itens estiverem totalmente esgotados, este comerciante não os removerá, mas os definirá como não à venda.",
+          "DisplayQuantity": "Visibilidade da Quantidade de Itens",
+          "DisplayQuantityExplanation": "Isso configura como a quantidade de itens na loja é mostrada, se for o caso.",
+          "DisplayQuantityYes": "Sim, mostre a quantidade (a menos que o item diga o contrário)",
+          "DisplayQuantityNo": "Não, ocultar a quantidade (a menos que o item diga o contrário)",
+          "DisplayQuantityYesAlways": "Sim, sempre mostre a quantidade",
+          "DisplayQuantityNoAlways": "Não, sempre oculte a quantidade",
+          "PurchaseOnly": "Somente Compra",
+          "PurchaseOnlyExplanation": "Quando ativado, os personagens não podem vender itens para este comerciante.",
+          "HideNewItems": "Ocultar Novos Itens",
+          "HideNewItemsExplanation": "Quando ativado, todos os itens vendidos a este comerciante ficarão ocultos.",
+          "HideItemsWithZeroCost": "Ocultar Itens de Custo Zero",
+          "HideItemsWithZeroCostExplanation": "Quando ativado, isso faz com que os clientes não possam comprar ou vender itens que tenham custo zero (gratuito).",
+          "OnlyAcceptBasePrice": "Aceitar Apenas o Preço Base",
+          "OnlyAcceptBasePriceExplanation": "Quando ativado, todos os itens vendidos a este comerciante devem usar o preço base, e não quaisquer preços personalizados.",
+          "OnlyAcceptCustomPrices": "Aceitar Apenas Preços Personalizados",
+          "OnlyAcceptCustomPricesExplanation": "Quando ativado, todos os itens vendidos a este comerciante devem usar os preços personalizados desse item (se houver), e não as moedas normais. Se o item não tiver um preço personalizado, ele não poderá ser vendido.",
+          "OpenTimes": "Horários Abertos",
+          "OpenTimesExplanation": "Quando ativado, o comerciante só pode interagir com os jogadores em determinados horários do dia.",
+          "OpenStatus": "Status Aberto",
+          "OpenStatusExplanation": "Isso configura o estado atual do status aberto do comerciante. Se o Status Aberto (abaixo) estiver habilitado e o módulo Simple Calendar estiver habilitado, você pode configurar isso para ser automático.",
+          "OpenStatusOpen": "Aberto",
+          "OpenStatusClosed": "Fechado",
+          "OpenStatusAuto": "Automático (Simple Calendar)",
+          "HideTokenWhenClosed": "Ocultar Token Quando Fechado",
+          "HideTokenWhenClosedExplanation": "Quando ativado, os tokens deste comerciante ficam ocultos quando fechados.",
+          "ClosedDays": "Dias Fechados (Simple Calendar)",
+          "ClosedDaysExplanation": "Nos dias marcados, o estabelecimento comercial estará fechado (caso o status de estabelecimento comercial aberto esteja definido como automático).",
+          "ClosedHolidays": "Feriados Fechados (Simple Calendar)",
+          "ClosedHolidaysExplanation": "Nos dias em que houver notas com a categoria de nota indicada, o estabelecimento comercial será fechado (caso o status de estabelecimento comercial aberto esteja definido como automático).",
+          "RefreshItemsWarning": "Com todas as opções abaixo, os itens existentes serão EXCLUÍDOS e não poderão ser recuperados. Itens individuais podem ser configurados para serem mantidos. Itens definidos para Serviços, Manter Quantidade Zero e Manter no Comerciante permanecerão.",
+          "RefreshItemsOnOpen": "Atualizar Itens no Horário de Abertura (Simple Calendar)",
+          "RefreshItemsOnOpenExplanation": "Quando o horário do calendário ultrapassar o horário de abertura do comerciante, o inventário do comerciante será atualizado.",
+          "RefreshItemsDays": "Atualizar Itens nos Dias da Semana (Simple Calendar)",
+          "RefreshItemsDaysExplanation": "Quando o calendário ultrapassar os dias marcados, o inventário do comerciante será atualizado. Isso acontece no horário de abertura do estabelecimento comercial, ou à meia-noite caso não tenha horário de abertura/fechamento.",
+          "RefreshItemsHolidays": "Atualizar Itens de Feriados (Simple Calendar)",
+          "RefreshItemsHolidaysExplanation": "Quando o calendário passar notas com a categoria de nota especificada, o inventário do comerciante será atualizado. Isso acontece no horário da nota ou à meia-noite se for uma nota definida para o dia todo.",
+          "PriceModifierTitle": "Modificadores Preço de Compra e Venda",
+          "PriceModifierExplanation": "Isso configura os modificadores para o custo de cada item da loja. Você também pode configurar modificadores por tipo de item e até mesmo para personagens específicos (como Bardos da Língua Prateada). Você não está limitado a 200%, digite no campo para aumentar ainda mais.",
+          "BuyPriceModifier": "Modificador Compra (%)",
+          "SellPriceModifier": "Modificador Venda (%)",
+          "ItemTypeModifier": "Modificadores Preço de Tipo de Item",
+          "ItemTypeModifiersExplanation": "Nesta caixa de diálogo você pode configurar modificadores de preço para tipos de itens individuais.",
+          "ConfigureItemTypePriceModifiers": "Configurar Modificadores Preço de Tipo de Item",
+          "ActorPriceModifiers": "Modificadores Substituição de Preço por Ator",
+          "ActorPriceModifiersExplanation": "Aqui você pode configurar se determinados atores específicos devem ter modificadores de preço diferentes dos modificadores de preço acima.",
+          "ConfigureActorPriceModifiers": "Configurar Modificadores Preço do Ator",
+          "MerchantColumns": "Colunas do Comerciante",
+          "MerchantColumnsExplanation": "Aqui você pode configurar as colunas específicas do sistema deste comerciante exibidas na interface do comerciante, como a raridade dos itens.",
+          "ConfigureMerchantColumns": "Configurar Colunas do Comerciante",
+          "LogMerchantActivity": "Registrar Atividade do Comerciante",
+          "LogMerchantActivityExplanation": "Quando ativado, isso faz com que o comerciante registre eventos como compra e venda de itens, e os Mestres atualizem o status (quantidade, visibilidade e à venda) dos itens.",
+          "ClearMerchantLog": "Limpar Registros",
+          "ClearMerchantLogExplanation": "Isso limpará os registros do comerciante, removendo todas as entradas. Isto não pode ser desfeito.",
+          "ExportMerchantLog": "Exportar Registros do Comerciante",
+          "ExportMerchantLogExplanation": "Isso irá exportar e baixar um arquivo de texto com os registros, classificados das informações mais antigas para as mais recentes.",
+          "AddOverheadCostOption": "Adicionar Custos Indiretos",
+          "OverheadCostOptions": "Opções de Custos Indiretos",
+          "OverheadCostOptionsExplanation": "Aqui você pode configurar um custo indireto que é sempre adicionado ao preço dos itens quando o comerciante os vende. Isso é afetado pelos modificadores de preço."
+        },
+        "Vault": {
+          "Title": "Configurações do Cofre",
+          "Layout": "Layout",
+          "LayoutExplanation": "Quantas colunas e linhas devem estar visíveis no cofre.",
+          "Columns": "Colunas",
+          "Rows": "Linhas",
+          "EnableExpansion": "Habilitar Itens de Expansão",
+          "EnableExpansionExplanation": "Com isto ativado, os itens configurados como expansores do cofre expandirão o espaço disponível do cofre.",
+          "BaseExpansion": "Expansão Base",
+          "BaseExpansionExplanation": "Quantas colunas e linhas são habilitadas por padrão, sem nenhum item de expansão.",
+          "RestrictAccess": "Restringir Acesso ao Cofre",
+          "RestrictAccessExplanation": "Por padrão, todos podem acessar os cofres se puderem vê-los na barra lateral ou se puderem chegar perto deles em uma cena. Quando esta configuração estiver habilitada, o cofre só poderá ser visualizado pelo proprietário do personagem do cofre ou pelos usuários/personagens configurados no Editor de Acesso (veja abaixo).",
+          "Access": "Acesso de Personagem e Jogador",
+          "AccessExplanation": "Isso configura quais personagens e jogadores podem acessar e modificar o inventário e as moedas do cofre. Se um jogador possuir o personagem do cofre, ele sempre terá acesso total.",
+          "ManageAccess": "Gerenciar Acesso",
+          "LogVaultAccess": "Registro de Acesso ao Cofre",
+          "LogVaultAccessExplanation": "Quando ativado, este cofre criará uma entrada de diário e registros com carimbo de data e hora sempre que houver interação com o cofre.",
+          "ClearVaultLog": "Limpar Registros",
+          "ClearVaultLogExplanation": "Isso limpará os logs do cofre, removendo todas as entradas. Isto não pode ser desfeito.",
+          "LoggingFormat": "Formato de Registro",
+          "LoggingFormatExplanation": "Isso configura como o nome de usuário e o nome do personagem são exibidos no registro.",
+          "LoggingFormatUserActor": "Exibir nome de usuário e personagem",
+          "LoggingFormatUser": "Exibir apenas nome de usuário",
+          "LoggingFormatActor": "Exibir apenas nome de personagem"
+        }
+      },
+      "VaultAccessEditor": {
+        "Title": "Editor de Acesso do Cofre",
+        "TitleActor": "Editor de Acesso do Cofre: {actor_name}",
+        "Explanation": "Isso configura quais personagens e jogadores podem acessar e modificar o inventário e as moedas do cofre. Se um jogador possuir o personagem do cofre, ele sempre terá acesso total.",
+        "Character": "Jogador/Personagem",
+        "View": "Visualizar",
+        "Organize": "Organizar",
+        "Withdraw": "Retirar",
+        "Deposit": "Depositar"
+      },
+      "MerchantColumnsEditor": {
+        "Title": "Colunas do Comerciante",
+        "TitleActor": "Colunas do Comerciante: {actor_name}",
+        "Explanation": "Isso configura as colunas visíveis na interface do comerciante, além do nome do item, da quantidade e do preço.",
+        "Label": "Rótulo",
+        "PropertyPath": "Caminho da Propriedade",
+        "Formatting": "Formatando",
+        "Buying": "Comprando",
+        "Selling": "Vendendo",
+        "ConfigureMapping": "Configurar Mapeamento",
+        "MappingTitle": "Mapeamento Colunas do Comerciante: {label}",
+        "MappingContent": "Isso configura o mapeamento entre o valor da propriedade e um rótulo. Este rótulo pode ser uma string localizada."
+      },
+      "PricePresetEditor": {
+        "Title": "Editor de Predefinições de Preços",
+        "Update": "Atualizar Predefinições",
+        "Explanation": "Aqui você pode criar vários preços predefinidos que podem ser facilmente usados nos preços personalizados dos itens."
+      }
+    },
+    "HUD": {
+      "ToggleLocked": "Alternar Trancado",
+      "ToggleClosed": "Alternar Fechado",
+      "Configure": "Configurar Pilha"
+    },
+    "Chat": {
+      "Pickup": "{name} pegou os seguintes itens:",
+      "Split": "O conteúdo de uma pilha de itens foi dividido entre {num_players} jogadores, e cada um recebeu:",
+      "TradeComplete": "{party_1} e {party_2} concluíram uma negociação.",
+      "TradeStarted": "{party_1} e {party_2} começaram uma negociação.",
+      "TradeStartedButton": "Clique no botão abaixo para assistir:",
+      "TradeSpectate": "Assistir Negociação",
+      "SpectateDisabled": "Negociação Concluída",
+      "PrivateTrade": "Negociação Privada",
+      "ExpandTrade": "Ver detalhes completos da negociação",
+      "MerchantTraded": "{name} comprou os seguintes itens de {merchant}:",
+      "GaveItems": "{source} deu alguns itens para {target}:"
+    },
+    "VaultLog": {
+      "Withdraw": "{actor_name} ({user_name}) **retirou** {item_name} x {quantity} ({date})",
+      "Deposit": "{actor_name} ({user_name}) *depositou* {item_name} x {quantity} ({date})"
+    },
+    "Settings": {
+      "Configure": {
+        "Title": "Configuração do Módulo",
+        "Label": "Configurar Módulo",
+        "Hint": "Você pode configurar Item Piles nesta caixa de diálogo."
+      },
+      "Reset": {
+        "Title": "Redefinir Configurações Específicas do Sistema para Padrão",
+        "Label": "Redefinir Configurações",
+        "Hint": "Isso redefinirá todas as configurações de Item Piles para o padrão do sistema de jogo ativo."
+      },
+      "ActorClass": {
+        "Title": "Tipo de Classe de ator",
+        "Hint": "Esta configuração define o tipo de ator que será usado para o ator de pilha de itens padrão criado na primeira queda do item. No caso de D&D5e, isso é \"personagem\", pois não possui um tipo de ator de saque dedicado."
+      },
+      "ItemLootClass": {
+        "Title": "Tipo de Classe de Item Saque",
+        "Hint": "O tipo de classe de item é o tipo de item que será usado para o item de saque padrão."
+      },
+      "ItemWeaponClass": {
+        "Title": "Tipo de Classe de Item Arma",
+        "Hint": "O tipo de classe de item é o tipo de item que será usado para o item de arma padrão."
+      },
+      "ItemEquipmentClass": {
+        "Title": "Tipo de Classe de Item Equipamento",
+        "Hint": "O tipo de classe de item é o tipo de item que será usado para o item de equipamento padrão."
+      },
+      "Quantity": {
+        "Title": "Atributo de Quantidade de Item",
+        "Hint": "Aqui você pode configurar qual é o caminho do atributo para a quantidade de cada item. Por exemplo, no sistema D&D5e, a quantidade de cada item é armazenada no atributo \"item.system.quantity\" do item, então você colocaria \"system.quantity\" nesta configuração."
+      },
+      "Price": {
+        "Title": "Atributo de Preço do Item",
+        "Hint": "Aqui você pode configurar qual é o caminho do atributo para o preço de cada item. Por exemplo, no sistema D&D5e, a quantidade de cada item é armazenada no atributo \"item.system.price\" do item, então você colocaria \"system.price\" nesta configuração."
+      },
+      "QuantityForPrice": {
+        "Title": "Quantidade de item para atributo de preço",
+        "Hint": "Aqui você pode configurar qual é o caminho do atributo para a quantidade de itens que você recebe pelo preço. Por exemplo, no sistema PF2e, há uma propriedade \"por\" nos itens, que determina a quantidade de itens que você obtém pelo preço do item, que é armazenado no atributo \"item.system.price.per\" do item, então você colocaria \"system.price.per\" nesta configuração."
+      },
+      "Currencies": {
+        "Title": "Moedas",
+        "Label": "Configurar Moedas",
+        "Hint": "Esta configuração define as moedas elegíveis para coleta, que podem não ser itens reais, mas entradas numéricas na ficha do personagem."
+      },
+      "SecondaryCurrencies": {
+        "Title": "Moedas Secundárias",
+        "Label": "Configurar Moedas Secundárias",
+        "Hint": "Esta configuração define moedas secundárias, semelhantes, mas separadas das moedas normais. Estas não podem ter taxas de câmbio ou ser divididas em outras moedas personalizadas."
+      },
+      "CurrencyDecimalDigits": {
+        "Title": "Dígitos Decimais de Moeda",
+        "Hint": "Esta configuração define o dígito decimal mais baixo para o qual suas moedas são arredondadas. Por exemplo, num ambiente moderno com moedas modernas, '0,01' permite dois dígitos decimais. Isto não é usado se você tiver mais de uma moeda."
+      },
+      "ItemFilters": {
+        "Title": "Filtros de Itens",
+        "Label": "Configurar Filtros de Itens",
+        "Hint": "Aqui você pode configurar quais itens serão ignorados e não listados nas caixas de diálogo da pilha de itens."
+      },
+      "ItemSimilarities": {
+        "Title": "Semelhanças de Itens",
+        "Label": "Configurar Semelhanças de Itens",
+        "Hint": "Aqui você pode configurar como os itens são detectados para serem iguais neste sistema. Alguns sistemas podem ter dados que distinguem itens de forma diferente de outros, como itens temporários."
+      },
+      "UnstackableItemTypes": {
+        "Title": "Tipos de Itens Não-Empilháveis",
+        "Label": "Configurar Tipos de Itens Não-Empilháveis",
+        "Hint": "Aqui você pode configurar quais tipos de itens são considerados únicos, não importa o que aconteça. Os tipos aqui configurados não podem ser empilhados e só podem ter uma quantidade de 1."
+      },
+      "CssVariables": {
+        "Title": "Estilos de Variáveis CSS",
+        "Label": "Configurar Estilos de Variáveis ​​CSS",
+        "Hint": "Isso permite que você configure as diversas variáveis ​​CSS que orientam as cores e outros estilos nas interfaces das pilhas de itens."
+      },
+      "VaultStyles": {
+        "Title": "Estilos de Cofre",
+        "Label": "Configurar Estilos de Cofre",
+        "Hint": "Isso permite que você adicione regras que definirão o estilo dos itens com base nos caminhos de propriedade e nos valores dos próprios itens."
+      },
+      "PricePresets": {
+        "Title": "Predefinições de Preço",
+        "Label": "Configurar Predefinições de Preço",
+        "Hint": "Aqui você pode configurar preços predefinidos personalizados que você pode importar facilmente para os itens."
+      },
+      "CustomItemCategories": {
+        "Title": "Categorias de Itens Personalizados",
+        "Label": "Configurar Categorias de Itens",
+        "Hint": "Aqui você pode configurar as categorias de itens customizados, que são mostradas como sugestões no editor de itens."
+      },
+      "EnableDroppingItems": {
+        "Title": "Habilitar Soltar Itens",
+        "Hint": "Isto permite que os usuários possam soltar itens no chão para criar suas próprias pilhas de itens. Com esta opção desativada, os usuários não podem criar novas pilhas."
+      },
+      "EnableGivingItems": {
+        "Title": "Ativar Doação de Itens",
+        "Hint": "Isso permite que os usuários possam soltar itens em outros tokens para entregá-los. Com isso desativado, os usuários não podem dar itens a outros usuários."
+      },
+      "EnableTrading": {
+        "Title": "Habilitar Negociação",
+        "Hint": "Isto permite a negociação. Com esta opção desativada, ninguém pode iniciar qualquer negociação."
+      },
+      "ShowTradeButton": {
+        "Title": "Mostrar Botão de Negociação",
+        "Hint": "Ativar isso exibirá um botão de troca logo abaixo da lista de jogadores no canto inferior direito."
+      },
+      "InspectItemsTrade": {
+        "Title": "Habilitar Inspeção de Itens Durante Negociações",
+        "Hint": "Ativar isso permite que os usuários cliquem nos itens que estão sendo negociados e abram a planilha do item para visualizá-los."
+      },
+      "OutputToChat": {
+        "Title": "Saída para Chat",
+        "Hint": "Sempre que qualquer jogador pegar itens de uma pilha de itens, será enviada uma mensagem mostrando o que foi pego.",
+        "Off": "Desativado - desativa mensagens",
+        "Public": "Público - todos podem ver as mensagens",
+        "SelfGM": "Privado - apenas Mestres e o usuário podem ver mensagens",
+        "Blind": "Cego - apenas Mestres podem ver mensagens"
+      },
+      "HideTokenBorder": {
+        "Title": "Ocultar Bordas de Tokens de Pilhas de Itens",
+        "Hint": "Isso controla se a borda do token fica oculta ao passar o mouse sobre os tokens da pilha de itens. Selecionar o token sempre mostra a borda.",
+        "HideEveryone": "Esconder de todos",
+        "HidePlayers": "Esconder dos jogadores",
+        "Show": "Mostrar bordas (comportamento padrão)"
+      },
+      "InvertSheetOpen": {
+        "Title": "Inverter CTRL + Clique Duplo para Abrir",
+        "Hint": "Normalmente, você precisa manter a tecla CTRL quando quiser abrir a ficha de ator de uma pilha de itens. Ativar isso faz com que a planilha do ator da pilha de itens seja aberta por padrão e manter a tecla CTRL abre a interface do inventário da pilha de itens."
+      },
+      "HideHeaderButtonText": {
+        "Title": "Ocultar Texto do Botão do Cabeçalho",
+        "Hint": "Oculta o texto \"Item Piles\" nos cabeçalhos de atores e itens. útil se você tiver muitos módulos e o cabeçalho estiver ficando lotado."
+      },
+      "HideHeaderButton": {
+        "Title": "Ocultar Botão do Cabeçalho",
+        "Hint": "Oculta o botão \"Item Piles\" nos cabeçalhos dos atores e dos itens. Isso tornará mais difícil para você configurar novas pilhas de itens e itens."
+      },
+      "DeleteEmptyPiles": {
+        "Title": "Excluir Automaticamente Pilhas Vazias",
+        "Hint": "Isso faz com que as pilhas de itens sejam excluídas quando ficarem sem itens. Isso pode ser substituído em pilhas de itens individuais."
+      },
+      "PreloadFiles": {
+        "Title": "Pré-Carregar Arquivos",
+        "Hint": "Faz com que os arquivos (imagens e áudio) das pilhas sejam pré-carregados, resultando em uma experiência perfeita."
+      },
+      "Debug": {
+        "Title": "Habilitar Depuração",
+        "Hint": "Imprime mensagens de depuração no console."
+      },
+      "DebugHooks": {
+        "Title": "Habilitar Depuração de Hooks",
+        "Hint": "Imprime os hooks da pilha de itens e seu conteúdo no console."
+      },
+      "PopulationTablesFolder": {
+        "Title": "Tabelas de Rolagem de \"Itens Populares\"",
+        "Hint": "Título da pasta para filtrar tabelas de rolagem da aba \"Itens Populares\" no comerciante.",
+        "AllTables": "Todas as Tabelas"
+      }
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "timestamp": 1775686494423,
+  "os": {
+    "platform": "linux",
+    "version": "Debian GNU/Linux 13 (trixie)",
+    "node": "24.14.1"
+  },
+  "foundry": {
+    "generation": 14,
+    "build": 359,
+    "channel": "stable",
+    "hosting": null
+  },
+  "modules": {
+    "FoundryVTT-dnd5e-DE": {
+      "version": "4.1.2"
+    },
+    "babele": {
+      "version": "2.7.7"
+    },
+    "color-picker": {
+      "version": "1.7"
+    },
+    "dae": {
+      "version": "13.0.22"
+    },
+    "ddb-importer": {
+      "version": "7.2.4"
+    },
+    "dice-calculator": {
+      "version": "3.5.4"
+    },
+    "dice-so-nice": {
+      "version": "5.3.2"
+    },
+    "fxmaster": {
+      "version": "7.5.2"
+    },
+    "item-piles": {
+      "version": "3.2.32"
+    },
+    "lang-de": {
+      "version": "13.1"
+    },
+    "levels": {
+      "version": "6.0.21"
+    },
+    "lib-wrapper": {
+      "version": "1.13.4.0"
+    },
+    "monks-active-tiles": {
+      "version": "13.06"
+    },
+    "monks-scene-navigation": {
+      "version": "13.03"
+    },
+    "monks-tokenbar": {
+      "version": "13.02"
+    },
+    "pdf-pager": {
+      "version": "14.0.0"
+    },
+    "socketlib": {
+      "version": "v1.1.4"
+    },
+    "stairways": {
+      "version": "0.12.0"
+    },
+    "theripper-premium-hub": {
+      "version": "6.0.0"
+    },
+    "wall-height": {
+      "version": "7.0.8"
+    }
+  },
+  "systems": {
+    "dnd5e": {
+      "version": "5.3.0",
+      "playtime": 86740
+    }
+  },
+  "worlds": {},
+  "playtime": {
+    "total": 86740,
+    "max": 86740
+  }
+}

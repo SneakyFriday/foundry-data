@@ -1,0 +1,67 @@
+{
+  "DOCUMENT": {
+    "Stairway": "Treppe"
+  },
+  "stairways": {
+    "ui": {
+      "config": {
+        "tab-main": "Grundeinstellung",
+        "title": "Stairway Modul-Konfiguration",
+        "icons": {
+          "door-closed": "Geschlossene Tür",
+          "door-exit": "Ausgangstür",
+          "cave": "Höhle",
+          "house": "Haus",
+          "city": "Stadt",
+          "castle": "Burg",
+          "door-steel": "Stahltür",
+          "stairway": "Treppe (standard)"
+        },
+        "disabled": "Deaktiviert (gesperrt)",
+        "hidden": "Verstecke vor Spielern",
+        "animate-hint-1": "Animiere die Benutzung wie eine normale Bewegung.",
+        "animate-hint-2": "Nur in der selben Szene verfügbar.",
+        "locked": "Feste Position",
+        "reset": "Auf Standard zurücksetzen",
+        "submit": "Speichern",
+        "current-scene": "(Aktuelle Szene)",
+        "icon": "Symbol",
+        "font-family": "Schriftart",
+        "font-size": "Schriftgröße",
+        "scene": "Partnerszene",
+        "label": "Bezeichnung",
+        "name": "ID",
+        "name-warning": "Bitte stelle sicher, dass Du nur zwei Treppen mit der selben ID hast!",
+        "partner-scene-label": "Benutze den Namen der Partnerszene",
+        "status": "Status",
+        "tab-label": "Bezeichnung",
+        "tab-position": "Position",
+        "text-color": "Textfarbe",
+        "animate": "Animiere Bewegung",
+        "name-hint": "Treppen sind verbunden, wenn beide die selbe ID haben."
+      },
+      "messages": {
+        "no-partner": "Treppe hat kein Ziel!",
+        "data-update-error": "Änderung konnte nicht gespeichert werden.",
+        "internal-error": "Interner Fehler im Stairway-Modul.",
+        "no-gm": "Um diese Treppe zu benutzen musst Du auf den Gamemaster warten.",
+        "no-token-selected": "Bitte mindestens einen Token auswählen.",
+        "disabled": "Du kannst diese Treppe nicht benutzen, da sie blockiert ist."
+      },
+      "status": {
+        "connected": "Verbunden.",
+        "no-partner": "Treppe hat kein Ziel in dieser Szene!",
+        "non-monogamous": "Treppe hat mehr als ein Ziel!",
+        "no-partner-other-scene": "Treppe hat kein Ziel in einer anderen Szene!"
+      },
+      "controls": {
+        "stairway": "Erzeuge Treppe",
+        "disabled": "Deaktiviere (sperre) Treppe",
+        "hidden": "Verstecke Treppe",
+        "animate": "Animiere Bewegung",
+        "clear": "Lösche Treppen",
+        "group": "Stairway-Modul Kontrollen"
+      }
+    }
+  }
+}

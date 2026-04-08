@@ -1,0 +1,96 @@
+<section id="ddb-encounter-munch-main" class="tab {{ tab.cssClass }} {{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+
+  <fieldset>
+    <legend>Encounter Selector</legend>
+
+    <div class="form-group">
+      <label>Filter encounters by Campaign?</label>
+      <div class="form-fields">
+        <select name="encounter-campaign-select" class="form-select" id="encounter-campaign-select">
+          <option value="">All Campaigns</option>
+          {{#each availableCampaigns}}
+          <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.name}} ({{this.dmUsername}}) - {{this.id}}</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Choose your encounter here!</label>
+      <div class="form-fields">
+        <select name="encounter-select" class="form-select" id="encounter-select">
+          <option value=""></option>
+          {{#each availableEncounters}}
+          <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.name}} ({{this.campaign.name}})</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+
+  </fieldset>
+
+  <fieldset>
+    <legend>Encounter Selector</legend>
+    <div class="form-description" id="campaign-details">
+      <p id="ddb-encounter-name">{{#if encounter.nameHtml }}{{{encounter.nameHtml}}}{{else}}<i class='fas fa-question'></i> <b>Encounter:</b></p>{{/if}}
+      <p id="ddb-encounter-summary">{{#if encounter.summaryHtml }}{{{encounter.summaryHtml}}}{{else}}<i class='fas fa-question'></i> <b>Summary:</b></p>{{/if}}
+      <p id="ddb-encounter-characters">{{#if encounter.charactersHtml }}{{{encounter.charactersHtml}}}{{else}}<i class='fas fa-question'></i> <b>Characters:</b></p>{{/if}}
+      <p id="ddb-encounter-monsters">{{#if encounter.monstersHtml }}{{{encounter.monstersHtml}}}{{else}}<i class='fas fa-question'></i> <b>Monsters:</b></p>{{/if}}
+      <p id="ddb-encounter-difficulty">{{#if encounter.difficultyHtml }}{{{encounter.difficultyHtml}}}{{else}}<i class='fas fa-question'></i> <b>Difficulty:</b></p>{{/if}}
+      <p id="ddb-encounter-rewards">{{#if encounter.rewardsHtml }}{{{encounter.rewardsHtml}}}{{else}}<i class='fas fa-question'></i> <b>Rewards:</b></p>{{/if}}
+      <p id="ddb-encounter-progress">{{#if encounter.progressHtml }}{{{encounter.progressHtml}}}{{else}}<i class='fas fa-question'></i> <b>In Progress:</b></p>{{/if}}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Encounter Options</legend>
+    <div class="form-group encounter-import-policy-config stacked checkbox-grid">
+      <div class="form-fields" style="--num-cols:2;">
+        {{#each encounterConfig}}
+        <label class="ddbimporter-long">
+          <dnd5e-checkbox name="{{this.name}}" id="{{this.name}}" {{#if this.isChecked}}checked{{/if}}
+          data-section="{{this.name}}" {{#if this.enabled}}enabled{{else}}disabled{{/if}}></dnd5e-checkbox>
+          <span>{{this.label}}</span>
+        </label>
+        {{/each}}
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Scene Selection</legend>
+
+    <div class="form-group">
+      <label>Scene Background Image</label>
+      <div class="form-fields">
+        <select name="encounter-scene-img-select" class="form-select" id="encounter-scene-img-select" {{#if createSceneSelect}}{{else}}disabled{{/if}}>
+          <option value="">No scene background image</option>
+          {{#each sceneImg}}
+          <option value="{{this.img}}">{{this.name}}</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Use Existing Scene</label>
+      <div class="form-fields">
+        <select name="encounter-scene-select" class="form-select" id="encounter-scene-select" {{#if existingSceneSelect}}{{else}}disabled{{/if}}>
+          <option value="">No scene selection</option>
+          {{#each scenes}}
+          <option value="{{this.id}}">{{this.name}}</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+
+  </fieldset>
+
+  <button data-action="importEncounter" id="encounter-button" class="encounter-button"
+  {{#if tiers.supporter}}
+    {{#if encounter.id}}{{else}}disabled{{/if}}>Import Encounter
+  {{else}}
+    disabled> Encounter Munch for Patreon Supporters!
+  {{/if}}
+  </button>
+</section>

@@ -1,0 +1,32 @@
+{
+  "DICE_TRAY": {
+    "Adv": "Vor",
+    "Advantage": "Vorteil (kh)",
+    "Disadvantage": "Nachteil (kl)",
+    "Dis": "Nach",
+    "For": "Glü",
+    "Fortune": "Glück (kh)",
+    "Misfortune": "Unglück (kl)",
+    "Mis": "Ung",
+    "Wild": "Wild",
+    "Ace": "Ass",
+    "WildDie": "Wildcard Würfel",
+    "ExplodingDie": "Explodierender Würfel",
+    "PlusOneDie": "+1d",
+    "MinusOneDie": "-1d",
+    "PlusOneDieLong": "Würfelgröße erhöhen",
+    "MinusOneDieLong": "Würfelgröße verkleinern",
+    "del": "del",
+    "clear": "clear",
+    "SETTINGS": {
+      "enableDiceTray": {
+        "name": "Aktiviere Würfelauswahl",
+        "hint": "Aktiviert eine Würfelauswahl unter dem Chat-Nachrichtenfenster (Erfordert ein Neuladen)."
+      },
+      "enableDiceCalculator": {
+        "name": "Aktiviere Würfelrechner",
+        "hint": "Aktiviert einen Dialog mit einem Würfelrechner beim Klick auf das W20 Symbol neben der Chatbox (Erfordert ein Neuladen)."
+      }
+    }
+  }
+}

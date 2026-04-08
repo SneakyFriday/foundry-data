@@ -1,0 +1,122 @@
+{
+	"DICE_TRAY": {
+		"Adv": "Ułatw.",
+		"Advantage": "Ułatwienie",
+		"DiceTray": "Dice Tray",
+		"Dis": "Utrud.",
+		"Disadvantage": "Utrudnienie",
+		"FateDice": "Kość Fate",
+		"For": "Szcz.",
+		"Fortune": "Szczęście (kh)",
+		"Misfortune": "Nieszczęście (kl)",
+		"Mis": "Pech",
+		"Wild": "Dzika",
+		"Ace": "As",
+		"WildDie": "Dzika kość",
+		"ExplodingDie": "Eksplodująca kość",
+		"PlusOneDie": "+1k",
+		"MinusOneDie": "-1k",
+		"PlusOneDieLong": "Zwiększ rozmiar kości",
+		"MinusOneDieLong": "Zmniejsz rozmiar kości",
+		"KeepHighest": "Zachowaj większy wynik",
+		"KeepLowest": "Zachowaj mniejszy wynik",
+		"Roll": "Rzut",
+
+		"Optional": "Opcjonalnie",
+
+		"DiceCreator": {
+			"CreateDice": "Utwórz kość",
+			"Formula": {
+				"name": "Formuła",
+				"hint": "Formuła, która zostanie dodana do czatu."
+			},
+			"Row": {
+				"name": "Wiersz",
+				"hint": "Wiersz, w którym zostanie umieszczony przycisk."
+			},
+			"Image": {
+				"name": "Obraz"
+			},
+			"Label": {
+				"name": "Etykieta",
+				"hint": "Etykieta wyświetlana w przypadku, gdy kostka nie ma obrazu."
+			},
+			"Tooltip": {
+				"name": "Podpowiedź",
+				"hint": "Podpowiedź wyświetlana po najechaniu kursorem na przycisk. Domyślnie jest to Formuła."
+			},
+			"Color": {
+				"name": "Kolor",
+				"hint": "Kolor wypełniający obraz."
+			}
+		},
+
+		"DiceRows": {
+			"compactMode": {
+				"label": "Tryb kompaktowy",
+				"hint": "Wyłącza dodatkowe rzędy kości i łączy dwa oryginalne rzędy."
+			},
+			"hideNumberInput": {
+				"label": "Ukryj wprowadzanie liczb"
+			},
+			"hideNumberButtons": {
+				"label": "Ukryj przyciski +/-"
+			},
+			"hideRollButton": {
+				"label": "Ukryj przycisk rzutu"
+			},
+			"Instruction1": "Kliknij dowolny przycisk kości, aby go edytować. Kliknij prawym przyciskiem myszy dowolny przycisk kości, aby go usunąć."
+		},
+
+		"KEYBINGINDS": {
+			"popout": {
+				"name": "Przełączanie wysuwanego Dice Tray"
+			}
+		},
+
+		"SETTINGS": {
+			"DiceCreator": "Kreator kości",
+			"DiceRowSettings": "Konfiguracja wierszy kości",
+			"autoOpenPopout": {
+				"name": "Automatyczne otwieranie wyskakującego okienka",
+				"hint": "Automatycznie otwiera wyskakujące okienko Dice Tray po załadowaniu strony."
+			},
+			"enableDiceTray": {
+				"name": "Włącz Dice Tray",
+				"hint": "Włącz wyświetlanie tacki na kości pod obszarem wiadomości czatu. Jest to ustawienie użytkownika dla graczy, którzy nie chcą tej tacki."
+			},
+			"hideAdv": {
+				"name": "Ukryj dodatkowe przyciski",
+				"hint": "Ukrywa przyciski Szczęścia/Nieszczęścia."
+			},
+			"popout": {
+				"name": "Przycisk wysuwania Dice Tray",
+				"hint": "Dodaje przycisk na pasku kontrolnym do włączania wyskakującego okienka Dice Tray. Można również przełączać wyskakujące okienko, ustawiając powiązanie klawiszy.",
+				"options": {
+					"all": "Wszystkie elementy sterujące"
+				}
+			},
+			"rightClickCommand": {
+				"name": "Polecenie prawego przycisku myszy",
+				"hint": "Ustawia zachowanie przycisku rzutu kością po kliknięciu prawym przyciskiem myszy.",
+				"options": {
+					"decrease": "Domyślne (zmniejsz liczbę kości)",
+					"roll": "Rzuć jedną kostką"
+				}
+			},
+			"PF2E": {
+				"flatCheckLabel": "{dc} {text}",
+				"flatCheck": {
+					"name": "Dodaj przyciski płaskiego testu",
+					"hint": "Zastępuje przyciski „Szczęście/Pech” przyciskami „ST 5/11 Płaski Test”."
+				}
+			},
+			"SWADE": {
+				"wildDieBehavior": {
+					"name": "Użyj puli kości dla dzikiego przycisku",
+					"hint": "Kliknięcie tej samej kości, gdy tryb Dziki jest aktywny, doda kości do puli, zamiast zwiększać obecną liczbę kości na liście."
+				}
+			}
+		}
+	}
+}

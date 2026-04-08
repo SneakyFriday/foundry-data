@@ -1,0 +1,8 @@
+<div>
+    <header class="sheet-header img-name flexrow">
+        <img class="dime-img" src="{{macro.img}}" title="{{macro.name}}" height="64" width="64"/>
+        <h4 class="dime-title">{{macro.name}}</h4>
+    </header>
+
+    {{formInput macroSchema.fields.command value=macro.command language=editorLang elementType="code-mirror"}}
+</div>

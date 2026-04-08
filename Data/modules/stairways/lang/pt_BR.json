@@ -1,0 +1,67 @@
+{
+  "stairways": {
+    "ui": {
+      "config": {
+        "title": "Configuração de Escada",
+        "tab-main": "Principal",
+        "tab-label": "Etiqueta",
+        "tab-position": "Posição",
+        "status": "Estado",
+        "name": "ID",
+        "name-warning": "Certifique-se de ter apenas duas escadas com a mesma ID!",
+        "scene": "Cena conectada",
+        "current-scene": "(Cena atual)",
+        "partner-scene-label": "Usar o nome da cena conectada",
+        "label": "Etiqueta",
+        "font-family": "Família da fonte",
+        "font-size": "Tamanho da fonte",
+        "text-color": "Cor do texto",
+        "icon": "Ícone",
+        "icons": {
+          "stairway": "Escada (Padrão)",
+          "door-steel": "Porta de aço",
+          "door-closed": "Porta Fechada",
+          "door-exit": "Porta de Saída",
+          "cave": "Caverna",
+          "house": "Casa",
+          "city": "Cidade",
+          "castle": "Castelo"
+        },
+        "hidden": "Ocultar dos jogadores",
+        "animate": "Animar Movimento",
+        "animate-hint-1": "Anima o uso da escada como um movimento normal.",
+        "locked": "Posição Fixa",
+        "reset": "Redefinir Padrões",
+        "submit": "Salvar",
+        "name-hint": "As escadas são conectadas quando ambas têm a mesma ID.",
+        "disabled": "Desativado (Bloqueado)",
+        "animate-hint-2": "Disponível apenas dentro da mesma cena."
+      },
+      "controls": {
+        "group": "Controles de escadas",
+        "stairway": "Criar escada",
+        "disabled": "Desativar (bloquear) escada",
+        "hidden": "Ocultar escada",
+        "animate": "Animar Movimento",
+        "clear": "Limpar Escadas"
+      },
+      "messages": {
+        "disabled": "Você não pode usar esta escada, ela parece desativada.",
+        "no-gm": "Você precisa esperar por seu MJ para usar a escada.",
+        "no-partner": "Escada leva a lugar nenhum!",
+        "no-token-selected": "Selecione pelo menos um token.",
+        "data-update-error": "Falha ao salvar sua alteração.",
+        "internal-error": "Erro interno no módulo Stairways."
+      },
+      "status": {
+        "connected": "Conectado.",
+        "no-partner-other-scene": "Cena conectada está ausente em outra cena.",
+        "no-partner": "Cena conectada está ausente na cena atual.",
+        "non-monogamous": "Tem mais de uma cena conectada!"
+      }
+    }
+  },
+  "DOCUMENT": {
+    "Stairway": "Escada"
+  }
+}

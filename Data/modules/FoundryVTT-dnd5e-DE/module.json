@@ -1,0 +1,69 @@
+{
+    "id": "FoundryVTT-dnd5e-DE",
+    "title": "DnD5e German Translation (Deutsch)",
+    "description": "German language support for the DND 5e system",
+    "authors": [
+        {
+            "name": "mhilbrunner",
+            "url": "https://github.com/mhilbrunner"
+        }
+    ],
+    "url": "https://github.com/mhilbrunner/foundryvtt-dnd5e-lang-de",
+    "manifest": "https://github.com/mhilbrunner/foundryvtt-dnd5e-lang-de/releases/latest/download/module.json",
+    "download": "https://github.com/mhilbrunner/foundryvtt-dnd5e-lang-de/releases/download/4.1.2/module.zip",
+    "version": "4.1.2",
+    "compatibility": {
+        "minimum": "11",
+        "verified": "12"
+    },
+    "esmodules": [
+        "dnd5e-de.js"
+    ],
+    "styles": [
+        "styles/modesto-font-fix.css"
+    ],
+    "languages": [
+        {
+            "lang": "de",
+            "name": "German",
+            "path": "languages/de.json"
+        }
+    ],
+    "packs": [],
+    "relationships": {
+        "systems": [
+            {
+                "id": "dnd5e",
+                "type": "system",
+                "manifest": "https://raw.githubusercontent.com/foundryvtt/dnd5e/master/system.json",
+                "compatibility": {
+                    "minimum": "4.0.0",
+                    "verified": "4.1.2"
+                }
+            }
+        ],
+        "requires": [],
+        "recommends": [
+            {
+                "id": "lib-wrapper",
+                "type": "module",
+                "reason": "Without libWrapper, some small details like ordinals aren't translated."
+            },
+            {
+                "id": "lang-de",
+                "type": "module",
+                "reason": "German core translation. This module is needed for Foundry core UI translations."
+            },
+            {
+                "id": "babele",
+                "type": "module",
+                "reason": "Without Babele, compendium content isn't translated."
+            },
+            {
+                "id": "metric-ruler-labels",
+                "type": "module",
+                "reason": "Allows to display metric and imperial units on rulers and templates at the same time."
+            }
+        ]
+    }
+}

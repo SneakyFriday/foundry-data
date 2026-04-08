@@ -1,0 +1,337 @@
+﻿#navigation {
+    z-index: 30;
+}
+
+.monks-scene-navigation:not(.category-filter) {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    border: none;
+    pointer-events: none;
+    flex: 0 0 40px;
+    height: 44px;
+    z-index: 30;
+    margin-bottom: 8px;
+    display: none;
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .scene::after {
+    font-style: normal;
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .scene.gm::after {
+    content: "";
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .scene.user::after {
+    display: flex;
+    height: 100%;
+    position: absolute;
+    right: 0.5rem;
+    top: 0;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-awesome);
+    font-size: var(--font-size-10);
+    color: var(--color-text-emphatic);
+    opacity: 0.5;
+    content: "";
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .scene.view::after {
+    content: "";
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .scene.active::after {
+    content: "";
+}
+
+#scene-navigation.monks-navigation {
+    max-height: 80%;
+}
+
+#scene-navigation.monks-navigation.allow-previous {
+    margin-left: 30px;
+}
+
+#scene-navigation.monks-navigation .inactive-container.folders {
+    position: relative;
+}
+
+#scene-navigation.monks-navigation .inactive-container:not(.folders) {
+    overflow-y: auto;
+    max-height: 100%;
+}
+
+#scene-navigation.monks-navigation #scene-navigation-inactive {
+    overflow: visible;
+    flex-wrap: nowrap;
+    padding-bottom: 0px;
+    pointer-events: all;
+    background-color: rgba(255, 255, 255, 0.5);
+    flex: 0 1 auto;
+    height: fit-content;
+    gap: 0.2em;
+    border-radius: 4px;
+}
+
+#scene-navigation.monks-navigation .inactive-container.folders #scene-navigation-inactive {
+    position: absolute;
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .scene {
+    cursor: pointer;
+}
+
+#scene-navigation.monks-navigation #scene-navigation-previous {
+    position: absolute;
+    top: 4px;
+    left: -30px;
+    width: 24px;
+    height: 24px;
+    font-size: var(--font-size-12);
+    text-align: center;
+    line-height: 24px;
+    pointer-events: all;
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .folder {
+    width: 175px;
+    position: relative;
+    padding: 0.5rem 1.5rem;
+    font-size: var(--font-size-12);
+    transition: background-color, opacity, color 0.25s;
+    display: block;
+    cursor: pointer;
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .folder .folder-name {
+    display: block;
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .folder:before {
+    display: flex;
+    height: 100%;
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    justify-content: center;
+    align-items: center;
+    content: "";
+    font-family: var(--font-awesome);
+    font-size: var(--font-size-10);
+    color: var(--color-text-emphatic);
+    opacity: 0.5;
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .folder.expanded:before {
+    content: "";
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .folder > menu {
+    display: none;
+    position: relative;
+    left: calc(100% + 25px);
+    top: -24px;
+    padding-left: 8px;
+    gap: 0.2em;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .folder.expanded > menu {
+    display: flex;
+    width: 183px;
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .scene {
+    width: 175px;
+}
+
+#scene-navigation.monks-navigation .scene-navigation-menu .scene.italic {
+    font-style: italic;
+}
+
+.sidebar-tab .scene.background {
+    line-height: 27px;
+    display: flex;
+}
+
+.sidebar-tab .scene.background > a {
+    box-shadow: none;
+}
+
+.sidebar-tab .scene.background > a div {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #000;
+    color: #fff;
+    max-width: calc(100% - 20px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    height: 38px;
+    margin: auto;
+    vertical-align: middle;
+}
+
+.sidebar-tab.smaller-directory .scene.background > a div{
+    height: 28px;
+    line-height: 17px;
+}
+
+.scenes-sidebar .scene.background:hover > a {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.scenes-sidebar .scene.background:hover > a div {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+#sidebar .sidebar-tab .scene.background > a > i {
+    color: #fff;
+}
+
+.sidebar-tab .scene a i {
+    margin-right: 4px;
+}
+
+.sidebar-tab .scene .permissions {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top: 0px;
+    font-size: 10px;
+    height: 20px;
+    padding: 2px 4px;
+    line-height: 14px;
+    color: #fff;
+}
+
+.sidebar-tab:not(.smaller-directory.side-icon):not(.noimage-directory) .scene .permissions {
+    left: 0px;
+    border-bottom-right-radius: 4px;
+}
+
+.scenes-sidebar.smaller-directory.side-icon .scene .permissions, 
+.scenes-sidebar.noimage-directory .scene .permissions {
+    right: 0px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 0px;
+}
+
+.sidebar-tab .scene .permissions > a {
+    line-height: 14px;
+}
+
+.sidebar-tab .scene .permissions i {
+    font-size: 13px;
+    text-shadow: 1px 1px 3px #000;
+}
+
+.sidebar-tab .scene .permissions:empty {
+    display: none;
+}
+
+.sidebar-tab .scene .permissions div {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    border-radius: 100%;
+    text-align: center;
+    color: #000;
+    font-weight: 700;
+    background: #97dff4;
+    border: 1px solid #000;
+    margin-right: 2px;
+    text-shadow: none;
+}
+
+.sidebar-tab .scene .permissions i + div,
+.sidebar-tab .scene .permissions i + i {
+    margin-left: 5px;
+}
+
+.sidebar-tab .scene:not(.navigate) .fa-compass {
+    color: #808080;
+}
+
+#navigation .monks-scene-navigation:not(:first-child) .scene-list {
+    border-right-width: 4px;
+    border-left-width: 4px;
+}
+
+.scenes-sidebar.smaller-directory .scene {
+    height: var(--sidebar-item-height);
+    line-height: var(--sidebar-item-height);
+}
+
+.scenes-sidebar.noimage-directory .scene {
+    height: 32px;
+}
+
+.scenes-sidebar.smaller-directory:not(.side-icon) .scene > a {
+    font-size: var(--font-size-14);
+}
+
+.scenes-sidebar.smaller-directory:not(.side-icon) .scene:not(.background) > a {
+    height: 32px;
+    line-height: 21px;
+}
+
+.scenes-sidebar.smaller-directory.side-icon .scene > a,
+.scenes-sidebar.noimage-directory .scene > a {
+    font-size: var(--font-size-14);
+    text-align: left;
+}
+
+.scenes-sidebar.smaller-directory .scene > a {
+    line-height: var(--sidebar-item-height);
+    height: var(--sidebar-item-height);
+}
+
+.scenes-sidebar.smaller-directory.side-icon .scene > a {
+    padding-left: calc(var(--sidebar-item-height) + 8px);
+}
+
+.scenes-sidebar.noimage-directory .scene > a {
+    height: 32px;
+    padding-left: 8px;
+}
+
+.scenes-sidebar.smaller-directory.side-icon .scene > img {
+    flex: 0 0 var(--sidebar-item-height);
+    height: var(--sidebar-item-height);
+    width: var(--sidebar-item-height);
+    object-fit: cover !important;
+    object-position: center !important;
+    border: none;
+}
+
+.scenes-sidebar.noimage-directory .scene > img {
+    display: none;
+}
+
+#navigation .nav-item-container {
+    background: rgba(0, 0, 0, 0.5);
+    height: 49px;
+    padding: 0px;
+    margin-bottom: 0px;
+    flex: 0 0 32px;
+    width: 32px;
+}
+
+#navigation .nav-item-container #nav-toggle {
+    background: transparent;
+    line-height: 24px;
+    flex: 1;
+}
+
+#navigation .nav-item-container #nav-back {
+    line-height: 24px;
+    text-align: center;
+}

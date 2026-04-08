@@ -1,0 +1,44 @@
+{
+  "license": "MIT",
+  "scripts": {
+    "format": "standard --fix | snazzy",
+    "lint": "standard --lint | snazzy",
+    "lint:editorconfig": "editorconfig-checker",
+    "prepare": "husky install"
+  },
+  "standard": {
+    "globals": [
+      "canvas",
+      "Canvas",
+      "CanvasDocumentMixin",
+      "CONFIG",
+      "ControlIcon",
+      "ControlsLayer",
+      "Dialog",
+      "DocumentSheet",
+      "DocumentSheetConfig",
+      "DOMParser",
+      "Event",
+      "foundry",
+      "game",
+      "Game",
+      "getDocumentClass",
+      "Hooks",
+      "PIXI",
+      "PlaceableObject",
+      "PlaceablesLayer",
+      "renderTemplate",
+      "Scene",
+      "Settings",
+      "TokenLayer",
+      "ui",
+      "User"
+    ]
+  },
+  "devDependencies": {
+    "editorconfig-checker": "^4.0.2",
+    "husky": "^7.0.0",
+    "snazzy": "^9.0.0",
+    "standard": "^16.0.4"
+  }
+}

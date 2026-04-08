@@ -1,0 +1,70 @@
+{
+    "title": "Wall Height",
+    "id": "wall-height",
+    "description": "Adds the ability to set wall height for walls so that tokens can look and move over them.",
+    "version": "7.0.8",
+    "authors": [
+        {
+            "name": "theripper93",
+            "email": "tsplab@gmail.com",
+            "url": "https://theripper93.com/"
+        },
+        {
+            "name": "Ian Murphy",
+            "discord": "Erithtotl#5139"
+        },
+        {
+            "name": "Cole Schultz",
+            "discord": "cole#9640"
+        }
+    ],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "lang/en.json"
+        },
+        {
+            "lang": "es",
+            "name": "Español",
+            "path": "lang/es.json"
+        }
+    ],
+    "esmodules": [
+        "scripts/wall-height.js"
+    ],
+    "packs": [
+        {
+            "name": "wall-height-macros",
+            "label": "Wall Height Macros",
+            "path": "packs/macros.db",
+            "type": "Macro",
+            "private": false
+        }
+    ],
+    "styles": [],
+    "url": "https://github.com/theripper93/wall-height",
+    "manifest": "https://github.com/theripper93/wall-height/releases/latest/download/module.json",
+    "download": "https://github.com/theripper93/wall-height/releases/download/7.0.8/module.zip",
+    "relationships": {
+        "requires": [
+            {
+                "id": "lib-wrapper",
+                "type": "module",
+                "compatibility": {}
+            }
+        ],
+        "recommends": [
+            {
+                "id": "theripper-premium-hub",
+                "type": "module",
+                "reason": "TheRipper93's Module Hub will alert you of critical updates and give you easy access to documentation in the configure settings screen",
+                "compatibility": {}
+            }
+        ]
+    },
+    "compatibility": {
+        "minimum": "13",
+        "verified": "13"
+    }
+}

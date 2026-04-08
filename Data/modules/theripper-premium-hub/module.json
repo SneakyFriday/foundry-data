@@ -1,0 +1,33 @@
+{
+    "title": "TheRipper93's Module Hub",
+    "description": "Utility for updates and troubleshooting of modules. Includes small tweaks such as Custom CSS, Compact Sidebar, Dice Tray, Auto rotation and more.",
+    "version": "6.0.0",
+    "authors": [
+        {
+            "name": "theripper93",
+            "email": "tsplab@gmail.com",
+            "url": "https://www.patreon.com/theripper93"
+        }
+    ],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "languages/en.json"
+        }
+    ],
+    "esmodules": [
+        "index.js"
+    ],
+    "styles": [
+        "styles/module.css"
+    ],
+    "url": "https://github.com/theripper93/theripper-premium-hub",
+    "manifest": "https://github.com/theripper93/theripper-premium-hub/releases/latest/download/module.json",
+    "download": "https://github.com/theripper93/theripper-premium-hub/releases/download/6.0.0/module.zip",
+    "id": "theripper-premium-hub",
+    "compatibility": {
+        "minimum": "14",
+        "verified": "14"
+    }
+}

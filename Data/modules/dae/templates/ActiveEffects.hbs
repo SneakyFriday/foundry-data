@@ -1,0 +1,75 @@
+<form autocomplete="off">
+    <section>
+        <div class="dnd5e sheet actor inventory-filters flexrow dae-inventory-filters">
+            <div class="dae-filter-container">
+                <ul class="filter-list flexrow dae-filter-list" data-filter="inventory">
+                    <li class="filter-item dae-filter-item{{#if summaryActive}} active{{/if}}" data-action="toggleFilter" data-filter="summary">{{localize "dae.summaryFilter"}}</li>
+                    <li class="filter-item dae-filter-item{{#if enabledActive}} active{{/if}}" data-action="toggleFilter" data-filter="enabled">{{localize "dae.enabledFilter"}}</li>
+                    <li class="filter-item dae-filter-item{{#if temporaryActive}} active{{/if}}" data-action="toggleFilter" data-filter="temporary">{{localize "dae.temporaryFilter"}}</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+    <section>
+        <div class="dnd5e sheet item dae-item">
+            {{#if showEffects}}
+                <ol class="dae-effect-list">
+                    <li class="flexrow effect-header dae-effect-first-header">
+                        <div class="effect-name dae-effect-name">{{localize "dae.ActiveEffectName"}}</div>
+                        <div class="effect-mode dae-effect-mode">{{localize "dae.EffectMode"}}</div>
+                        <div class="effect-value dae-effect-value">{{localize "dae.EffectValue"}}</div>
+                        {{#if canEdit}}
+                            <div class="effect-controls dae-effect-controls">
+                                <div class="newEffect dae-new-effect">
+                                    <select name="newEffect" data-dtype="String">
+                                        {{selectOptions effectList selected=effect}}
+                                    </select>
+                                </div>
+
+                                <a class="effect-add dae-effect-add" data-action="addEffect" title={{localize dae.add}}><i class="fas fa-plus"></i></a>
+                            </div>
+                        {{/if}}
+                    </li>
+
+                    {{#each actives as |effect iid|}}
+                        <li class="flexrow effect-header dae-effect-header" data-effect-id="{{effect._id}}" data-effect-uuid="{{effect.uuid}}">
+                            <div class="effect-label dae-effect-label">
+                                <img src="{{effect.img}}" class="dae-effect-img">
+                                {{effect.name}}
+                                {{effect.sourceName}}
+                            </div>
+                            {{#if effect.transfer}}
+                                <i class="fas fa-arrow-down dae-arrow-down"></i>
+                            {{else}}
+                                <i class="fas fa-arrow-right dae-arrow-right"></i>
+                            {{/if}}
+                            {{#if effect.disabled}}
+                                <div class="dae-effect-status">&nbsp{{localize "dae.disabled"}}</div>
+                            {{else if effect.isSuppressed}}
+                                <div class="dae-effect-status">&nbsp{{localize "dae.suppressed"}}</div>
+                            {{else}}
+                                {{#if effect.isTemporary}}
+                                    <div class="dae-effect-duration">{{effect.duration.label}}</div>
+                                {{else}}
+                                    <div class="dae-effect-status">&nbsp{{localize "dae.enabled"}}</div>
+                                {{/if}}
+                            {{/if}}
+
+                            <div class="effect-controls dae-effect-list">
+                                <a class="effect-edit dae-effect-edit" data-action="editEffect" title={{localize dae.edit}}><i class="fas fa-edit"></i></a>
+                                <a class="effect-delete dae-effect-delete" data-action="deleteEffect" title={{localize dae.Delete}}><i class="fas fa-trash"></i></a>
+                            </div>
+                        </li>
+                        {{#each effect.changes as |change cid|}}
+                            <li class="flexrow dae-change-list" effect-id="{{effect._id}}" change-id="{{cid}}">
+                                <div class="effect-name dae-effect-name">{{change.label}}</div>
+                                <div class="effect-mode dae-effect-mode">{{lookup ../../modes @change.mode}}</div>
+                                <div class="effect-value-value dae-effect-value-value">{{change.value}}</div>
+                            </li>
+                        {{/each}}
+                    {{/each}}
+                </ol>
+            {{/if}}
+        </div>
+    </section>
+</form>

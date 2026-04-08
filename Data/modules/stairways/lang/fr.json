@@ -1,0 +1,67 @@
+{
+  "stairways": {
+    "ui": {
+      "config": {
+        "tab-main": "Principal",
+        "tab-label": "Étiquette",
+        "status": "État",
+        "name": "ID",
+        "title": "Configuration d'escalier",
+        "scene": "Scène partenaire",
+        "current-scene": "(Scène actuelle)",
+        "partner-scene-label": "Utiliser le nom de la scène partenaire",
+        "label": "Étiquette",
+        "font-family": "Famille de police",
+        "font-size": "Taille de police",
+        "text-color": "Couleur du texte",
+        "icon": "Icône",
+        "icons": {
+          "stairway": "Escalier (par défaut)",
+          "door-steel": "Porte de fer",
+          "door-closed": "Porte fermée",
+          "door-exit": "Porte de sortie",
+          "cave": "Grotte",
+          "house": "Maison",
+          "city": "Ville",
+          "castle": "Château"
+        },
+        "disabled": "Désactivé (Verrouillé)",
+        "hidden": "Cacher aux joueurs",
+        "animate": "Déplacement animé",
+        "animate-hint-2": "Disponible seulement dans la même scène.",
+        "locked": "Position définie",
+        "reset": "Rétablir les valeurs par défaut",
+        "submit": "Sauvegarder",
+        "tab-position": "Position",
+        "name-warning": "Vérifiez que seuls deux escalier ont le même ID !",
+        "animate-hint-1": "Animer l'utilisation de l'escalier comme un déplacement normal.",
+        "name-hint": "Les escaliers sont connectés lorsque les deux ont le même ID."
+      },
+      "controls": {
+        "group": "Contrôles d'escalier",
+        "stairway": "Créer un escalier",
+        "hidden": "Cacher l'escalier",
+        "animate": "Déplacement animé",
+        "clear": "Effacer les escaliers",
+        "disabled": "Désactiver (Verrouiller) l'Escalier"
+      },
+      "messages": {
+        "disabled": "Vous ne pouvez pas utiliser cet escalier, il a l'air désactivé.",
+        "no-partner": "Les escaliers ne mènent nulle part !",
+        "no-token-selected": "Veuillez choisir au moins un jeton.",
+        "data-update-error": "Échec de l'enregistrement de votre modification.",
+        "internal-error": "Erreur interne dans le module escalier.",
+        "no-gm": "Vous devez attendre votre MJ pour utiliser l'escalier."
+      },
+      "status": {
+        "connected": "Connecté.",
+        "no-partner-other-scene": "Partenaire manquant dans l'autre scène.",
+        "no-partner": "Partenaire manquant dans la scène actuelle.",
+        "non-monogamous": "A plus d'un partenaire !"
+      }
+    }
+  },
+  "DOCUMENT": {
+    "Stairway": "Escalier"
+  }
+}

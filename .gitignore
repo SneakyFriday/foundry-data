@@ -1,0 +1,13 @@
+# Große Assets ignorieren
+Data/assets/
+Data/worlds/*/assets/
+*.mp3
+*.mp4
+*.wav
+*.webm
+*.ogg
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.svg

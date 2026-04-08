@@ -1,0 +1,46 @@
+<div>
+    <fieldset>
+        <div class="form-group">
+            <label for="compactMode">{{localize "DICE_TRAY.DiceRows.compactMode.label"}}</label>
+            <div class="form-fields">
+                <input id="compactMode" type="checkbox" name="compactMode" {{checked settings.compactMode}}>
+            </div>
+            <p class="hint">{{localize "DICE_TRAY.DiceRows.compactMode.hint"}}</p>
+        </div>
+        <div class="form-group">
+            <label for="hideNumberInput">{{localize "DICE_TRAY.DiceRows.hideNumberInput.label"}}</label>
+            <div class="form-fields">
+                <input id="hideNumberInput" type="checkbox" name="hideNumberInput" {{checked settings.hideNumberInput}} {{disabled (not settings.compactMode)}}>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="hideNumberButtons">{{localize "DICE_TRAY.DiceRows.hideNumberButtons.label"}}</label>
+            <div class="form-fields">
+                <input id="hideNumberButtons" type="checkbox" name="hideNumberButtons" {{checked settings.hideNumberButtons}} {{disabled settings.compactMode}}>
+            </div>
+        </div>
+        {{#if showExtraButtons}}
+        <div class="form-group">
+            <label for="hideAdv">{{localize "DICE_TRAY.SETTINGS.hideAdv.name"}}</label>
+            <div class="form-fields">
+                <input id="hideAdv" type="checkbox" name="hideAdv" {{checked settings.hideAdv}}>
+            </div>
+        </div>
+        {{/if}}
+        <div class="form-group">
+            <label for="hideRollButton">{{localize "DICE_TRAY.DiceRows.hideRollButton.label"}}</label>
+            <div class="form-fields">
+                <input id="hideRollButton" type="checkbox" name="hideRollButton" {{checked settings.hideRollButton}}>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>{{localize "Preview"}}</legend>
+        <div>
+            <p class="hint">{{localize "DICE_TRAY.DiceRows.Instruction1"}}</p>
+        </div>
+        <section class="sidebar-preview flexcol">
+            {{>"modules/dice-calculator/templates/tray.html" dicerows=diceRows settings=settings }}
+        </section>
+    </fieldset>
+</div>

@@ -1,0 +1,760 @@
+.action-sheet form .form-group label {
+    flex: 1;
+    align-self: flex-start;
+}
+
+.action-sheet .display-value,
+.wall-config .display-value {
+    display: block;
+    height: var(--input-height);
+    color: var(--color-light-3);
+    font-family: inherit;
+    font-size: inherit;
+    text-align: inherit;
+    line-height: var(--input-height);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: var(--color-cool-4);
+    padding: 1px 5px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+body.theme-light .action-sheet:not(.themed) .display-value,
+body.theme-light .wall-config:not(.themed) .display-value,
+.action-sheet.theme-light .display-value,
+.wall-config.theme-light .display-value {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--color-dark-4);
+    border-color: var(--color-dark-6);
+    color: var(--color-dark-2);
+}
+
+body.theme-light .action-sheet:not(.themed) .display-value
+.action-sheet.theme-light .display-value,
+body.theme-light .wall-config:not(.themed) .display-value,
+.wall-config.theme-light .display-value {
+    color: var(--color-dark-2);
+    box-shadow: inset 0 0 6px var(--input-background-color);
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-dark-6);
+}
+
+.action-sheet .placeholder-style {
+    color: var(--color-light-5);
+}
+
+body.theme-light .action-sheet:not(.themed) .placeholder-style,
+.action-sheet.theme-light .placeholder-style {
+    color: var(--color-dark-4);
+}
+
+.action-sheet button[data-target="data.entity"] i,
+.action-sheet button[data-target="data.location"] i,
+.action-sheet button[data-target="data.either"] i,
+.action-sheet button[data-target="data.position"] i {
+    margin-right: 0px;
+}
+
+.pertoken{
+    display:inline-block;
+    font-size:10px;
+}
+
+.pertoken:not(:last-child):after {
+    content: ',';
+    padding-right: 4px;
+}
+
+.active-tile-backdrop{
+    opacity:0;
+    background: #C0C0C0;
+    position:absolute;
+    top:0px;
+    left: 0px;
+    width:100%;
+    height:100%;
+    z-index: 1;
+}
+
+#trigger-action .variant {
+    flex: 0 0 75px;
+    margin-left: 10px;
+}
+
+#trigger-action .tt-hint {
+    color: #999;
+    width: 100%;
+}
+
+#trigger-action .tt-hint input{
+    background: rgba(0, 0, 0, 0);
+}
+
+#trigger-action .tt-menu {
+    width: 314px;
+    margin: 4px 0;
+    padding: 4px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+    -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+    box-shadow: 0 5px 10px rgba(0,0,0,.2);
+    overflow: hidden;
+    color: #333;
+}
+
+#trigger-action .tt-suggestion {
+    padding: 3px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#trigger-action .tt-suggestion:hover {
+    cursor: pointer;
+    color: #fff;
+    background-color: #0097cf;
+}
+
+#trigger-action .tt-suggestion.tt-cursor {
+    color: #fff;
+    background-color: #0097cf;
+}
+
+#trigger-action .tt-suggestion p {
+    margin: 0;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .action-list .action-style {
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .action-list .filter-style {
+    font-weight: bold;
+    color: #bd7582;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .action-list .logic-style {
+    font-weight: bold;
+    color: #a3a9e3;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .action-list .entity-style {
+    font-style: italic;
+    color: #d6d6d6;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .action-list .details-style {
+    color: #c59de0;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .action-list .value-style {
+    color: #d8f2db;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .action-list .tag-style {
+    color: #62b4f5;
+    font-style: italic;
+}
+
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .tab.triggers .action-list .action-style,
+.tile-config.monks-active-tiles.theme-light .tab.triggers .action-list .action-style {
+    color: #000000;
+}
+
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .tab.triggers .action-list .filter-style,
+.tile-config.monks-active-tiles.theme-light .tab.triggers .action-list .filter-style {
+    color: #220208;
+}
+
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .tab.triggers .action-list .logic-style,
+.tile-config.monks-active-tiles.theme-light .tab.triggers .action-list .logic-style {
+    color: #020522
+}
+
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .tab.triggers .action-list .entity-style,
+.tile-config.monks-active-tiles.theme-light .tab.triggers .action-list .entity-style {
+    color: #242424;
+}
+
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .tab.triggers .action-list .details-style,
+.tile-config.monks-active-tiles.theme-light .tab.triggers .action-list .details-style {
+    color: #1b012d;
+}
+
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .tab.triggers .action-list .value-style,
+.tile-config.monks-active-tiles.theme-light .tab.triggers .action-list .value-style {
+    color: #515151;
+}
+
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .tab.triggers .action-list .tag-style,
+.tile-config.monks-active-tiles.theme-light .tab.triggers .action-list .tag-style {
+    color: #063d68;
+}
+
+#trigger-action .action-container,
+#trigger-action .action-container .action-controls {
+    gap: 0.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+#trigger-action .images-list,
+#trigger-action .buttons-list {
+    padding-left: 0px;
+    margin: 0px;
+}
+
+#trigger-action .images-list .item-header .item-controls,
+#trigger-action .buttons-list .item-header .item-controls,
+.monks-active-tiles .images-list .item-header .item-controls {
+    justify-content: flex-end;
+    color: #7a7971;
+    font-size: 12px;
+}
+
+#trigger-action .file-list {
+    padding-left: 0px;
+    margin-top: 0px;
+    color: #191813;
+    max-height: 100px;
+    overflow-y: auto;
+    max-width: 400px;
+}
+
+.monks-active-tiles .file-list {
+    padding-left: 0px;
+    margin-top: 0px;
+    color: #191813;
+    overflow-y: auto;
+    max-height: 350px;
+}
+
+#trigger-action .file-list li,
+.monks-active-tiles.sheet .file-list li.item {
+    border-bottom: 1px solid #c9c7b8;
+    line-height: 25px;
+    padding: 0px 4px;
+}
+
+#trigger-action .items-list li a,
+.monks-active-tiles .file-list li a {
+    color: #7a7971;
+    flex: 0 0 28px;
+    height: 28px;
+    width: 28px;
+    text-align: center;
+}
+
+#trigger-action .items-list .item-header {
+    height: 28px;
+    margin: 2px 0;
+    padding: 0;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.05);
+    border: 2px groove #eeede0;
+    font-weight: bold;
+}
+
+#trigger-action .items-list .item-header > * {
+    font-size: 12px;
+    text-align: center;
+}
+
+#trigger-action .items-list .item-header h3 {
+    padding-left: 5px;
+    font-family: "Modesto Condensed", "Palatino Linotype", serif;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: left;
+    font-size: 16px;
+}
+
+#trigger-action .file-list .image-name,
+.monks-active-tiles .file-list .image-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#trigger-action .select-field-group,
+.wall-config .select-field-group {
+    max-width: 400px;
+    gap: 1px;
+}
+
+#trigger-action .select-field-group .display-value,
+.wall-config .select-field-group .display-value {
+    margin-right: 5px;
+}
+
+#board.cooldown {
+    cursor: wait !important;
+}
+
+.system-wfrp4e .monks-active-tiles.sheet .items-list .item-list {
+    background: url(../../../systems/wfrp4e/ui/frames/parchment-texture.webp);
+}
+
+.system-wfrp4e .monks-active-tiles.sheet .item-header {
+    color: #d6d6d6;
+    box-shadow: 0px 0px 10px inset black;
+    background: #352516;
+}
+
+.monks-active-tiles .tab[data-tab="activetile"] {
+    gap: 0rem;
+}
+
+.monks-active-tiles .tab[data-tab="activetile"] .sheet-tabs.tabs {
+    margin-top: -0.8rem;
+}
+
+.matt-tab.tab {
+    gap: 0.2rem;
+    overflow-y: auto;
+    max-height: 570px;
+}
+
+.alter-tags {
+    width: 28px;
+    height: 28px;
+}
+
+.history-list .item-list {
+    overflow-y: auto;
+    max-height: 500px;
+    font-size: var(--font-size-14);
+}
+
+.multiple-dropdown-select {
+    position: relative;
+}
+
+.multiple-dropdown {
+    height: var(--input-height);
+    background: var(--color-cool-4);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    outline: 1px solid transparent;
+    transition: outline-color 0.5s;
+    padding: 2px;
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--color-light-3);
+}
+
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .multiple-dropdown,
+.tile-config.monks-active-tiles.theme-light .multiple-dropdown {
+    color: var(--color-dark-2);
+    box-shadow: inset 0 0 6px var(--input-background-color);
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-dark-6);
+}
+
+.multiple-dropdown > div {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 270px;
+}
+
+.multiple-dropdown > i {
+    flex: 0 0 14px;
+    text-align: center;
+    line-height: 19px;
+    font-size: 11px;
+}
+
+.multiple-dropdown .multiple-dropdown-option {
+    display: inline-block;
+    background-color: #333;
+    border-radius: 4px;
+    padding: 1px 4px;
+    border: 1px solid #777;
+    margin-right: 2px;
+}
+
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .multiple-dropdown .multiple-dropdown-option,
+.tile-config.monks-active-tiles.theme-light .multiple-dropdown .multiple-dropdown-option {
+    background-color: #888;
+}
+
+.multiple-dropdown .multiple-dropdown-option .remove-option {
+    cursor: pointer;
+    display: inline-block;
+    font-size: 20px;
+    line-height: 2px;
+    vertical-align: middle;
+}
+
+.multiple-dropdown-select .dropdown-list {
+    display: none;
+    max-height: 200px;
+    overflow-y: auto;
+    margin: 0px 5px;
+    color: black;
+    position: absolute;
+    float: left;
+    left: -1px;
+    top: 100%;
+    background: url(../../../ui/parchment.jpg) repeat;
+    border: 1px solid #808080;
+    width: calc(100% + 2px);
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    z-index: 100;
+}
+
+.multiple-dropdown-select .dropdown-list.open {
+    display: block;
+}
+
+.multiple-dropdown-select .dropdown-list .multiple-dropdown-item {
+    padding: 4px;
+    cursor: pointer;
+    min-height: 25px;
+    width: 100%;
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.multiple-dropdown-select .dropdown-list .multiple-dropdown-item.selected {
+    background-color: coral;
+    color: #FFF;
+}
+
+.multiple-dropdown-select .dropdown-list .multiple-dropdown-item:hover {
+    background-color: #1e90ff;
+    color: #FFF;
+}
+
+a.tile-trigger-link {
+    background: #DDD;
+    padding: 1px 4px;
+    border: 1px solid #4b4a44;
+    border-radius: 2px;
+    white-space: nowrap;
+    word-break: break-all;
+}
+
+a.tile-trigger-link i {
+    color: #7a7971;
+    margin-right: 2px;
+}
+
+.monks-active-tiles-dialog .dialog-buttons {
+    flex: 0;
+}
+
+body.system-CoC7 .multiple-dropdown .multiple-dropdown-option {
+    width: unset;
+}
+
+#trigger-action.action-sheet .action-controls .matt-code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0px 3px;
+}
+
+.tile-config.monks-active-tiles .action-list .landing-marker {
+    flex: 0 0 4px;
+    display: block;
+    background-color: #808080;
+}
+
+.tile-config.monks-active-tiles .action-list .item:not(:last-child) .landing-marker {
+    margin-bottom: -1px;
+}
+
+.tile-config.monks-active-tiles .action-list .landing-marker[marker="1"] { background-color: #008000; }
+.tile-config.monks-active-tiles .action-list .landing-marker[marker="2"] { background-color: #800080; }
+.tile-config.monks-active-tiles .action-list .landing-marker[marker="3"] { background-color: #0000FF; }
+.tile-config.monks-active-tiles .action-list .landing-marker[marker="4"] { background-color: #FF0000; }
+.tile-config.monks-active-tiles .action-list .landing-marker[marker="5"] { background-color: #FFA500; }
+.tile-config.monks-active-tiles .action-list .landing-marker[marker="6"] { background-color: #A52A2A; }
+.tile-config.monks-active-tiles .action-list .landing-marker[marker="7"] { background-color: #008080; }
+.tile-config.monks-active-tiles .action-list .landing-marker[marker="8"] { background-color: #FFFF00; }
+
+.tile-config.monks-active-tiles .action-list .action .name[marker] { border-top: 1px dashed #808080; }
+.tile-config.monks-active-tiles .action-list .action .name.landing-stop[marker] { border-top-style: solid; }
+.tile-config.monks-active-tiles .action-list .action .name[marker="1"] { border-top-color: #008000; }
+.tile-config.monks-active-tiles .action-list .action .name[marker="2"] { border-top-color: #800080; }
+.tile-config.monks-active-tiles .action-list .action .name[marker="3"] { border-top-color: #0000FF; }
+.tile-config.monks-active-tiles .action-list .action .name[marker="4"] { border-top-color: #0000FF; }
+.tile-config.monks-active-tiles .action-list .action .name[marker="5"] { border-top-color: #FFA500; }
+.tile-config.monks-active-tiles .action-list .action .name[marker="6"] { border-top-color: #A52A2A; }
+.tile-config.monks-active-tiles .action-list .action .name[marker="7"] { border-top-color: #008080; }
+.tile-config.monks-active-tiles .action-list .action .name[marker="8"] { border-top-color: #FFFF00; }
+
+#trigger-action select option[custom="true"] {
+    border-bottom: 1px solid #808080;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+}
+
+#template-config p.error-message:empty {
+    display: none;
+}
+
+#trigger-action .form-group.small-field .form-fields > * {
+    flex: 0 0 150px;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .sheet-header {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+}
+
+.tile-config.monks-active-tiles .tab.triggers {
+    gap: 0.5rem;
+}
+
+.tile-config.monks-active-tiles .sounds-group,
+.tile-config.monks-active-tiles .actions-group,
+.tile-config.monks-active-tiles .images-group {
+    align-content: flex-start;
+    padding-bottom: 5px;
+}
+
+.tile-config.monks-active-tiles .tab.triggers header,
+.tile-config.monks-active-tiles .tab.triggers ol,
+#tile-history .history-group header,
+#tile-history .history-group ol,
+#trigger-variables .variable-group header,
+#trigger-variables .variable-group ol,
+#trigger-action .file-list header,
+#trigger-action .file-list ol,
+#trigger-action .buttons-list header,
+#trigger-action .buttons-list ol {
+    align-items: center;
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 2px;
+    position: relative;
+    text-align: left;
+}
+
+.tile-config.monks-active-tiles .tab.triggers ol {
+    gap: 0 0.25rem;
+}
+
+.tile-config.monks-active-tiles .tab.triggers ol,
+#tile-history .history-group ol,
+#trigger-variables .variable-group ol,
+#trigger-action .file-list ol,
+#trigger-action .buttons-list ol {
+    max-height: 400px;
+}
+
+.tile-config.monks-active-tiles .tab.triggers header .controls,
+.tile-config.monks-active-tiles .tab.triggers ol .controls,
+#trigger-action .file-list ol .controls,
+#trigger-action .buttons-list ol .controls {
+    justify-content: flex-end;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .actions-group header,
+.tile-config.monks-active-tiles .tab.triggers .actions-group ol {
+    grid-template-columns: 88% 12%;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .sounds-group header,
+.tile-config.monks-active-tiles .tab.triggers .sounds-group ol {
+    grid-template-columns: 88% 12%;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .images-group header {
+    grid-template-columns: 100%;
+}
+.tile-config.monks-active-tiles .tab.triggers .images-group ol {
+    grid-template-columns: 88% 12%;
+}
+
+#tile-history .history-group header,
+#tile-history .history-group ol {
+    grid-template-columns: 25% 28% 16% 25% 5%;
+}
+
+#trigger-variables .variable-group header {
+    grid-template-columns: 30% 70%;
+}
+
+#trigger-variables .variable-group ol {
+    grid-template-columns: 30% 66% 4%;
+}
+
+#trigger-action .file-list header {
+    grid-template-columns: 100%;
+    justify-items: flex-end;
+}
+#trigger-action .file-list ol {
+    grid-template-columns: 89% 11%;
+}
+
+#trigger-action .buttons-list header,
+#trigger-action .buttons-list ol {
+    grid-template-columns: 35% 32% 10% 10% 10%;
+}
+
+#trigger-action .buttons-list ol {
+    padding-left: 10px;
+}
+
+.tile-config.monks-active-tiles .tab.triggers .actions-group header,
+.tile-config.monks-active-tiles .tab.triggers .sounds-group header,
+.tile-config.monks-active-tiles .tab.triggers .images-group header,
+#tile-history .history-group header,
+#trigger-variables .variable-group header,
+#trigger-action .file-list header,
+#trigger-action .buttons-list header {
+    height: 30px;
+    line-height: 25px;
+    margin: 2px 0;
+    padding: 0;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px groove #e7d1b1;
+    font-weight: bold;
+    flex-wrap: nowrap;
+    padding: 1px 8px;
+}
+
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .tab.triggers .actions-group header,
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .tab.triggers .sounds-group header,
+body.theme-light .tile-config.monks-active-tiles:not(.themed) .tab.triggers .images-group header,
+body.theme-light #tile-history:not(.themed) .history-group header,
+body.theme-light #trigger-variables:not(.themed) .variable-group header,
+body.theme-light #trigger-action:not(.themed) .file-list header,
+body.theme-light #trigger-action:not(.themed) .buttons-list header,
+.tile-config.monks-active-tiles.theme-light .tab.triggers .actions-group header,
+.tile-config.monks-active-tiles.theme-light .tab.triggers .sounds-group header,
+.tile-config.monks-active-tiles.theme-light .tab.triggers .images-group header,
+#tile-history.theme-light .history-group header,
+#trigger-variables.theme-light .variable-group header,
+#trigger-action.theme-light .file-list header,
+#trigger-action.theme-light .buttons-list header {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: #eeede0;
+}
+
+.tile-config.monks-active-tiles .tab.triggers ol li,
+#tile-history .history-group ol li,
+#trigger-variables .variable-group ol li,
+#trigger-action .file-list ol li,
+#trigger-action .buttons-list ol li {
+    display: contents;
+}
+
+.tile-config.monks-active-tiles .tab.triggers ol li:nth-child(even) {
+    background-color: rgba(1, 1, 1, 0.2);
+}
+
+.tile-config.monks-active-tiles .tab.triggers header .name,
+.tile-config.monks-active-tiles .tab.triggers ol .name,
+#tile-history .history-group header .name,
+#tile-history .history-group ol .name,
+#trigger-variables .variable-group header .name,
+#trigger-variables .variable-group ol .name,
+#trigger-action .file-list ol li .file-name,
+#trigger-action .buttons-list ol li .button-name,
+#trigger-action .buttons-list ol li .button-goto {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    display: flex;
+}
+
+#tile-history .history-group ol .when,
+#tile-history .history-group ol .how,
+#tile-history .history-group ol .who{
+    text-align: center;
+}
+
+.tile-config.monks-active-tiles .tab.triggers ol .name > span {
+    align-self: center;
+    margin-left: 8px;
+}
+
+.tile-config.monks-active-tiles .tab.triggers ol .name {
+    flex: 1 1 auto;
+    height: 100%;
+}
+
+.tile-config.monks-active-tiles .tab.triggers ol .name span {
+    width: 100%;
+}
+
+#trigger-action .buttons-list ol .button-icon,
+#trigger-action .buttons-list ol .button-submit {
+    text-align: center;
+}
+
+#trigger-action .buttons-list header .button-icon,
+#trigger-action .buttons-list header .button-submit {
+    justify-self: center;
+}
+
+#trigger-action .buttons-list header .controls {
+    justify-self: flex-end;
+}
+
+#tiles-popout .directory-list li a {
+    height: var(--sidebar-item-height);
+}
+
+#trigger-action .form-fields > input[type="number"] {
+    flex: 0 0 150px;
+    text-align: right;
+}
+
+#trigger-action .form-fields input[type="checkbox"] {
+    flex: 0 0 18px;
+}
+
+#trigger-action .form-fields textarea {
+    resize: vertical;
+}
+
+#trigger-action .form-fields .left-padded {
+    padding-left: 5px;
+}
+
+#trigger-action .form-group label .req-field {
+    color: var(--color-warm-2);
+}
+
+#trigger-action .form-group.hidden, 
+#trigger-action .help-text.hidden {
+    display: none;
+}
+
+.tile-config.monks-active-tiles .small-button {
+    flex: 0 0 50px;
+}
+
+.wall-config button.toggle.active {
+    background: var(--button-hover-background-color);
+}
+
+.monks-active-tiles-dialog.dialog .dialog-form,
+.monks-active-tiles-dialog.dialog .dialog-content {
+    flex: 1;
+}

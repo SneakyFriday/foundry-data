@@ -1,0 +1,46 @@
+<section id="ddb-importer-muncher-items" class="tab ddb-muncher {{ tab.cssClass }} {{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+
+  <fieldset>
+  <legend>Item Name Filter</legend>
+  <p>Item Search Filter (leave blank for all - case insensitive)</p>
+
+  <div class="form-content" style="display: flex">
+    <input type="text" name="item-munch-filter" id="item-munch-filter" style="flex: 0 1 auto" value="{{ searchTermItem }}" />
+  </div>
+
+    {{#each filterItemConfig}}
+    <div class="form-group munching-item-config-filter">
+      <label>{{ this.label }}</label>
+      <div class="form-fields">
+        <dnd5e-checkbox name="{{this.name}}" id="{{this.name}}" {{#if this.isChecked}}checked{{/if}}
+        data-section="{{this.name}}" {{#if this.enabled}}enabled{{else}}disabled{{/if}}></dnd5e-checkbox>
+      </div>
+      <p class="hint">{{{this.hint}}}</p>
+    </div>
+    {{/each}}
+
+  </fieldset>
+
+  <fieldset>
+  <legend>Options</legend>
+
+  {{#each itemConfig}}
+  <div class="form-group munching-item-config">
+    <label>{{ this.label }}</label>
+    <div class="form-fields">
+      <dnd5e-checkbox name="{{this.name}}" id="{{this.name}}" {{#if this.isChecked}}checked{{/if}}
+      data-section="{{this.name}}" {{#if this.enabled}}enabled{{else}}disabled{{/if}}></dnd5e-checkbox>
+    </div>
+    <p class="hint">{{{this.hint}}}</p>
+  </div>
+  {{/each}}
+  </fieldset>
+  <button data-action="parseItems" type="button" id="munch-items-start" class="munch-button"
+      {{#if cobalt}}enabled{{else}}disabled{{/if}}>Item Munch</button>
+
+  <div style="text-align:center">
+  <a href ="https://docs.ddb.mrprimate.co.uk/docs/faqs/ddb-importer#things-i-own-on-ddb-dont-import">All my items are not importing?</a>
+  </div>
+
+
+</section>

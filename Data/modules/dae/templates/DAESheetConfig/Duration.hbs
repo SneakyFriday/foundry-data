@@ -1,0 +1,94 @@
+<section class="tab scrollable{{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+    <fieldset>
+        {{formGroup fields.duration.fields.seconds value=source.duration.seconds rootId=rootId}}
+
+        {{#if isItemEffect}}
+            <div class="form-group">
+                <label>{{ localize "dae.DurationExpression" }}</label>
+                <div class="form-fields">
+                    <input type="text" name="flags.dae.durationExpression" value="{{ source.flags.dae.durationExpression }}"/>
+                </div>
+            </div>
+        {{/if}}
+
+        {{#if startTimeString}}
+            <div>
+                {{ startTimeString }}
+                {{#if durationString}}
+                    ->
+                    {{ durationString }}
+                {{/if}}
+            </div>
+        {{/if}}
+
+        {{formGroup fields.duration.fields.startTime value=source.duration.startTime rootId=rootId}}
+    </fieldset>
+    <fieldset>
+        <div class="form-group">
+            <label>{{localize "EFFECT.DurationTurns"}}</label>
+            <div class="form-fields">
+                <label for="{{rootId}}-duration.rounds">{{localize "COMBAT.Rounds"}}</label>
+                {{formInput fields.duration.fields.rounds value=source.duration.rounds id=(concat rootId "-duration.rounds")}}
+                <label for="{{rootId}}-duration.turns">{{localize "COMBAT.Turns"}}</label>
+                {{formInput fields.duration.fields.turns value=source.duration.turns id=(concat rootId "-duration.turns")}}
+            </div>
+        </div>
+        <div class="form-group">
+            <label>{{ localize "EFFECT.FIELDS.duration.combat.label" }}</label>
+            <div class="form-fields">
+                <input type="text" name="duration.combat" value="{{ source.duration.combat }}" disabled/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>{{localize "EFFECT.StartTurns"}}</label>
+            <div class="form-fields">
+                <label for="{{rootId}}-duration.startRound">{{localize "COMBAT.Round"}}</label>
+                {{formInput fields.duration.fields.startRound value=source.duration.startRound id=(concat rootId "-duration.startRound")}}
+                <label for="{{rootId}}-duration.startTurn">{{localize "COMBAT.Turn"}}</label>
+                {{formInput fields.duration.fields.startTurn value=source.duration.startTurn id=(concat rootId "-duration.startTurn")}}
+            </div>
+        </div>
+    </fieldset>
+    {{#if (ifThen showSpecialDurations true macroRepeats)}}
+        <fieldset>
+            <legend>DAE</legend>
+            {{#if macroRepeats}}
+                <div class="form-group">
+                    <label>{{localize "dae.macroRepeat"}}</label>
+                    <div class="repeat form-fields">
+                        <select name="flags.dae.macroRepeat" data-dtype="String">
+                            {{selectOptions macroRepeats selected=source.flags.dae.macroRepeat}}
+                        </select>
+                    </div>
+                </div>
+            {{/if}}
+            {{#if showSpecialDurations}}
+                <div class="dae-special-duration-container">
+                    <div class="effect-special-duration flexrow">
+                        <div class="dae-special-duration-title">
+                            {{localize "dae.specialDuration"}}
+                        </div>
+                        <div class="effect-controls dae-effect-controls">
+                            <a class="effect-control dae-effect-control" data-action="addSpecialDuration">
+                                <i class="far fa-plus-square"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <ol class="special-duration-list">
+                        {{#each source.flags.dae.specialDuration}}
+                            <li class="effect-special-duration flexrow" data-index="{{@key}}">
+                                <div class="form-group">
+                                    <select name="flags.dae.specialDuration.{{@key}}" data-dtype="string">
+                                        {{selectOptions ../specialDuration selected=this}}
+                                    </select>
+                                    <a class="effect-controls effect-control"
+                                    data-action="deleteSpecialDuration"><i class="fas fa-trash"></i></a>
+                                </div>
+                            </li>
+                        {{/each}}
+                    </ol>
+                </div>
+            {{/if}}
+        </fieldset>
+    {{/if}}
+</section>

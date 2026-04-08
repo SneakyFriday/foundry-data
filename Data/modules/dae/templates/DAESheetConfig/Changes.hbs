@@ -1,0 +1,56 @@
+<section class="tab changes {{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+    <header>
+        <div class="key">{{localize "EFFECT.ChangeKey"}}</div>
+        <div class="mode">{{localize "EFFECT.ChangeMode"}}</div>
+        <div class="value">{{localize "EFFECT.ChangeValue"}}</div>
+        <div class="priority">{{localize "EFFECT.ChangePriority"}}</div>
+        <div class="controls"><a data-action="addChange"><i class="fa-regular fa-plus-square"></i></a></div>
+    </header>
+    <ol class="scrollable">
+        {{#each source.changes as |change i|}}
+        {{#with ../fields.changes.element.fields as |changeFields|}}
+            <li data-index="{{i}}">
+                <div class="key">
+                    <div class="form-group key-wrapper">
+                        <div class="key">
+                            <input class="key-input" type="text" name="changes.{{i}}.key" value="{{change.key}}" />
+                        </div>
+                        <div class="dae-field-info">
+                            <div class="dae-field-name">{{change.fieldName}}</div>
+                            <div class="dae-field-description">{{change.fieldDescription}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mode">
+                    <select name="changes.{{i}}.mode" data-dtype="Number">
+                        {{#if change.modes}}
+                            {{selectOptions change.modes selected=change.mode}}
+                        {{else}}
+                            {{selectOptions @root.modes selected=change.mode}}
+                        {{/if}}
+                    </select>
+                </div>
+                <div class="value">
+                    {{#if change.options}}
+                        <select name="changes.{{i}}.value" data-dtype="String">
+                            {{selectOptions change.options selected=change.value localize=false}}
+                        </select>
+                    {{else}}
+                        <div class="value flex-grow">
+                            <textarea name="changes.{{i}}.value" rows="1">{{change.value}}</textarea>
+                        </div>
+                        {{#if change.hasEditor}}
+                        <a class="dae-edit-value" data-index="{{i}}" data-tooltip="{{change.editorTooltip}}"><i class="{{change.editorIcon}}"></i></a>
+                        {{/if}}
+                    {{/if}}
+                </div>
+                <div class="priority">
+                    {{formInput changeFields.priority name=(concat "changes." i ".priority") value=change.priority
+                        placeholder=(lookup ../../priorities change.mode)}}
+                </div>
+                <div class="controls"><a data-action="deleteChange"><i class="fa-solid fa-trash"></i></a></div>
+            </li>
+        {{/with}}
+        {{/each}}
+    </ol>
+</section>

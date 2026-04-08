@@ -1,0 +1,67 @@
+{
+  "DOCUMENT": {
+    "Stairway": "Escalera"
+  },
+  "stairways": {
+    "ui": {
+      "config": {
+        "title": "Configuración de escalera",
+        "tab-main": "Principal",
+        "tab-label": "Etiqueta",
+        "tab-position": "Posición",
+        "status": "Estado",
+        "name": "ID",
+        "name-hint": "Las escaleras están conectadas cuando ambas tienen el mismo ID.",
+        "name-warning": "¡Asegúrate de que sólo hay dos escaleras con el mismo ID!",
+        "scene": "Escena conectada",
+        "current-scene": "(Escena actual)",
+        "label": "Etiqueta",
+        "font-family": "Familia tipográfica",
+        "font-size": "Tamaño de la fuente",
+        "text-color": "Color del texto",
+        "icon": "Icono",
+        "icons": {
+          "stairway": "Escalera (Predeterminado)",
+          "door-steel": "Puerta de metal",
+          "door-closed": "Puerta cerrada",
+          "door-exit": "Puerta de salida",
+          "cave": "Cueva",
+          "house": "Casa",
+          "city": "Ciudad",
+          "castle": "Castillo"
+        },
+        "disabled": "Desactivada (Bloqueada)",
+        "hidden": "Ocultar a los jugadores",
+        "animate": "Animar el movimiento",
+        "animate-hint-1": "Animar el uso de la escalera como un movimiento normal.",
+        "animate-hint-2": "Sólo disponible dentro de la misma escena.",
+        "locked": "Posición fija",
+        "reset": "Restablecer los valores predeterminados",
+        "submit": "Guardar",
+        "partner-scene-label": "Usar el Nombre de la Escena conectada"
+      },
+      "controls": {
+        "group": "Controles de escalera",
+        "stairway": "Crear escalera",
+        "disabled": "Desactivar (bloquear) escalera",
+        "hidden": "Ocultar escalera",
+        "animate": "Animar el movimiento",
+        "clear": "Borrar escaleras"
+      },
+      "messages": {
+        "disabled": "No puedes utilizar esta escalera, parece desactivada.",
+        "no-gm": "Tienes que esperar al DJ para usar la escalera.",
+        "no-partner": "¡La escalera no lleva a ninguna parte!",
+        "no-token-selected": "Selecciona al menos un token.",
+        "data-update-error": "No se han podido guardar los cambios.",
+        "internal-error": "Error interno en el módulo de escaleras."
+      },
+      "status": {
+        "connected": "Conectada.",
+        "no-partner-other-scene": "Falta la pareja en la otra escena.",
+        "no-partner": "Falta la pareja en la escena actual.",
+        "non-monogamous": "¡Hay más de una pareja!"
+      }
+    }
+  }
+}

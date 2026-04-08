@@ -1,0 +1,235 @@
+{
+  "title": "Curse of Strahd",
+  "id": "cos",
+  "system": "dnd5e",
+  "nextSession": "2023-06-11T17:00:00.000Z",
+  "coreVersion": "14.359",
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14.359"
+  },
+  "systemVersion": "5.3.0",
+  "packs": [
+    {
+      "type": "RollTable",
+      "label": "DDB Tables",
+      "name": "ddb-cos-ddb-tables",
+      "path": "packs/ddb-cos-ddb-tables",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Adventure",
+      "label": "DDB Adventures",
+      "name": "ddb-cos-ddb-adventures",
+      "path": "packs/ddb-cos-ddb-adventures",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Backgrounds",
+      "name": "ddb-cos-ddb-backgrounds",
+      "path": "packs/ddb-cos-ddb-backgrounds",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Classes",
+      "name": "ddb-cos-ddb-classes",
+      "path": "packs/ddb-cos-ddb-classes",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Subclasses",
+      "name": "ddb-cos-ddb-subclasses",
+      "path": "packs/ddb-cos-ddb-subclasses",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Class Features",
+      "name": "ddb-cos-ddb-class-features",
+      "path": "packs/ddb-cos-ddb-class-features",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Feats",
+      "name": "ddb-cos-ddb-feats",
+      "path": "packs/ddb-cos-ddb-feats",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Items",
+      "name": "ddb-cos-ddb-items",
+      "path": "packs/ddb-cos-ddb-items",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Actor",
+      "label": "DDB Monsters",
+      "name": "ddb-cos-ddb-monsters",
+      "path": "packs/ddb-cos-ddb-monsters",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Actor",
+      "label": "DDB Vehicles",
+      "name": "ddb-cos-ddb-vehicles",
+      "path": "packs/ddb-cos-ddb-vehicles",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Races",
+      "name": "ddb-cos-ddb-races",
+      "path": "packs/ddb-cos-ddb-races",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Racial Traits",
+      "name": "ddb-cos-ddb-racial-traits",
+      "path": "packs/ddb-cos-ddb-racial-traits",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Spells",
+      "name": "ddb-cos-ddb-spells",
+      "path": "packs/ddb-cos-ddb-spells",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Override",
+      "name": "ddb-cos-ddb-override",
+      "path": "packs/ddb-cos-ddb-override",
+      "system": "dnd5e",
+      "flags": {},
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Item",
+      "label": "DDB Species",
+      "name": "ddb-cos-ddb-species",
+      "flags": {
+        "ddbimporter": {
+          "schema": 1
+        }
+      },
+      "path": "packs/ddb-cos-ddb-species",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "JournalEntry",
+      "label": "DDB Journals",
+      "name": "ddb-cos-ddb-journals",
+      "flags": {
+        "ddbimporter": {
+          "schema": 1
+        }
+      },
+      "path": "packs/ddb-cos-ddb-journals",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "type": "Actor",
+      "label": "DDB Summons",
+      "name": "ddb-cos-ddb-summons",
+      "flags": {
+        "ddbimporter": {
+          "schema": 1
+        }
+      },
+      "path": "packs/ddb-cos-ddb-summons",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ],
+  "lastPlayed": "Thu Apr 09 2026 00:15:02 GMT+0200 (Central European Summer Time)",
+  "playtime": 86740,
+  "safeMode": false,
+  "description": "",
+  "flags": {}
+}

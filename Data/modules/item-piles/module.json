@@ -1,0 +1,105 @@
+{
+    "id": "item-piles",
+    "title": "Item Piles",
+    "description": "This module adds the ability for items to be dropped onto the ground, and then picked up.",
+    "version": "3.2.32",
+    "library": "false",
+    "compatibility": {
+        "minimum": "12",
+        "verified": "13",
+        "maximum": "13"
+    },
+    "authors": [
+        {
+            "name": "Wasp",
+            "url": "https://github.com/Haxxer",
+            "discord": "Wasp#2005"
+        }
+    ],
+    "esmodules": [
+        "dist/item-piles.js"
+    ],
+    "styles": [
+        "dist/item-piles.css"
+    ],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "languages/en.json"
+        },
+        {
+            "lang": "de",
+            "name": "English",
+            "path": "languages/de.json"
+        },
+        {
+            "lang": "fr",
+            "name": "French",
+            "path": "languages/fr.json"
+        },
+        {
+            "lang": "ja",
+            "name": "日本語",
+            "path": "languages/ja.json"
+        },
+        {
+            "lang": "pt-BR",
+            "name": "Português (Brasil)",
+            "path": "languages/pt-BR.json"
+        },
+        {
+            "lang": "pl",
+            "name": "polski",
+            "path": "languages/pl.json"
+        },
+        {
+            "lang": "es",
+            "name": "Español",
+            "path": "languages/es.json"
+        },
+        {
+            "lang": "cn",
+            "name": "中文（简体）",
+            "path": "languages/zh_Hans.json"
+        },
+        {
+            "lang": "cs",
+            "name": "Čeština",
+            "path": "languages/cs.json"
+        },
+        {
+            "lang": "it",
+            "name": "Italiano",
+            "path": "languages/it.json"
+        },
+        {
+            "lang": "ru",
+            "name": "Русский",
+            "path": "languages/ru.json"
+        },
+        {
+            "lang": "zh-Hant",
+            "name": "漢語（正體字）",
+            "path": "languages/zh_Hant.json"
+        }
+    ],
+    "relationships": {
+        "requires": [
+            {
+                "id": "socketlib",
+                "type": "module"
+            },
+            {
+                "id": "lib-wrapper",
+                "type": "module"
+            }
+        ]
+    },
+    "socket": true,
+    "url": "https://github.com/fantasycalendar/FoundryVTT-ItemPiles",
+    "manifest": "https://github.com/fantasycalendar/FoundryVTT-ItemPiles/releases/latest/download/module.json",
+    "download": "https://github.com/fantasycalendar/FoundryVTT-ItemPiles/releases/download/3.2.32/module.zip",
+    "readme": "https://github.com/fantasycalendar/FoundryVTT-ItemPiles/blob/master/README.md",
+    "bugs": "https://github.com/fantasycalendar/FoundryVTT-ItemPiles/issues"
+}

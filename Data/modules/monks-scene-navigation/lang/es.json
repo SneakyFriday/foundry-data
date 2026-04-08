@@ -1,0 +1,29 @@
+{
+  "I18N.LANGUAGE": "Español",
+  "I18N.MAINTAINERS": "@Viriato139ac#0342",
+  
+  "MonksSceneNavigation.RemoveNav": "Deshabilitar navegación",
+
+  "MonksSceneNavigation.click-to-view.name": "Clic para mostrar",
+  "MonksSceneNavigation.click-to-view.hint": "Al hacer clic se navega a la escena en lugar de entrar en la configuración",
+  "MonksSceneNavigation.scene-indicator.name": "Iconos de escena",
+  "MonksSceneNavigation.scene-indicator.hint": "Añade iconos al objeto escena que muestran si está activa o si se le han cambiado los permisos",
+  "MonksSceneNavigation.modify-scene-bar.name": "Modificar barra de escenas",
+  "MonksSceneNavigation.modify-scene-bar.hint": "Mofifica la barra de escenas con los cambios en la navegación por escenas",
+  "MonksSceneNavigation.quick-navigation.name": "Botón de navegación rápida",
+  "MonksSceneNavigation.quick-navigation.hint": "Muestra siempre el icono de la brújula para que al hacer clic para cambiar rápidamente la navegación",
+  "MonksSceneNavigation.doubleclick-activate.name": "Activar con doble-clic",
+  "MonksSceneNavigation.doubleclick-activate.hint": "Al hacer doble-clic en una escena la activa",
+  "MonksSceneNavigation.minimize-combat.name": "Minimizar durante el combate",
+  "MonksSceneNavigation.minimize-combat.hint": "Minimiza la navegación de escenas cuando comienza el combate, y se vuelve a maximizar cuando finaliza",
+  "MonksSceneNavigation.minimize-activate.name": "Minimizar al activar",
+  "MonksSceneNavigation.minimize-activate.hint": "Minimiza la navegación de escenas cuando se activa una",
+  "MonksSceneNavigation.display-realname.name": "Mostrar nombre real",
+  "MonksSceneNavigation.display-realname.hint": "Muestra el nombre real de la escena para el GM en lugar del nombre establecido para la navegación",
+  "MonksSceneNavigation.smaller-directory.name": "Listado de directorios reducido",
+  "MonksSceneNavigation.smaller-directory.hint": "Muestra las entradas en el directorio de escenas en un formato reducido",
+  "MonksSceneNavigation.directory-background.name": "Fondo en el nombre",
+  "MonksSceneNavigation.directory-background.hint": "Añade un fondo oscuro al nombre de la escena en el listado de directorios para mejorar la visibilidad",
+  "MonksSceneNavigation.add-back-button.name": "Botón atrás",
+  "MonksSceneNavigation.add-back-button.hint": "Añade un botón para volver atrás a la escena anterior"
+}

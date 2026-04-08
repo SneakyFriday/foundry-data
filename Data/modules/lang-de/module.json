@@ -1,0 +1,91 @@
+{
+  "id": "lang-de",
+  "title": "German [Core]",
+  "description": "German language support for Foundry VTT",
+  "version": "13.1",
+  "authors": [
+    {
+      "name": "Hydroxi",
+      "flags": {}
+    },
+    {
+      "name": "lutece",
+      "flags": {}
+    },
+    {
+      "name": "henry4k",
+      "discord": "@henry4k",
+      "flags": {}
+    },
+    {
+      "name": "ElCamino",
+      "flags": {}
+    },
+    {
+      "name": "SirGawain",
+      "discord": "@_sirgawain",
+      "flags": {}
+    },
+    {
+      "name": "kosmos.ac",
+      "discord": "@kosmos.ac",
+      "flags": {}
+    }
+  ],
+  "languages": [
+    {
+      "lang": "de",
+      "name": "Deutsch (German)",
+      "path": "lang/de.json",
+      "flags": {}
+    },
+    {
+      "lang": "de",
+      "name": "Tour: Spielflächen-Bedienelemente",
+      "path": "tours/canvas-controls.json",
+      "flags": {}
+    },
+    {
+      "lang": "de",
+      "name": "Tour: Eine Welt erstellen",
+      "path": "tours/creating-a-world.json",
+      "flags": {}
+    },
+    {
+      "lang": "de",
+      "name": "Tour: Ein System installieren",
+      "path": "tours/installing-a-system.json",
+      "flags": {}
+    },
+    {
+      "lang": "de",
+      "name": "Tour: Die Seitenleiste",
+      "path": "tours/sidebar.json",
+      "flags": {}
+    },
+    {
+      "lang": "de",
+      "name": "Tour: UI Übersicht",
+      "path": "tours/ui-overview.json",
+      "flags": {}
+    },
+    {
+      "lang": "de",
+      "name": "Tour: Willkommen zu Foundry Virtual Tabletop",
+      "path": "tours/welcome.json",
+      "flags": {}
+    }
+  ],
+  "coreTranslation": true,
+  "url": "https://gitlab.com/henry4k/foundryvtt-lang-de",
+  "manifest": "https://gitlab.com/henry4k/foundryvtt-lang-de/-/raw/master/module.json",
+  "download": "https://gitlab.com/henry4k/foundryvtt-lang-de/-/archive/master/foundryvtt-lang-de-master.zip",
+  "bugs": "https://gitlab.com/henry4k/foundryvtt-lang-de/-/issues",
+  "readme": "https://gitlab.com/henry4k/foundryvtt-lang-de/-/raw/master/README.md",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13",
+    "maximum": "13"
+  },
+  "flags": {}
+}

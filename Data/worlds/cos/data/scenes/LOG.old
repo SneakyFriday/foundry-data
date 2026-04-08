@@ -1,0 +1,24 @@
+2026/04/08-09:01:14.662 1abc Recovering log #485
+2026/04/08-09:01:14.707 1abc Level-0 table #488: started
+2026/04/08-09:01:14.730 1abc Level-0 table #488: 1539577 bytes OK
+2026/04/08-09:01:14.738 1abc Delete type=0 #485
+2026/04/08-09:01:14.740 1abc Delete type=3 #478
+2026/04/08-09:01:15.107 7c0 Compacting 3@0 + 3@1 files
+2026/04/08-09:01:15.164 7c0 Generated table #490@0: 3529 keys, 2133153 bytes
+2026/04/08-09:01:15.180 7c0 Generated table #491@0: 3568 keys, 265684 bytes
+2026/04/08-09:01:15.180 7c0 Compacted 3@0 + 3@1 files => 2398837 bytes
+2026/04/08-09:01:15.180 7c0 compacted to: files[ 0 2 0 0 0 0 0 ]
+2026/04/08-14:53:05.525 7c0 Level-0 table #493: started
+2026/04/08-14:53:05.547 7c0 Level-0 table #493: 1661836 bytes OK
+2026/04/08-14:53:05.550 7c0 Delete type=2 #446
+2026/04/08-14:53:05.551 7c0 Delete type=2 #481
+2026/04/08-14:53:05.551 7c0 Delete type=2 #482
+2026/04/08-14:53:05.551 7c0 Delete type=2 #484
+2026/04/08-14:53:05.552 7c0 Delete type=2 #486
+2026/04/08-14:53:05.552 7c0 Delete type=2 #488
+2026/04/08-14:53:05.553 7c0 Delete type=0 #489
+2026/04/08-19:28:16.423 7c0 Compacting 1@0 + 2@1 files
+2026/04/08-19:28:16.473 7c0 Generated table #494@0: 3334 keys, 2133779 bytes
+2026/04/08-19:28:16.490 7c0 Generated table #495@0: 4249 keys, 317913 bytes
+2026/04/08-19:28:16.490 7c0 Compacted 1@0 + 2@1 files => 2451692 bytes
+2026/04/08-19:28:16.492 7c0 compacted to: files[ 0 2 0 0 0 0 0 ]

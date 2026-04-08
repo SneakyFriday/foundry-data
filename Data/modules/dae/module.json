@@ -1,0 +1,137 @@
+{
+  "id": "dae",
+  "title": "Dynamic effects using Active Effects (DAE)",
+  "description": "Replacement for dynamic effects",
+  "version": "13.0.22",
+  "authors": [
+    {
+      "name": "tposney",
+      "url": "https://gitlab.com/tposney",
+      "discord": "tposney#1462",
+      "twitter": "",
+      "patreon": "",
+      "github": "",
+      "ko-fi": "tposney",
+      "reddit": "",
+      "email": ""
+    },
+    {
+      "name": "Micheal Roth",
+      "url": "https://github.com/roth-michael",
+      "discord": "hi25114",
+      "ko-fi": "hi25114"
+    }
+  ],
+  "socket": true,
+  "media": [
+    {
+      "type": "icon",
+      "location": ""
+    },
+    {
+      "type": "cover",
+      "location": ""
+    },
+    {
+      "type": "screenshot",
+      "location": ""
+    }
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
+    {
+      "lang": "cs",
+      "name": "Češky",
+      "path": "lang/cs.json"
+    },
+    {
+      "lang": "ja",
+      "name": " 日本語",
+      "path": "lang/ja.json"
+    },
+    {
+      "lang": "ko",
+      "name": "Korean",
+      "path": "lang/ko.json"
+    },
+    {
+      "lang": "pt-BR",
+      "name": "Português (Brasil)",
+      "path": "lang/pt-BR.json"
+    },
+    {
+      "lang": "fr",
+      "name": "Français",
+      "path": "lang/fr.json"
+    },
+    {
+      "lang": "it",
+      "name": "Italian",
+      "path": "lang/it.json"
+    },
+    {
+      "lang": "pl",
+      "name": "Polski",
+      "path": "lang/pl.json"
+    },
+    {
+      "lang": "cn",
+      "name": "China",
+      "path": "lang/cn.json"
+    }
+  ],
+  "packs": [],
+  "scripts": [
+    "libs/tokenizer.min.js"
+  ],
+  "esmodules": [
+    "dae.js"
+  ],
+  "styles": [
+    "css/dae.css",
+    "css/field-browser.css"
+  ],
+  "compatibility": {
+    "minimum": "13.0",
+    "verified": "13.351",
+    "maximum": "13.999"
+  },
+  "url": "https://gitlab.com/tposney/dae",
+  "manifest": "https://gitlab.com/tposney/dae/raw/v13/package/module.json",
+  "download": "https://gitlab.com/tposney/dae/raw/v13/package/dae-v13.0.22.zip",
+  "readme": "https://gitlab.com/tposney/dae/-/blob/v13/Readme.md",
+  "changelog": "https://gitlab.com/tposney/dae/-/blob/v13/Changelog.md",
+  "bugs": "https://gitlab.com/tposney/dae/-/issues",
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "5.0",
+          "verified": "5.2.0",
+          "maximum": "5.9.99"
+        }
+      }
+    ],
+    "requires": [
+      {
+        "id": "lib-wrapper",
+        "type": "module",
+        "manifest": "https://github.com/ruipin/fvtt-lib-wrapper/releases/latest/download/module.json",
+        "compatibility": {}
+      },
+      {
+        "id": "socketlib",
+        "type": "module",
+        "manifest": "https://raw.githubusercontent.com/manuelVo/foundryvtt-socketlib/develop/module.json",
+        "compatibility": {}
+      }
+    ],
+    "conflicts": []
+  }
+}

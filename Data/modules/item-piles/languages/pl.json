@@ -1,0 +1,977 @@
+{
+  "ITEM-PILES": {
+    "Currencies": "Waluty",
+    "Currency": "Waluta",
+    "ContextMenu": {
+      "ShowToPlayers": "Pokaż Graczom",
+      "RequestTrade": "Poproś o Wymianę",
+      "GiveToCharacter": "Przekaż postaci"
+    },
+    "Notifications": {
+      "UpdateItemPileSuccess": "Item Pile zaktualizowany pomyślnie.",
+      "UpdateMerchantSuccess": "Kupca zaktualizowany pomyślnie.",
+      "ShownToPlayers": "Pokazuję {actor_name} graczom",
+      "ItemTransferred": "{target_actor_name} dostał {item_name} od {source_actor_name}.",
+      "GiveItemAccepted": "{user_name} zaakceptował twoją ofertę.",
+      "SystemSupportFound": "Znaleziono wsparcie systemowe! Stosowanie domyślnych ustawień systemu do Item Piles",
+      "ItemAdded": "{item_name} został dodany do {target_actor_name}.",
+      "CreatedJournal": "Utworzono dziennik Item Piles Vault Log."
+    },
+    "Errors": {
+      "DisallowedItemDrop": "Nie możesz upuścić przedmioty typu \"{type}\"",
+      "DisallowedItemTrade": "Nie możesz wymieniać się przedmiotami typu \"{type}\"",
+      "DisallowedItemSell": "Ten kupca nie akceptuje przedmioty typu \"{type}\"",
+      "PileTooFar": "Jesteś za daleko aby otworzyć ten stos.",
+      "DropNoToken": "Nie masz token'a na tej scenie, więc nie możesz upuścić żadnych przedmiotów tutaj.",
+      "NoSourceDrop": "Nie możesz upuszczać przedmioty z katalogu przedmiotów jeżeli nie jesteś GM'em.",
+      "PileLocked": "Ten pojemnik jest zamknięty i nie można go otworzyć - nie możesz upuszczać przedmioty do niego.",
+      "NoTokenFound": "Nie udało się znaleźć tokenu ani postaci, która by cię reprezentowała.",
+      "NoVaultAccess": "Nie masz uprawnień do wyświetlania tego sejfu.",
+      "NoVaultAccessActor": "{actor_name} nie ma uprawnień do wyświetlania tego sejfu.",
+      "ItemNoQuantity": "{item_name} ma ilość 0, więc nie możesz przenieść tego przedmiotu!"
+    },
+    "Warnings": {
+      "GiveItemDeclined": "{user_name} odrzucił twoją ofertę.",
+      "NoPlayersActive": "Nie ma żadnych aktywnych graczy aby dokonać tej akcji",
+      "GiveItemNoGM": "Nie ma żadnego aktywnego GM'a który mógłby dostać twój przedmiot.",
+      "NoGMsConnectedAction": "UWAGA - Nie można wykonać \"{action}\", ponieważ żaden GM nie jest aktywny.",
+      "VaultFull": "Ten przedmiot nie mieści się w tym skarbcu!",
+      "VaultItemNotExpander": "Ten przedmiot nie jest rozszerzeniem skarbca",
+      "NoGMsConnected": "UWAGA - Brak podłączonych GMów - Item Piles wymaga GMa, aby gracze mogli korzystać z większości funkcji modułu.",
+      "CantSortVault": "Nie udało się posortować elementów - albo jest ich po prostu za dużo, albo coś poszło nie tak",
+      "ItemPileInvalidItemDropped": "Nie można wrzucać tego typu przedmiotów do tego skarbca!",
+      "VaultNoGmItemSidebar": "Tylko GM może upuszczać przedmioty z paska bocznego!",
+      "TransactionNoGMConnected": "Żaden GM nie jest połączony - bieżąca transakcja została anulowana, nic nie zostało dodane, usunięte ani przeniesione",
+      "DroppedIsNotItem": "Nie można wrzucać dokumentów typu \"{type}\" do tego stosu przedmiotów!",
+      "VaultSameItemOrigin": "Nie można wrzucać do skarbca przedmiotów, które pochodzą ze skarbca!",
+      "NoResponseFromGMTimeout": "OSTRZEŻENIE - MG \"{user_name}\" nie odpowiedział na ostatnie żądanie - odczekaj {time} sekund przed wysłaniem kolejnego żądania Item Piles.",
+      "NoResponseFromGM": "OSTRZEŻENIE - MG \"{user_name}\" nie odpowiedział na żądanie - Item Piles wymagają połączenia i odpowiedzi MG, aby gracze mogli korzystać z większości funkcji modułu.",
+      "LogEmpty": "Dziennik dla \"{actor_name}\" jest pusty i nie ma nic do wyeksportowania"
+    },
+    "Inspect": {
+      "Title": "Przeglądanie Zawartości Stosu",
+      "AsActor": "Przeglądasz ten stos jako {actorName}.",
+      "Empty": "Ten stos jest pusty.",
+      "Destroyed": "Ten stos już nie istnieje i leży jałowo.",
+      "TakeAll": "Weź Wszystkie Przedmioty",
+      "Take": "Weź",
+      "Close": "Zamknij Przykrywkę",
+      "Leave": "Wyjdź",
+      "NoShareLeft": "Nie ma już wolnych podziałów...",
+      "NoneLeft": "Nic nie zostało...",
+      "OpenSheet": "Otwórz Kartę",
+      "AddCurrency": "Dodaj walutę",
+      "SplitCurrencies": "Podziel walutę na {num_players} graczy",
+      "SplitAll": "Podziel na {num_players} graczy",
+      "Owner": "Jako właściciel tego Stosu Przedmiotów, możesz modyfikować jego zawartość.",
+      "SplitItems": "Podziel przedmioty na {num_players} graczy",
+      "SplitNoPlayers": "Nie znaleziono żadnych postaci, którymi można by podzielić zawartość.",
+      "Change": "Zmiana"
+    },
+    "Trade": {
+      "Title": "Item Piles: Wymiany",
+      "Accept": "Akceptuj",
+      "Decline": "Odrzuć",
+      "Mute": "Wycisz",
+      "Private": "Zrób tą wymianę prywatną",
+      "PrivateExplanation": "Żadne wiadomości zostaną wysłane, i nikt nie będzie mógł widzieć waszej wymiany",
+      "Over": "Ta wymiana nie jest już aktywna.",
+      "Between": "Wymień pomiędzy {actor_1} a {actor_2}",
+      "Prompt": {
+        "Title": "Item Piles: Wyślij Ofertę Wymiany",
+        "User": "Wybierz z kim chcesz się wymienić:",
+        "PickActor": "Wybierz który aktor ciebie reprezentuję:",
+        "PickToken": "Wybierz zaznaczony token",
+        "DropActor": "Przeciągnij i upuść aktora tutaj",
+        "Label": "Wyślij ofertę wymiany",
+        "PickedActor": "Twój reprezentujący aktor w wymianie to:"
+      },
+      "Declined": "Twój odbiorca odrzucił ofertę wymiany.",
+      "NoActiveUsers": {
+        "Title": "Item Piles: Brak Aktywnych Graczy",
+        "Content": "Żadni gracze są aktywni, więc nie możesz się z nikim wymienić."
+      },
+      "Request": {
+        "Title": "Item Piles: Oferta Wymiany",
+        "Content": "{trading_actor_name} (gracz {trading_user_name}) chce się z tobą wymienić.",
+        "PrivateContent": "{trading_actor_name} (gracz {trading_user_name}) chce się z tobą <strong>prywatnie</strong> wymienić.",
+        "AcceptQuery": "Czy akceptujesz?"
+      },
+      "OngoingRequest": {
+        "Content": "Czekaj na odpowiedź od {user_name}...",
+        "Label": "Anuluj ofertę wymiany"
+      },
+      "CancelledRequest": {
+        "Content": "Żądanie transakcji zostało anulowane przez {user_name}."
+      },
+      "AddCurrency": {
+        "Title": "Dodaj Waluty",
+        "Label": "Zaktualizuj Waluty",
+        "Content": "Dodaj waluty do aktywnej wymiany z {trader_actor_name}"
+      },
+      "GMAddCurrency": "Dodaj Waluty (Tryb GM'a)",
+      "Closed": {
+        "Title": "Wymiana Zamknięta",
+        "You": "Zamknąłeś/ełaś okno wymiany, więc wymiana została anulowana.",
+        "Someone": "Jeden z graczy zamknął/eła okno wymiany, więc wymiana była anulowana.",
+        "Them": "Gracz \"{user_name}\" zamknął okno wymiany, więc wymiana była anulowana."
+      },
+      "Disconnected": "Jeden z graczy rozłączył się, więc wymiana była anulowana.",
+      "UserActiveCharacterWarning": "Wybrałeś/aś aktor \"{actor_name}\" który jest przypisany do gracza \"{player_name}\", który jest <strong>aktywny</strong>.<br><br>Czy jesteś pewny/a że chcesz to zrobić?",
+      "ActorOwnerWarning": "Nie posiadasz tego aktora, więc nie możesz wymieniać się nim.",
+      "AutoDecline": "Nie wystarczająco szybko odpowiedziałeś/aś na ofertę wymiany, więc została automatycznie odrzucona.",
+      "DragDrop": "Przeciągnij i upuść przedmioty aby zacząć wymianę",
+      "UserCharacterWarning": "Wybrałeś/aś aktor \"{actor_name}\" który jest przypisany do gracza \"{player_name}\".<br><br>Czy jesteś pewny/a że chcesz to zrobić?",
+      "SameActor": "Obaj użytkownicy nie mogą wybrać tej samej postaci - nie można handlować na ORAZ z tej samej postaci. Zatrzymaj to."
+    },
+    "Merchant": {
+      "Title": "Kupiec: {actor_name}",
+      "BuyItems": "Kup Przedmioty",
+      "SellItems": "Sprzedaj Przedmioty",
+      "PopulateItems": "Załaduj Przedmioty",
+      "AllTypes": "Wszystkie typy",
+      "Buy": "Kup",
+      "NoItemsForSale": "Kupiec nie ma nic na sprzedaż",
+      "NoItemsToSell": "Nie masz nic do sprzedania temu kupcowi",
+      "OpenTimes": "Godziny otwarcia",
+      "OpenCloseAuto": "Automatyczne",
+      "Open": "Otwarte",
+      "Hours": "Godziny",
+      "Minutes": "Minuty",
+      "MerchantClosed": "Kupiec jest zamknięty, sprawdź ponownie później.",
+      "Sell": "Sprzedaj",
+      "Description": "Opis",
+      "Settings": "Ustawienia",
+      "Override": "Nadpisz",
+      "EditTypePricesExplanation": "Przełącz widoczność przeliczników na-typ w zakładce Kup Przedmioty",
+      "BuyNoItems": "Kupiec nie ma przedmiotów",
+      "CurrentItems": "Bieżące przedmioty",
+      "NoRollTables": "Nie ma żadnych tablic, stwórz jedną aby zacząć",
+      "ClickRoll": "Kliknij wylosuj aby zacząć",
+      "KeepRolled": "Zostaw wylosowane",
+      "AddAll": "Dodaj Wszystkie Przedmioty",
+      "ClearAllItems": "Wyczyść Wszystkie Przedmioty Aktora",
+      "AddItem": "Dodaj",
+      "RemoveItem": "Usuń",
+      "ItemFree": "Darmowe",
+      "Closed": "Zamknięte",
+      "EditTypePrices": "Edytuj Przelicznik Kosztów Na-Typ",
+      "RolledTimes": "Wylosowano {rolls} razy",
+      "ToolTipRemoveTable": "Usuń tabelę",
+      "TooltipConfigureTable": "Ustaw tabelę",
+      "TooltipRollTable": "Rzuć tabelę",
+      "ToolTipRemoveAllRolledItems": "Usuń wszystkie przedmioty",
+      "ShoppingAs": "Kupujesz jako {actorName}",
+      "NoMatchFound": "Nic nie pasuje do Twojego wyszukiwania",
+      "TableAddAllItems": "Dodaj wszystkie przedmioty:",
+      "TableTimesToRoll": "Ilość rzutów tabeli:",
+      "TableCustomCategory": "Dodaj przedmioty do niestandardowej kategorii:",
+      "RollableTables": "Tablice rzutów",
+      "AddTable": "Dodaj tabelę",
+      "RollAllTables": "Rzuć wszystkie tabele",
+      "Service": "Usługi",
+      "BuyServices": "Kupno usług",
+      "CurrentServices": "Bieżące usługi",
+      "ClearAllServices": "Wyczyść wszystkie usługi aktora",
+      "Log": "Dziennik aktywności",
+      "LogSearch": "Dziennik wyszukiwania:",
+      "LogUserActor": "{actor_name} ({user_name})",
+      "LogBought": "zakupiony",
+      "LogSold": "sprzedany",
+      "LogQuantity": "{quantity} x ",
+      "LogSetQuantity": "{instigator} ustaw <strong>{item}</strong> <span>ilość</span> na {quantity}",
+      "LogSetForSale": "{instigator} ustaw <strong>{item}</strong> <span>na sprzedaż</span>",
+      "LogSetVisible": "{instigator} ustaw <strong>{item}</strong> jako <span>widoczny</span>",
+      "LogTransaction": "{instigator} {action} {quantity}{item} na {price}",
+      "LogSetNotForSale": "{instigator} ustaw <strong>{item}</strong> <span>nie na sprzedaż</span>",
+      "LogSetHidden": "{instigator} ustaw <strong>{item}</strong> jako <span>ukryty</span>",
+      "SortBy": "Sortuj według:",
+      "LogFreeTransaction": "{instigator} {action} {quantity}{item} za darmo",
+      "SetNotForSale": "Zestaw nie jest na sprzedaż",
+      "SetForSale": "Zestaw na sprzedaż",
+      "SetVisible": "Pokaż",
+      "SetHidden": "Ukryj"
+    },
+    "Dialogs": {
+      "TypeWarning": {
+        "Title": "Uwaga Typu Przedmiotu",
+        "DropContent": "Upuszczasz przedmiot nie dozwolonego do upuszczenia typu (\"{type}\"). Czy jesteś pewny/a że chcesz to zrobić?",
+        "SellContent": "Chcesz sprzedać przedmiot nie dozwolonego do sprzedaży typu (\"{type}\"). Czy jesteś pewny/a że chcesz to zrobić?",
+        "TradeContent": "Chcesz wymienić przedmiot nie dozwolonego do wymiany typu (\"{type}\"). Czy jesteś pewny/a że chcesz to zrobić?"
+      },
+      "ResetSettings": {
+        "Title": "Resetuj ustawienia modułu",
+        "Content": "Czy na pewno chcesz zresetować wszystkie ustawienia modułu Item Piles do bieżących ustawień domyślnych systemu? <strong>NIE MOŻNA TEGO COFNĄĆ!</strong>",
+        "Confirm": "Zresetuj Ustawienia Modułu"
+      },
+      "LinkedActorWarning": {
+        "Title": "Item Piles i Powiązany Aktor",
+        "Content": "Czy na pewno chcesz zmienić tego <strong>powiązanego aktora</strong> w stos przedmiotów? Żeton tego aktora jest połączony i wszystkie żetony tego aktora będą współdzielić jego ekwipunek i waluty."
+      },
+      "UserSelect": {
+        "Title": "Zaznacz użytkowników",
+        "Content": "Pokazać jakim użytkownikom?"
+      },
+      "NoSystemFound": {
+        "Title": "Nie rozpoznano systemu",
+        "Content": "<p><strong>Ten system nie jest obsługiwany.</strong></p><p>Oznacza to, że moduł nie wie, jak najlepiej obsługiwać elementy tego systemu, ale nadal może działać w ograniczony sposób.</p><p>Możesz samodzielnie skonfigurować ustawienia modułu, ale wymaga to trochę wiedzy technicznej.</p><p>Jeśli masz jakieś pytania, zrób zrzut ekranu okna dialogowego, które otworzy się po zamknięciu tego i poproś o pomoc na kanale swojego systemu na Discordzie Foundry.</p>"
+      },
+      "CantRemoveVaultExpander": {
+        "Content": "Nie możesz usunąć tego rozszerzenia, przedmioty w skarbcu nie zmieściłyby się bez niego. Usuń {num_items} przedmiotów przed próbą usunięcia tego rozszerzenia!",
+        "Title": "Nie można usunąć rozszerzenia"
+      },
+      "ReceiveItem": {
+        "Header": "Item Piles: Przedmiot otrzymywany",
+        "Ignore": "Zingoruj użytkownika",
+        "ContentOne": "{source_actor_name} chce przekazać przedmiot \"{item_name}\" do {target_actor_name}, czy akceptujesz?",
+        "ContentMany": "{source_actor_name} chce przekazać przedmioty \"{item_name}\" ({ilość}) do {target_actor_name}, czy akceptujesz?",
+        "Title": "Przyjmowany przedmiot",
+        "Content": "{source_actor_name} chce przekazać przedmiot {target_actor_name}, akceptujesz?"
+      },
+      "NewSystemVersion": {
+        "Title": "Nowa wersja systemu",
+        "Content": "Ustawienia domyślne systemu, którego używasz z Item Piles zostały zaktualizowane, czy chcesz zastąpić ustawienia specyficzne dla systemu zaktualizowanymi?",
+        "Content2": "Nie zrobienie tego może uszkodzić Item Piles - aby to naprawić, musisz zresetować ustawienia systemowe modułu.",
+        "Confirm": "Aktualizacja ustawień"
+      },
+      "ResetSharingData": {
+        "Title": "Zresetuj udostępnianie danych",
+        "Content": "To zresetuje całą historię graczy, którzy wzięli swoją część z tego stosu.<br><br>Czy na pewno chcesz to zrobić?",
+        "Confirm": "Zresetuj udostępnianie danych"
+      },
+      "ClearAllItems": {
+        "Title": "Wyczyść wszystkie pozycje dotyczące aktora",
+        "Content": "Spowoduje to wyczyszczenie wszystkich przedmiotów sprzedawcy, czy na pewno chcesz to zrobić?"
+      },
+      "RemoveMerchantTable": {
+        "Title": "Usuń tabelę kupca",
+        "Content": "Czy na pewno chcesz usunąć tabelę \"{table_name}\" z tego kupca? Tego nie da się cofnąć."
+      },
+      "TextEditor": {
+        "Title": "Edytor tekstu"
+      },
+      "ClearVaultLog": {
+        "Title": "Wyczyścić dziennik skarbca?",
+        "Content": "Czy na pewno chcesz wyczyścić dziennik skarbca \"{actor_name}\"?"
+      },
+      "GiveItemUserNotActive": {
+        "Content": "\"{actor_name}\" jest własnością gracza \"{user_name}\" ale nie są oni aktywni, więc nie możesz dać im tego przedmiotu.",
+        "Title": "Przedmiot przekazania"
+      },
+      "ClearAllServices": {
+        "Title": "Wyczyść wszystkie usługi aktora",
+        "Content": "Spowoduje to wyczyszczenie wszystkich usług sprzedawcy, czy na pewno chcesz to zrobić?"
+      },
+      "ClearMerchantLog": {
+        "Title": "Wyczyścić dziennik kupca?",
+        "Content": "Czy na pewno chcesz wyczyścić dziennik kupca \"{actor_name}\"?"
+      },
+      "GiveItems": {
+        "Title": "Przekazywanie przedmiotów",
+        "Header": "Przekazywany przedmiot: {item_name}",
+        "SelectPlaceholder": "Wybierz postać, do której chcesz przekazać przedmiot",
+        "ContentMultipleQuantity": "Masz {quantity} szt. tego przedmiotu, ile chcesz przekazać?",
+        "Submit": "Przekaż",
+        "Secret": "Dawanie bez informowania innych (z wyjątkiem MG)"
+      },
+      "SortMergeVaultItems": {
+        "Title": "Sortowanie i łączenie podobnych elementów?",
+        "Content": "Czy na pewno chcesz scalić podobne przedmioty podczas ich sortowania? Scalenia nie można cofnąć."
+      }
+    },
+    "Items": "Przedmioty",
+    "HeaderButtons": {
+      "ShowToPlayers": "Pokaż Graczom",
+      "Configure": "Konfiguracja"
+    },
+    "Types": {
+      "pile": "Item Pile",
+      "container": "Pojemnik",
+      "merchant": "Kupiec",
+      "vault": "Skarbiec"
+    },
+    "Vault": {
+      "ExpandsRows": "{rows} wierszy",
+      "LogUserActor": "{actor_name} ({user_name})",
+      "Deposited": "zdeponowane",
+      "Deposit": "Depozyt",
+      "Withdrew": "wycofane",
+      "VaultTab": "Skarbiec",
+      "ExpandersTab": "Rozszerzenia",
+      "LogTab": "Logi",
+      "ViewingAs": "Przeglądanie jako {actor_name}",
+      "ExpandsCols": "{cols} kolumn",
+      "LogEntry": "{instigator} {action} {quantity}{item_name}",
+      "LogQuantity": "{quantity} x ",
+      "NeedsCapacity": "Ten skarbiec ma całkowitą pojemność {total_capacity}, ale żaden z nich nie jest dostępny, póki nie zostaną dodane rozszerzenia skarbca",
+      "CapacityLeft": "Ten skarbiec ma pojemność {capacity}, z maksymalną {total_capacity}, przeciągnij i upuść rozszerzenia skarbca, aby zwiększyć pojemność",
+      "CapacityFull": "Ten skarbiec osiągnął swoją maksymalną pojemność {total_capacity}",
+      "Withdraw": "Odwołanie",
+      "SortItemsTooltip": "Sortowanie przedmiotów - przytrzymaj klawisz Ctrl, aby scalić podobne przedmioty",
+      "SortItems": "Sortuj przedmioty"
+    },
+    "Applications": {
+      "WithdrawItem": {
+        "Submit": "Wycofaj",
+        "Content": "Czy chcesz wycofać tę pozycję z \"{target_name}\"?",
+        "ContentMultipleQuantity": "Jest {quantity} tej pozycji, ile chcesz wycofać?",
+        "Title": "Wycofaj przedmiot",
+        "Header": "Wycofujesz: {item_name}"
+      },
+      "SplitItem": {
+        "Title": "Podzielenie stosu pozycji",
+        "Content": "Chcesz rozdzielić ten stos?",
+        "Header": "Dzielisz stos {item_name}",
+        "Submit": "Podziel stos",
+        "ContentMultipleQuantity": "Jest {quantity} tego przedmiotu, ile chcesz w nowym stosie?"
+      },
+      "DropItem": {
+        "Title": "Upuszczenie przedmiotu",
+        "ContentInfiniteQuantity": "Ile chcesz upuścić?",
+        "SubmitNoTarget": "Utwórz nowy stos",
+        "Header": "Upuszczasz: {item_name}",
+        "Content": "Dodajesz ten przedmiot do stosu przedmiotów \"{target_name}\".",
+        "ContentMultipleQuantity": "Masz {quantity} tego przedmiotu, ile chcesz upuścić?",
+        "Submit": "Dodaj do stosu"
+      },
+      "GiveItem": {
+        "Header": "Przekazujesz: {item_name}",
+        "Content": "Czy chcesz przekazać ten przedmiot \"{target_name}\"?",
+        "ContentMultipleQuantity": "Masz {quantity} tego przedmiotu, ile chcesz przekazać?",
+        "Title": "Otrzymany przedmiot",
+        "Submit": "Przekaż",
+        "ContentInfiniteQuantity": "Ile chcesz przekazać \"{target_name}\"?"
+      },
+      "DepositItem": {
+        "Title": "Zdeponuj przedmiot",
+        "Header": "Deponujesz: {item_name}",
+        "Content": "Czy chcesz zdeponować tę pozycję w \"{target_name}\"?",
+        "ContentInfiniteQuantity": "Ile chcesz zdeponować?",
+        "Submit": "Depozyt",
+        "ContentMultipleQuantity": "Masz {quantity} tego przedmiotu, ile chcesz zdeponować?"
+      },
+      "EditCurrencies": {
+        "Title": "Edycja walut",
+        "Content": "Jako GM możesz zaktualizować waluty na tym stosie przedmiotów:",
+        "Submit": "Wyślij",
+        "NoCurrency": "{actor_name} nie ma ważnych walut",
+        "Secondary": "Waluty dodatkowe:"
+      },
+      "TradeMerchantItem": {
+        "TheyReceive": "Oni otrzymują",
+        "YouCantAfford": "Nie stać cię",
+        "Title": "Przedmiot obrotu: {item_name}",
+        "BuyItem": "Kup przedmiot",
+        "SellItem": "Sprzedaj przedmiot",
+        "YouPay": "Ty płacisz",
+        "YouReceive": "Otrzymujesz",
+        "Quantity": "Ilość",
+        "Change": "Zmiana",
+        "TheyCantAfford": "Nie stać ich",
+        "MaxQuantity": "Maksimum {quantity}",
+        "YouLackQuantity": "Nie masz wystarczającej ilości tego przedmiotu do sprzedaży, masz {quantity}, ale potrzebujesz {requiredQuantity}",
+        "TheyLackQuantity": "Nie mają wystarczającej ilości tego przedmiotu, aby go sprzedać, mają {quantity}, ale wymagają {requiredQuantity}"
+      },
+      "CurrenciesEditor": {
+        "Explanation": "Tutaj możesz zdefiniować, które waluty mogą być podnoszone ze stosów przedmiotów.",
+        "Icon": "Ikona",
+        "ExplanationSmallItems": "W innych systemach mogą to być rzeczywiste pozycje na aktorze - w tym przypadku można przeciągać i upuszczać pozycje na tę listę, aby dodać ją do walut.",
+        "DragDrop": "Przeciągnij i upuść element, aby dodać go do listy",
+        "Data": "Dane",
+        "AddNew": "Dodaj nową walutę",
+        "Name": "Nazwa waluty",
+        "TitleActor": "Item Piles Edytor Walut: {actor_name}",
+        "Title": "Item Piles Edytor walut",
+        "Exchange": "Wymiana",
+        "ExplanationSmallAttributes": "W D&D5e waluty aktorów znajdują się w ścieżce atrybutów \"actor.system.currency.gp\", więc możesz dodać swoją własną walutę z nazwą \"Gold Coins\" i ścieżką atrybutów \"system.currency.gp\". Dodaj jedną z nich klikając na plus w nagłówku.",
+        "CreateNew": "Upuść przedmiot lub kliknij przycisk plusa, aby rozpocząć!",
+        "Drop": "Upuść, aby dodać"
+      },
+      "ItemEditor": {
+        "Title": "Item Piles Edytor przedmiotów: {item_name}",
+        "Update": "Aktualizacja przedmiotu",
+        "General": "Ustawienia ogólne",
+        "Price": "Ustawienia cen",
+        "Vault": "Ustawienia skarbca",
+        "GeneralTab": {
+          "NotForSale": "Przedmiot nie jest na sprzedaż",
+          "NotForSaleExplanation": "Kiedy jest włączona, ten przedmiot nie jest na sprzedaż i nie można go kupić. Nadal jest widoczny na liście przedmiotów kupca, chyba że przedmiot jest również ukryty.",
+          "CustomCategory": "Kategoria pozycji niestandardowej",
+          "CustomCategoryExplanation": "Gdy nie jest pusta, ta pozycja będzie wymieniona pod innym typem niż to, czym jest.",
+          "Hidden": "Przedmiot jest ukryty",
+          "HiddenExplanation": "Gdy jest włączona, ten przedmiot nie pojawia się na listach przedmiotów sprzedawcy.",
+          "CanStack": "Możliwość układania w stos",
+          "CanStackExplanation": "Konfiguruje to, czy ten przedmiot będzie układany w stos z innymi przedmiotami, które są do niego podobne.",
+          "CanStackDefault": "Domyślne ustawienia elementów stosu",
+          "CanStackYes": "Tak, zawsze można układać w stos",
+          "CanStackNo": "Nie, nie można układać w stos",
+          "DisplayQuantity": "Widoczność ilości pozycji",
+          "DisplayQuantityExplanation": "Konfiguruje sposób wyświetlania ilości tego przedmiotu w sklepie, jeśli w ogóle.",
+          "DisplayQuantityDefault": "Domyślne ustawienie dla kupca",
+          "DisplayQuantityYes": "Tak, zawsze pokazuj ilość",
+          "DisplayQuantityNo": "Nie, zawsze ukryj ilość",
+          "InfiniteQuantity": "Nieskończona ilość",
+          "InfiniteQuantityExplanation": "Gdy jest włączona, ten przedmiot nie może się wyczerpać, gdy jest sprzedawany przez kupca.",
+          "InfiniteQuantityDefault": "Domyślne ustawienie dla kupca",
+          "InfiniteQuantityYes": "Tak, nieskończona ilość",
+          "InfiniteQuantityNo": "Nie, standardowa ilość",
+          "KeepZero": "Zachowaj zerową ilość",
+          "KeepZeroExplanation": "W przypadku całkowitego wyprzedania towaru, kupiec nie usuwa tego towaru, lecz ustawia go jako nie do sprzedaży.",
+          "KeepOnMerchant": "Zachowaj kupca",
+          "KeepOnMerchantExplanation": "Gdy przedmioty zostaną wyczyszczone w zakładce wypełnij przedmioty sprzedawców lub przez integrację Simple Calendar odświeżającą zapasy (patrz konfiguracja kupca na dole), ten przedmiot zawsze pozostanie.",
+          "PriceExplanation": "W tej zakładce możesz skonfigurować cenę tego przedmiotu, w tym barter."
+        },
+        "PriceTab": {
+          "BasePrice": "Cena bazowa",
+          "BasePriceExplanation": "Ustawia normalną cenę tej pozycji.",
+          "QuantityForPrice": "Ilość do ceny",
+          "QuantityForPriceExplanation": "To konfiguruje ile sztuk tego przedmiotu powinno się otrzymać przy zakupie.",
+          "Service": "Przedmiot jest usługą",
+          "ServiceExplanation": "Powoduje to, że ten przedmiot nie dodaje się do inwentarza kupca. Usługa \"item\" może nadal mieć ilość, ale jeśli się skończy, nie zostanie usunięta z kupca, ale zamiast tego ustawiona na nie do sprzedaży.",
+          "PurchaseMacro": "Makro zakupu",
+          "PurchaseMacroExplanation": "Nazwa makra do wykonania przy zakupie przedmiotu.",
+          "Free": "Przedmiot jest darmowy",
+          "FreeExplanation": "Po włączeniu, ten przedmiot nie kosztuje nic, aby kupić od kupca.",
+          "DisableNormalCost": "Wyłączenie kosztu normalnego",
+          "DisableNormalCostExplanation": "Gdy ta opcja jest włączona, przedmiot nie może być zakupiony za walutę podstawową i musi być zakupiony za jedną z poniższych opcji zakupu.",
+          "PurchaseOptions": "Opcje zakupu",
+          "PurchaseOptionsExplanation": "Tutaj można skonfigurować alternatywne sposoby zakupu tego przedmiotu. Każda grupa reprezentuje inny sposób, w jaki postać może kupić ten przedmiot od kupców.",
+          "CantBeSoldToMerchants": "Nie można sprzedać kupcom",
+          "CantBeSoldToMerchantsExplanation": "Gdy jest włączona, ten przedmiot nie może być odsprzedany kupcom, tylko kupiony.",
+          "AddPurchaseOption": "Dodaj opcję zakupu",
+          "DropMeClickMe": "Kliknij, aby dodać atrybut lub przeciągnij i upuść przedmiot, aby dodać",
+          "PricePreset": "Można też wybrać wstępne ustawienie ceny:",
+          "SelectPreset": "Wybór presetu cenowego",
+          "PurchaseOptionsAsSellOption": "Opcja zakupu jako opcja sprzedaży",
+          "SellOptions": "Opcje sprzedaży",
+          "SellOptionsExplanation": "Tutaj można skonfigurować alternatywne sposoby sprzedaży tego przedmiotu. Każda grupa reprezentuje inny sposób, w jaki postać może sprzedać ten przedmiot kupcom.",
+          "AddSellOption": "Dodaj opcję sprzedaży",
+          "PurchaseOptionsAsSellOptionExplanation": "Gdy ta opcja jest włączona, poniższe opcje zakupu mogą być używane podczas odsprzedaży przedmiotu sprzedawcy. Domyślnie można użyć tylko poniższych opcji sprzedaży.",
+          "AddOverheadCostOption": "Dodaj ogólne koszty",
+          "OverheadCostOptionsExplanation": "W tym miejscu można skonfigurować koszt ogólny, który jest zawsze dodawany do ceny tego przedmiotu, gdy sprzedawca go sprzedaje. Mają na to wpływ modyfikatory ceny.",
+          "OverheadCostOptions": "Opcje kosztów ogólnych"
+        },
+        "VaultTab": {
+          "GridSize": "Rozmiar Siatki",
+          "GridSizeExplanation": "Konfiguruje liczbę miejsc w siatce zajmowanych przez ten przedmiot.",
+          "VaultImage": "Wizerunek Skarbca",
+          "VaultImageExplanation": "To zastępuje domyślny obraz wyświetlany w skarbcu.",
+          "VaultImageRotated": "Obrócony obraz skarbca",
+          "VaultImageRotatedExplanation": "Zastępuje to obraz przedmiotu wyświetlany w skarbcu, gdy jest on obrócony.",
+          "GridWidth": "Szerokość",
+          "GridHeight": "Wysokość",
+          "VaultExpander": "Rozszerzenie skarbca",
+          "VaultExpanderExplanation": "Kiedy to jest włączone, ten przedmiot nie działa jak normalny przedmiot w skarbcu, zamiast tego zwiększa liczbę dostępnych slotów, jak określono poniżej.",
+          "ExpandColumnsRows": "Rozszerzenie kolumn i wierszy",
+          "ExpandColumnsRowsExplanation": "Gdy powyższe ustawienie jest włączone, określa ono, ile kolumn i/lub wierszy staje się dostępnych w skarbcu. Nie może to wykraczać poza pojemność skarbca.",
+          "PriceModifierTitle": "Modyfikatory cen kupna i sprzedaży",
+          "PriceModifierExplanation": "Pozwala skonfigurować modyfikatory kosztu zakupu i sprzedaży przedmiotu. Mnoży to cenę bazową przedmiotu przed wszelkimi innymi modyfikatorami ceny. Jeśli modyfikator ceny sprzedaży sprzedawcy wynosi 50%, modyfikator ceny sprzedaży przedmiotu musiałby wynosić 200%, aby zniwelować modyfikator sprzedawcy."
+        }
+      },
+      "FilterEditor": {
+        "Explanation": "Tutaj możesz zdefiniować wiele typów filtrów, które wykluczą pewne typy przedmiotów. Na podstawie podanej ścieżki atrybutu, stos przedmiotów mógłby znaleźć \"typ\" przedmiotu i na podstawie filtrów, ukrywa te przedmioty w UI inwentarza stosu przedmiotów.",
+        "Path": "Ścieżka właściwości",
+        "Title": "Edytor filtrów Item Piles",
+        "Filters": "Filtry",
+        "TitleActor": "Edytor filtrów Item Piles: {actor_name}",
+        "AddNew": "Dodaj nowy filtr"
+      },
+      "SimilaritiesEditor": {
+        "Path": "Ścieżka atrybutu",
+        "Title": "Edytor podobieństw Item Piles",
+        "Explanation": "Tutaj możesz zdefiniować wiele typów identyfikatorów, które pomagają Item Piles rozróżnić podobne elementy. W prawie każdym systemie, przedmioty można rozróżnić za pomocą ich \"nazwy\" i \"typu\". Jednak w niektórych przypadkach, jak np. w Pathfinder 2nd Edition, przedmioty tymczasowe mogą dzielić je z przedmiotami stałymi. Tak więc poprzez dodanie \"system.temporary.value\", twoje tymczasowe przedmioty są uważane za \"unikalne\" i oddzielone od stałych."
+      },
+      "VaultStylesEditor": {
+        "Path": "Ścieżka atrybutu",
+        "AddNew": "Dodaj nową regułę stylu",
+        "Title": "Edytor stylów sklepienia Item Piles",
+        "Explanation": "Tutaj możesz zdefiniować wiele stylów dla przedmiotów w skarbcach. Na przykład, możesz sprawić, że styl będzie patrzył na \"system.rarity\" jako na \"rare\" i zastosować styl na przedmioty, który pasuje do tego ustawienia.",
+        "Style": "Skonfiguruj styl",
+        "Value": "Dopasowana wartość"
+      },
+      "StylesEditor": {
+        "Title": "Edytor stylów",
+        "Style": "Styl",
+        "Variable": "Zmienna",
+        "Value": "Wartość"
+      },
+      "ItemTypePriceModifiersEditor": {
+        "Override": "Nadpisz",
+        "Title": "Item Type Edytor modyfikatorów cen",
+        "TitleActor": "Item Type Edytor modyfikatorów cen: {actor_name}",
+        "Explanation": "Tutaj możesz zdefiniować modyfikatory ceny i ceny sprzedaży dla tego handlowca w odniesieniu do określonych typów przedmiotów. Ustawienie \"Override\" oznacza, że zastępują one normalne modyfikatory cen sprzedawcy.",
+        "ItemType": "Typ przedmiotu"
+      },
+      "PriceModifiersEditor": {
+        "Title": "Item Piles Edytor modyfikatorów cen",
+        "Actor": "Aktor",
+        "Override": "Nadpisz",
+        "TitleActor": "Item Piles Edytor modyfikatorów cen: {actor_name}",
+        "Explanation": "Tutaj możesz zdefiniować modyfikatory ceny i ceny sprzedaży dla tego kupca odnoszące się do konkretnych aktorów. Ustawienie \"Nadpisz\" oznacza, że nadpisuje on normalne modyfikatory cenowe kupca, w tym modyfikatory cenowe specyficzne dla danego typu przedmiotu.",
+        "DragDrop": "Przeciągnij i upuść aktora, aby dodać go do listy"
+      },
+      "ItemPileConfig": {
+        "Sharing": {
+          "TakeAllEnabled": "Włącz przycisk Weź wszystko",
+          "SplitAllEnabled": "Włącz przycisk dzielenia z graczami",
+          "Title": "Ustawienia udostępniania",
+          "ShareItemsEnabled": "Udostępnianie włączone: Przedmioty",
+          "ShareItemsEnabledExplanation": "Gdy jest to włączone, gracze mogą wziąć tylko swoją część ilości przedmiotów. Wyłączona oznacza, że mogą wziąć tyle ile chcą.",
+          "ShareCurrenciesEnabled": "Udostępnianie włączone: Waluty",
+          "ShareCurrenciesEnabledExplanation": "Gdy jest to włączone, gracze mogą wziąć tylko swoją część ilości walut. Wyłączona oznacza, że mogą wziąć tyle ile chcą.",
+          "SplitAllEnabledExplanation": "Włącza przycisk \"Podziel na [number] sposobów\" podczas plądrowania tego stosu przedmiotów. Naciśnięcie tego przycisku sprawia, że wszyscy gracze (lub tylko aktywni gracze, patrz poniżej) otrzymują swoją część stosu przedmiotów.",
+          "InactivePlayers": "Podziel się tylko z aktywnymi graczami",
+          "InactivePlayersExplanation": "Tylko gracze, którzy są aktywni podczas plądrowania tego stosu przedmiotów, otrzymają swoją część stosu.",
+          "ResetSharingData": "Zresetuj udostępnianie danych",
+          "ResetSharingDataExplanation": "Jeśli zawartość Item Pile's została ręcznie zmieniona podczas plądrowania, dane dotyczące podziału mogą nie być zsynchronizowane z rzeczywistymi udziałami graczy. Naciśnięcie tego przycisku zresetuje udziały wszystkich graczy w tym stosie.",
+          "TakeAllEnabledExplanation": "Włącza przycisk \"Weź wszystko\" podczas plądrowania tego stosu przedmiotów. Wymaga wyłączenia obu powyższych ustawień udostępniania."
+        },
+        "Merchant": {
+          "Enabled": "Czy kupiec",
+          "OpenStatusOpen": "Otwarte",
+          "ClosedDaysExplanation": "W zaznaczonych dniach kupiec będzie zamknięty (jeśli status otwarcia kupca jest ustawiony na automatyczny).",
+          "ClosedHolidays": "Dni wolne od pracy (Simple Calendar)",
+          "PriceModifierTitle": "Modyfikatory cen zakupu i sprzedaży",
+          "SellPriceModifier": "Modyfikator ceny sprzedaży (%)",
+          "Title": "Ustawienia kupca",
+          "HideNewItems": "Ukryj nowe przedmioty",
+          "HideNewItemsExplanation": "Po włączeniu tej opcji, wszystkie przedmioty sprzedane temu kupcowi będą ukryte.",
+          "OnlyAcceptBasePrice": "Przyjmij tylko cenę podstawową",
+          "MerchantImageExplanation": "To jest obraz, który będzie wyświetlany w interfejsie kupca",
+          "InfiniteQuantity": "Nieskończona ilość",
+          "InfiniteQuantityExplanation": "Gdy jest włączona, temu kupcowi nie może zabraknąć przedmiotów.",
+          "InfiniteCurrency": "Nieskończona waluta",
+          "InfiniteCurrencyExplanation": "Kiedy jest włączona, sprzedaż przedmiotów temu kupcowi nie będzie odejmować od jego walut.",
+          "KeepZero": "Zachowaj zerową ilość",
+          "KeepZeroExplanation": "Kiedy przedmioty są całkowicie wyprzedane, ten kupiec nie usunie ich, ale zamiast tego ustawi je jako nie do sprzedaży.",
+          "DisplayQuantity": "Widoczność ilości przedmiotów",
+          "DisplayQuantityExplanation": "Konfiguruje sposób wyświetlania ilości przedmiotów w sklepie, jeśli w ogóle.",
+          "DisplayQuantityYes": "Tak, pokaż ilość (chyba że przedmiot mówi inaczej)",
+          "DisplayQuantityNo": "Nie, ukryj ilość (chyba że przedmiot mówi inaczej)",
+          "DisplayQuantityYesAlways": "Tak, zawsze pokazuj ilość",
+          "DisplayQuantityNoAlways": "Nie, zawsze chowaj ilość",
+          "PurchaseOnly": "Tylko zakup",
+          "PurchaseOnlyExplanation": "Gdy włączone, postacie nie mogą sprzedawać przedmiotów temu kupcowi.",
+          "HideItemsWithZeroCost": "Ukryj przedmioty z zerowym kosztem",
+          "HideItemsWithZeroCostExplanation": "Po włączeniu tej funkcji sprawia, że postaci nie mogą kupować ani sprzedawać przedmiotów, których koszt wynosi zero (darmowych).",
+          "OpenTimes": "Godziny otwarcia",
+          "OpenTimesExplanation": "Po włączeniu tej funkcji, kupiec może wchodzić w interakcje z graczami tylko w określonych porach dnia.",
+          "OpenStatus": "Status otwarcia",
+          "ClosedHolidaysExplanation": "W dniach, w których występują noty z daną kategorią, kupiec zostanie zamknięty (jeśli status otwarty kupiec jest ustawiony na automatyczny).",
+          "PriceModifierExplanation": "To konfiguruje modyfikatory dla kosztu każdego przedmiotu w sklepie. Możesz również skonfigurować modyfikatory dla poszczególnych typów przedmiotów, a nawet dla konkretnych postaci (np. bardów o srebrnym języku). Nie jesteś ograniczony do 200%, wpisz w pole dowolną wartość.",
+          "BuyPriceModifier": "Modyfikator ceny zakupu (%)",
+          "ItemTypeModifier": "Modyfikatory cen typu",
+          "ItemTypeModifiersExplanation": "W tym oknie dialogowym możesz skonfigurować modyfikatory cen dla poszczególnych typów artykułów.",
+          "ConfigureItemTypePriceModifiers": "Konfiguracja modyfikatorów cen typu",
+          "ActorPriceModifiers": "Modyfikatory ceny dla każdego uczestnika",
+          "ActorPriceModifiersExplanation": "Tutaj możesz skonfigurować, czy pewne konkretne podmioty powinny mieć inne modyfikatory ceny niż modyfikatory ceny powyżej.",
+          "ConfigureActorPriceModifiers": "Konfiguracja modyfikatorów ceny aktora",
+          "MerchantColumns": "Kolumny kupca",
+          "MerchantColumnsExplanation": "Tutaj możesz skonfigurować systemowe kolumny wyświetlane w UI kupca, takie jak rzadkość przedmiotów.",
+          "ConfigureMerchantColumns": "Konfiguracja kolumn kupca",
+          "EnabledExplanation": "Gracze nie mogą zbierać przedmiotów od handlarzy, ale muszą je kupować",
+          "MerchantImage": "Obraz kupca",
+          "OnlyAcceptBasePriceExplanation": "Kiedy włączone, wszystkie przedmioty sprzedawane temu kupcowi muszą używać ceny podstawowej, a nie jakichkolwiek cen niestandardowych.",
+          "OpenStatusExplanation": "To konfiguruje aktualny stan otwarcia kupca. Jeśli włączone są czasy otwarcia (poniżej) i moduł Simple Calendar jest włączony, możesz skonfigurować to jako automatyczne.",
+          "OpenStatusClosed": "Zamknięte",
+          "OpenStatusAuto": "Automatycznie (Simple Calendar)",
+          "ClosedDays": "Dni zamknięte (Simple Calendar)",
+          "RefreshItemsWarning": "W przypadku każdej z poniższych opcji istniejące pozycje zostaną USUNIĘTE i nie będzie można ich odzyskać. Poszczególne pozycje można skonfigurować tak, aby zostały zachowane; pozycje ustawione na usługi, zachowaj zerową ilość i zachowaj u sprzedawcy pozostaną.",
+          "RefreshItemsOnOpen": "Odświeżanie elementów w czasie otwarcia (\"Simple Calendar\")",
+          "RefreshItemsOnOpenExplanation": "Gdy czas kalendarza przekroczy czas otwarcia sprzedawcy, zapasy sprzedawcy zostaną odświeżone.",
+          "RefreshItemsDays": "Odśwież elementy w dni powszednie (\"Simple Calendar\")",
+          "RefreshItemsDaysExplanation": "Gdy kalendarz przekroczy zaznaczone dni, zapasy kupca zostaną odświeżone. Dzieje się to o godzinie otwarcia kupca lub o północy, jeśli nie ma godziny otwarcia/zamknięcia.",
+          "RefreshItemsHolidays": "Odśwież przedmioty w Święta (Simple Calendar)",
+          "RefreshItemsHolidaysExplanation": "Gdy kalendarz przekroczy powiadomienia z daną kategorią powiadomień, zapasy kupca zostaną odświeżone. Dzieje się to w czasie powiadomienia lub o północy, jeśli jest to powiadomienie ustawiono na cały dzień.",
+          "LogMerchantActivity": "Dziennik aktywności kupca",
+          "ClearMerchantLog": "Wyczyść dziennik kupca",
+          "ClearMerchantLogExplanation": "Spowoduje to wyczyszczenie dzienników kupca, usuwając wszystkie wpisy. Nie można tego cofnąć.",
+          "LogMerchantActivityExplanation": "Po włączeniu tej funkcji kupiec rejestruje zdarzenia, takie jak kupno i sprzedaż przedmiotów, a GM aktualizuje status (ilość, widoczność i sprzedaż) przedmiotów.",
+          "HideTokenWhenClosed": "Ukryj Token po Zamknięciu",
+          "HideTokenWhenClosedExplanation": "Gdy ta opcja jest włączona, token(y) tego sprzedawcy są ukrywane po zamknięciu.",
+          "OnlyAcceptCustomPrices": "Akceptuj tylko ceny niestandardowe",
+          "OnlyAcceptCustomPricesExplanation": "Po włączeniu tej opcji wszystkie przedmioty sprzedawane temu sprzedawcy muszą używać niestandardowych cen dla tego przedmiotu (jeśli takie istnieją), a nie zwykłych walut. Jeśli przedmiot nie ma ceny niestandardowej, nie można go sprzedać.",
+          "ExportMerchantLogExplanation": "Spowoduje to wyeksportowanie i pobranie pliku tekstowego dzienników, posortowanego od najstarszych do najnowszych informacji.",
+          "AddOverheadCostOption": "Dodaj koszty ogólne",
+          "OverheadCostOptions": "Opcje kosztów ogólnych",
+          "OverheadCostOptionsExplanation": "Tutaj można skonfigurować koszt ogólny, który jest zawsze dodawany do ceny przedmiotów, gdy sprzedawca je sprzedaje. Mają na to wpływ modyfikatory ceny.",
+          "ExportMerchantLog": "Eksport dzienników sprzedawców"
+        },
+        "Main": {
+          "DeleteWhenEmpty": "Usuń, gdy jest pusty",
+          "DeleteWhenEmptyExplanation": "Powoduje, że ten stos przedmiotów jest automatycznie usuwany, gdy jest pusty.",
+          "DisplayItemTypes": "Podziel elementy według typów przedmiotu",
+          "DisplayItemTypesExplanation": "Wyświetlaj każdy typ przedmiotu osobno w stosie przedmiotów, posortowany według jego typu.",
+          "Macro": "Makro interakcji",
+          "MacroExplanation": "Nazwa makra, które ma zostać wykonane podczas interakcji z tym stosem.",
+          "OverrideCurrenciesExplanation": "Skonfiguruj, czy ten stos ma mieć możliwość przekazywania innych walut niż domyślne.",
+          "OverrideCurrencies": "Zastąpić waluty",
+          "Title": "Ustawienia główne",
+          "EnabledPile": "Włączone",
+          "InspectItems": "Włącz kontrolę pozycji",
+          "InspectItemsExplanation": "Kliknięcie nazw przedmiotu spowoduje otwarcie arkusza danego przedmiotu.",
+          "GridUnits": "Jednostki siatki (pozostawić puste dla nieskończonych)",
+          "EditDescription": "Edytuj Opis",
+          "DeleteWhenEmptyYes": "Tak, usuń, gdy jest pusty",
+          "DeleteWhenEmptyNo": "Nie, nie usuwaj, gdy jest pusty",
+          "ConfigureOverrideCurrencies": "Konfiguracja nadpisywania walut",
+          "OverrideItemFilters": "Zastąp filtry pozycji",
+          "OverrideItemFiltersExplanation": "Skonfiguruj, czy ten stos ma mieć możliwość przekazywania innych typów elementów niż domyślne.",
+          "ConfigureOverrideItemFilters": "Konfiguracja nadpisywania filtrów pozycji",
+          "EnabledPileExplanation": "Czy ma to działać jako stos przedmiotów.",
+          "Distance": "Odległość interakcji",
+          "MacroPlaceholder": "Wstaw nazwę makra",
+          "EditDescriptionExplanation": "Opis ten jest wyświetlany w odpowiednich interfejsach podczas przeglądania stosu przedmiotów",
+          "DeleteWhenEmptyDefault": "Domyślne ustawienie modułu",
+          "OverrideSecondaryCurrencies": "Zastąp waluty dodatkowe",
+          "OverrideSecondaryCurrenciesExplanation": "Skonfiguruj nadpisania waluty dodatkowej dla tego stosu pozycji.",
+          "ConfigureOverrideSecondaryCurrencies": "Konfiguracja zastępowania walut dodatkowych",
+          "CanStackItemsNo": "Nie układaj przedmiotów (chyba że przedmiot mówi inaczej)",
+          "CanStackItems": "Może Łączyć Przedmioty w Stosy",
+          "CanStackItemsExplanation": "Z tym ustawieniem, przedmioty dodane do stosu przedmiotów będą układane w stos z podobnymi przedmiotami. Można to również kontrolować dla poszczególnych przedmiotów w ich konfiguracji. Uwaga: Zależy to również od systemu, ponieważ niektóre przedmioty nie mają ilości, więc nigdy nie mogą być układane w stosy.",
+          "CanStackItemsYes": "Tak, układaj przedmioty (chyba że przedmiot mówi inaczej)",
+          "CanStackItemsNoAlways": "Nie, nigdy nie układaj w stos przedmiotów",
+          "CanStackItemsYesAlways": "Tak, zawsze układaj przedmioty w stosy",
+          "ConfigureRequiredItemProperties": "Skonfiguruj wymagane właściwości przedmiotu",
+          "RequiredItemProperties": "Wymagane właściwości przedmiotu",
+          "RequiredItemPropertiesExplanation": "Skonfiguruj, czy ten stos przedmiotów powinien wymagać, aby przenoszone do niego przedmioty miały określone właściwości."
+        },
+        "Container": {
+          "Title": "Ustawienia kontenera",
+          "IsContainer": "Jest kontenerem",
+          "Locked": "Jest zablokowany",
+          "Closed": "Jest zamknięty",
+          "ClosedImagePath": "Obrazek zamknięcia",
+          "EmptyImagePath": "Ścieżka pustego obrazka",
+          "OpenedImagePath": "Ścieżka otwartego obrazka",
+          "LockedImagePath": "Ścieżka zablokowanego obrazka",
+          "CloseSoundPath": "Ścieżka zamknietego dźwięku",
+          "OpenSoundPath": "Ścieżka dźwięku otwarcia",
+          "LockedSoundPath": "Ścieżka dźwięku zablokowania"
+        },
+        "Vault": {
+          "Title": "Ustawienia skarbca",
+          "ClearVaultLog": "Czyść logi skarbca",
+          "LayoutExplanation": "Jest to ilość kolumn i wierszy, które powinny być widoczne w skarbcu.",
+          "EnableExpansionExplanation": "Po włączeniu tej opcji przedmioty, które są skonfigurowane jako rozszerzenia skarbca, będą rozszerzać dostępne miejsce w skarbcu.",
+          "BaseExpansion": "Bazowe rozszerzenie",
+          "BaseExpansionExplanation": "Tyle kolumn i wierszy jest domyślnie włączonych bez żadnych elementów rozszerzających.",
+          "Access": "Dostęp dla postaci i graczy",
+          "AccessExplanation": "To konfiguruje, które postacie i gracze mogą mieć dostęp i modyfikować ekwipunek i waluty skarbca. Jeśli gracz jest właścicielem postaci w skarbcu, ma zawsze pełny dostęp.",
+          "ManageAccess": "Zarządzaj dostępem",
+          "LogVaultAccess": "Dziennik dostępu do skarbca",
+          "LogVaultAccessExplanation": "Gdy jest włączona, skarbiec ten będzie tworzył wpis do dziennika i tworzył dzienniki ze stemplem czasowym za każdym razem, gdy będzie z nim współdziałać.",
+          "LoggingFormatUser": "Wyświetl tylko nazwę użytkownika",
+          "Layout": "Układ",
+          "Rows": "Wiersze",
+          "Columns": "Kolumny",
+          "EnableExpansion": "Włączenie elementów rozszerzenia",
+          "CanStackItems": "Możliwość układania przedmiotów w stos",
+          "LoggingFormat": "Format dziennika",
+          "ClearVaultLogExplanation": "Spowoduje to wyczyszczenie dzienników skarbca, usuwając wszystkie wpisy. Nie można tego cofnąć.",
+          "LoggingFormatExplanation": "Konfiguruje sposób wyświetlania nazwy użytkownika i nazwy postaci w dzienniku.",
+          "LoggingFormatUserActor": "Wyświetlanie nazwy użytkownika i nazwy postaci",
+          "CanStackItemsExplanation": "Po włączeniu tej opcji przedmioty dodane do skarbca będą się układać w stos z podobnymi przedmiotami. Można to również kontrolować dla każdego przedmiotu w ich konfiguracji.",
+          "LoggingFormatActor": "Wyświetl tylko nazwę",
+          "RestrictAccess": "Ograniczenie dostępu do skarbca",
+          "RestrictAccessExplanation": "Domyślnie każdy może uzyskać dostęp do skarbców, jeśli widzi je na pasku bocznym lub może przejść obok nich na scenie. Gdy to ustawienie jest włączone, skarbiec będzie widoczny tylko dla właściciela postaci skarbca lub użytkowników/postaci skonfigurowanych w Edytorze dostępu (patrz poniżej)."
+        },
+        "Update": "Aktualizuj konfigurację",
+        "SingleItem": {
+          "Title": "Ustawienia pojedynczej pozycji",
+          "DisplayOne": "Wyświetlanie obrazu pojedynczego przedmiotu",
+          "DisplayOneContainerWarning": "Ostrzeżenie! Masz włączone zarówno \"Wyświetl obrazek pojedynczego elementu\" jak i \"Jest kontenerem\". W tym przypadku obrazy kontenerów mają pierwszeństwo.",
+          "DisplayOneExplanation": "Jeśli stos składa się z jednego przedmiotu, to ustawia obrazek żetonu stosu na obrazek tego przedmiotu.",
+          "Scale": "Jednopozycyjna skala tokenów",
+          "ItemName": "Użyj nazwy przedmiotu",
+          "ItemNameExplanation": "Powoduje, że stos elementów zostanie nazwany po pojedynczym przedmiocie.",
+          "OverrideScale": "Nadpisanie skali tokena pojedynczego elementu"
+        },
+        "Other": {
+          "TypeExplanation": "Konfiguruje sposób, w jaki będzie wyświetlany ten stos elementów.",
+          "Title": "Inne ustawienia",
+          "Type": "Item Pile Typ"
+        },
+        "Configure": "Item Pile",
+        "Title": "Item Pile Konfiguracja: {actor_name}"
+      },
+      "DropCurrencies": {
+        "Title": "Porzuć waluty",
+        "Content": "Do tych pozycji możesz dodać następujące waluty:",
+        "NoCurrency": "{aktor_name} nie ma ważnych walut...",
+        "Submit": "Dodaj"
+      },
+      "Settings": {
+        "MoreToCome": "A w przyszłości pojawi się więcej opcji konfiguracyjnych...",
+        "System": "Ustawienia specyficzne dla systemu",
+        "Styles": "Ustawienia stylu",
+        "Title": "Item Piles Konfiguracja Modułu",
+        "Local": "Ustawienia lokalne",
+        "Donate": "Jeśli podoba Ci się ten moduł, rozważ przekazanie darowizny!",
+        "Module": "Ustawienia modułu",
+        "Request": "Poproś o nowe funkcje tutaj.",
+        "Submit": "Prześlij ustawienia",
+        "Export": "Ustawienia eksportu",
+        "Import": "Ustawienia importu"
+      },
+      "DepositCurrencies": {
+        "Title": "Waluty depozytu",
+        "Content": "Do tego skarbca możesz wpłacić następujące waluty:",
+        "NoCurrency": "{actor_name} nie ma żadnych walut do zdeponowania.",
+        "Submit": "Depozyt"
+      },
+      "WithdrawCurrencies": {
+        "Title": "Wycofanie przedmiotu",
+        "Content": "Z tego skarbca można wypłacić następujące waluty:",
+        "NoCurrency": "Nie ma żadnych walut do wypłaty.",
+        "Submit": "Wycofaj"
+      },
+      "CustomItemCategoriesEditor": {
+        "Title": "Edytor kategorii niestandardowych",
+        "Explanation": "Tutaj możesz skonfigurować, które niestandardowe kategorie przedmiotów są dostępne w twoim świecie. Są one dynamicznie dodawane, gdy dodajesz nową dla przedmiotu.",
+        "Category": "Kategoria"
+      },
+      "MerchantColumnsEditor": {
+        "Label": "Etykieta",
+        "PropertyPath": "Ścieżka właściwości",
+        "Formatting": "Formatowanie",
+        "ConfigureMapping": "Konfiguracja mapowania",
+        "MappingTitle": "Mapowanie kolumn kupca: {label}",
+        "TitleActor": "Kolumny kupca: {actor_name}",
+        "Title": "Kolumny kupca",
+        "Explanation": "Konfiguruje kolumny widoczne w UI kupca, poza nazwą towaru, ilością i ceną.",
+        "MappingContent": "Konfiguruje mapowanie pomiędzy wartością właściwości a etykietą. Ta etykieta może być łańcuchem znaków.",
+        "Selling": "Sprzedaż",
+        "Buying": "Kupowanie"
+      },
+      "UnstackableItemTypesEditor": {
+        "Explanation": "Tutaj można zdefiniować typy elementów, które nie mogą być układane w stos.",
+        "Type": "Typ przedmiotu",
+        "Title": "Edytor typów przedmiotów, których nie można układać w stosy"
+      },
+      "VaultAccessEditor": {
+        "Title": "Edytor dostępu do skarbca",
+        "TitleActor": "Edytor dostępu do skarbca: {actor_name}",
+        "Explanation": "To konfiguruje, które postacie i gracze mogą mieć dostęp i modyfikować ekwipunek i waluty skarbca. Jeśli gracz jest właścicielem postaci w skarbcu, ma zawsze pełny dostęp.",
+        "Character": "Gracz/Postać",
+        "View": "Widok",
+        "Organize": "Organizacja",
+        "Withdraw": "Wycofaj",
+        "Deposit": "Depozyt"
+      },
+      "PricePresetEditor": {
+        "Update": "Aktualizacja ustawień wstępnych",
+        "Explanation": "Tutaj można utworzyć wiele wstępnie ustawionych cen, które następnie można łatwo wykorzystać w niestandardowych cenach przedmiotów.",
+        "Title": "Edytor ustawień cenowych"
+      },
+      "SecondaryCurrenciesEditor": {
+        "Explanation": "W tym miejscu można określić, które waluty dodatkowe mogą być podnoszone i upuszczane przez postacie.",
+        "Title": "Edytor walut drugorzędnych",
+        "TitleActor": "Edytor walut drugorzędnych: {actor_name}"
+      },
+      "RequiredItemPropertiesEditor": {
+        "Title": "Item Piles - Edytor wymaganych właściwości przedmiotów",
+        "TitleActor": "Item Piles - Wymagany edytor właściwości przedmiotów: {actor_name}",
+        "Filters": "Wymagane właściwości",
+        "Path": "Ścieżka właściwości",
+        "AddNew": "Dodaj nowy filtr",
+        "Explanation": "W tym miejscu można zdefiniować wiele typów wymaganych właściwości przedmiotów, które muszą mieć przedmioty przeniesione do tego stosu przedmiotów. W oparciu o podaną ścieżkę atrybutów, stos przedmiotów może znaleźć \"typ\" przedmiotu i w oparciu o wymagania, uniemożliwi przeniesienie przedmiotów, które nie pasują do tych właściwości do tego stosu przedmiotów."
+      }
+    },
+    "Settings": {
+      "HideTokenBorder": {
+        "Hint": "To kontroluje, czy obramowanie tokena jest ukryte podczas najechania na tokeny stosu elementów. Wybranie tokenu zawsze pokazuje obramowanie.",
+        "Title": "Ukryj granice tokenów w stosie przedmiotów",
+        "HideEveryone": "Ukryty przed wszystkimi",
+        "HidePlayers": "Ukryty przed graczami",
+        "Show": "Pokaż obwódkę (podstawowe zachowanie)"
+      },
+      "DeleteEmptyPiles": {
+        "Hint": "To powoduje, że stosy przedmiotów usuwają się same, gdy skończą się im przedmioty. Można to nadpisać na poszczególnych stosach przedmiotów.",
+        "Title": "Automatyczne usuwanie pustych stosów"
+      },
+      "DebugHooks": {
+        "Title": "Włącz debugowanie haków",
+        "Hint": "Wypisuje na konsolę haki stosu elementów i ich zawartość"
+      },
+      "OutputToChat": {
+        "Title": "Wyjście na czat",
+        "SelfGM": "Prywatne - tylko GM i gracz mogą zobaczyć wiadomości",
+        "Off": "Wyłącz - wyłączenie wiadomości",
+        "Public": "Publiczny - każdy może zobaczyć wiadomości",
+        "Blind": "Ukryty - tylko GM może zobaczyć wiadomości",
+        "Hint": "Za każdym razem, gdy któryś z graczy podniesie przedmioty ze stosu przedmiotów, zostanie wysłana wiadomość pokazująca, co zostało podniesione."
+      },
+      "Currencies": {
+        "Label": "Skonfiguruj waluty",
+        "Title": "Waluty",
+        "Hint": "To ustawienie definiuje waluty, które kwalifikują się do odbioru, które mogą nie być rzeczywistymi przedmiotami, ale liczbowymi wpisami na arkuszu postaci."
+      },
+      "UnstackableItemTypes": {
+        "Label": "Konfiguracja typów nie dających się układać w stosy",
+        "Hint": "Tutaj możesz skonfigurować, które typy przedmiotów są uważane za unikalne, bez względu na wszystko. Skonfigurowane tutaj typy nie mogą być układane w stos i mogą mieć zawsze tylko ilość 1.",
+        "Title": "Typy przedmiotów, których nie można układać w stosy"
+      },
+      "CssVariables": {
+        "Hint": "Pozwala to skonfigurować różne zmienne CSS, które sterują kolorami i innymi stylami w interfejsach stosów elementów.",
+        "Title": "Style zmiennych CSS",
+        "Label": "Skonfiguruj zmienne CSS"
+      },
+      "VaultStyles": {
+        "Title": "Style skarbca",
+        "Label": "Skonfiguruj style skarbca",
+        "Hint": "Pozwala to na dodanie reguł, które będą stylizować elementy na podstawie ścieżek właściwości i wartości na samych elementach."
+      },
+      "PricePresets": {
+        "Label": "Skonfiguruj ustawienia wstępne cen",
+        "Hint": "Tutaj możesz skonfigurować niestandardowe, wstępnie ustawione cen, które następnie możesz łatwo zaimportować do przedmiotów.",
+        "Title": "Wstępne ustawienia cen"
+      },
+      "CustomItemCategories": {
+        "Title": "Kategorie przedmiotów niestandardowych",
+        "Label": "Konfiguracja kategorii przedmiotów",
+        "Hint": "W tym można skonfigurować niestandardowe kategorie przedmiotów, które są wyświetlane jako sugestie w edytorze przedmiotów."
+      },
+      "HideHeaderButtonText": {
+        "Title": "Ukryj tekst przycisku nagłówka",
+        "Hint": "Ukrywa tekst \"Item Piles\" w nagłówkach aktora i przedmiotu - przydatne, jeśli masz zbyt wiele modułów, a nagłówek staje się zaśmieciony."
+      },
+      "ShowTradeButton": {
+        "Title": "Pokaż przycisk handlu",
+        "Hint": "Włączenie tej opcji spowoduje wyświetlenie przycisku handlu tuż pod listą graczy w prawym dolnym rogu."
+      },
+      "Configure": {
+        "Title": "Konfiguracja modułu",
+        "Hint": "W tym oknie dialogowym można skonfigurować Item Piles.",
+        "Label": "Skonfiguruj moduł"
+      },
+      "Reset": {
+        "Title": "Resetowanie ustawień systemowych do wartości domyślnych",
+        "Label": "Resetuj ustawienia",
+        "Hint": "Spowoduje to przywrócenie wszystkich ustawień Item Piles do domyślnych dla aktywnego systemu gry."
+      },
+      "Price": {
+        "Title": "Atrybut ceny przedmiotu",
+        "Hint": "Tutaj możesz skonfigurować, jaka jest ścieżka atrybutu dla ceny każdego przedmiotu. Na przykład, w systemie D&D5e, ilość każdego przedmiotu jest przechowywana w atrybucie \"item.system.price\", więc w tym ustawieniu wpisujesz \"system.price\"."
+      },
+      "ItemFilters": {
+        "Hint": "Tutaj można skonfigurować, jakie elementy są ignorowane i nie są wymieniane w oknach dialogowych stosu elementów.",
+        "Label": "Skonfiguruj filtry przedmiotów",
+        "Title": "Filtry przedmiotów"
+      },
+      "ItemSimilarities": {
+        "Title": "Podobieństwa pozycji",
+        "Label": "Skonfiguruj podobieństwa pozycji",
+        "Hint": "Tutaj można skonfigurować sposób, w jaki elementy są wykrywane jako takie same w tym systemie. Niektóre systemy mogą mieć dane, które wyróżniają elementy inaczej niż inne, np. elementy tymczasowe."
+      },
+      "EnableGivingItems": {
+        "Title": "Włącz przekazywanie przedmiotów",
+        "Hint": "Umożliwia to użytkownikom upuszczanie przedmiotów na inne tokeny, aby im je dać - z wyłączoną tą funkcją użytkownicy nie mogą dawać innym użytkownikom przedmiotów."
+      },
+      "EnableTrading": {
+        "Hint": "Umożliwia handel - z wyłączoną opcją nikt nie może zainicjować żadnego handlu.",
+        "Title": "Włącz handel"
+      },
+      "InspectItemsTrade": {
+        "Hint": "Włączenie tego powoduje, że użytkownicy mogą kliknąć przedmioty, które są przedmiotem handlu i otworzyć arkusz przedmiotu, aby uzyskać jego podgląd.",
+        "Title": "Włącz sprawdzanie przedmiotów podczas transakcji"
+      },
+      "HideHeaderButton": {
+        "Hint": "Ukrywa przycisk \"Item Piles\" w nagłówkach aktorów i przedmiotów. Utrudni to konfigurację nowych stosów przedmiotów i przedmiotów.",
+        "Title": "Ukryj przycisk nagłówka"
+      },
+      "PopulationTablesFolder": {
+        "Title": "Folder RollTables dla \"Wypełnij pozycje\"",
+        "Hint": "Tytuł folderu dla filtrowania tabel w zakładce \"Wypełnij pozycje\".",
+        "AllTables": "Wszystkie tabele"
+      },
+      "InvertSheetOpen": {
+        "Title": "Odwróć Ctrl + podwójne kliknięcie Otwórz",
+        "Hint": "Normalnie musisz przytrzymać sterowanie, gdy chcesz otworzyć arkusz aktora stosu przedmiotów. Włączenie tej opcji sprawia, że arkusz aktora stosu przedmiotów jest domyślnie otwarty, a przytrzymanie sterowania otwiera interfejs użytkownika zasobów stosu przedmiotów."
+      },
+      "Debug": {
+        "Title": "Włącz debugowanie",
+        "Hint": "Drukuje komunikaty debugowe na konsolę"
+      },
+      "CurrencyDecimalDigits": {
+        "Title": "Cyfry dziesiętne walut",
+        "Hint": "To ustawienie określa najniższą cyfrę dziesiętną, do której zaokrąglane są Twoje waluty. Na przykład w nowoczesnym ustawieniu z nowoczesnymi walutami, \"0.01\" pozwala na dwie cyfry dziesiętne. Nie jest to używane, jeśli masz więcej niż jedną walutę."
+      },
+      "ActorClass": {
+        "Title": "Typ klasy aktora",
+        "Hint": "To ustawienie definiuje typ aktora, który zostanie użyty dla domyślnego aktora stosu przedmiotów, który jest tworzony przy pierwszym zrzucie przedmiotów. W przypadku D&D5e jest to \"postać\", ponieważ nie posiada ona dedykowanego typu aktora loot."
+      },
+      "QuantityForPrice": {
+        "Title": "Ilość pozycji dla atrybutu ceny",
+        "Hint": "Tutaj możesz skonfigurować, jaka jest ścieżka atrybutu dla ilości przedmiotów, które otrzymujesz za cenę. Na przykład, w systemie PF2e, istnieje właściwość \"per\" na przedmiotach, która określa, jaką ilość przedmiotów otrzymasz za cenę przedmiotu, która jest przechowywana w atrybucie \"item.system.price.per\", więc w tym ustawieniu umieściłbyś \"system.price.per\"."
+      },
+      "EnableDroppingItems": {
+        "Hint": "Umożliwia to użytkownikom upuszczanie przedmiotów na ziemię w celu tworzenia własnych stosów przedmiotów - po wyłączeniu tej funkcji użytkownicy nie mogą tworzyć nowych stosów.",
+        "Title": "Włącz upuszczanie przedmiotów"
+      },
+      "PreloadFiles": {
+        "Title": "Wstępne ładowanie plików",
+        "Hint": "Powoduje, że pliki (obrazy i audio) stosów są wstępnie załadowane, dzięki czemu gra jest płynniejsza."
+      },
+      "Quantity": {
+        "Title": "Atrybut ilości przedmiotów",
+        "Hint": "Tutaj możesz skonfigurować ścieżkę atrybutu dla ilości każdego przedmiotu. Na przykład w systemie D&D5e ilość każdego przedmiotu jest przechowywana w atrybucie \"item.system.quantity\", więc w tym ustawieniu wpisujesz \"system.quantity\"."
+      },
+      "SecondaryCurrencies": {
+        "Title": "Waluty drugorzędne",
+        "Label": "Konfiguracja walut dodatkowych",
+        "Hint": "To ustawienie definiuje waluty dodatkowe, podobne do zwykłych walut, ale od nich niezależne. Nie mogą one mieć kursów wymiany ani być podzielone na inne waluty niestandardowe."
+      },
+      "ItemWeaponClass": {
+        "Title": "Typ klasy broni przedmiotu",
+        "Hint": "Typ klasy przedmiotu to typ przedmiotu, który będzie używany dla domyślnego przedmiotu broni."
+      },
+      "ItemEquipmentClass": {
+        "Title": "Typ klasy wyposażenia",
+        "Hint": "Typ klasy przedmiotu to typ przedmiotu, który będzie używany dla domyślnego elementu wyposażenia."
+      },
+      "ItemLootClass": {
+        "Title": "Typ klasy łupu przedmiotu",
+        "Hint": "Typ klasy przedmiotu to typ przedmiotu, który będzie używany jako domyślny przedmiot łupu."
+      }
+    },
+    "HUD": {
+      "ToggleLocked": "Przełącznik zablokowany",
+      "ToggleClosed": "Przełącznik Zamknięty",
+      "Configure": "Konfiguracja stosu"
+    },
+    "Chat": {
+      "SpectateDisabled": "Transakcja zakończona",
+      "TradeSpectate": "Obserwuj transakcję",
+      "PrivateTrade": "Handel prywatny",
+      "Pickup": "{nazwa} odebrał następujące przedmioty:",
+      "TradeStartedButton": "Kliknij przycisk poniżej, aby zobaczyć:",
+      "GaveItems": "{source} przekazało kilka przedmiotów do {target}:",
+      "TradeStarted": "{party_1} i {party_2} rozpoczęli handel.",
+      "MerchantTraded": "{name} kupił następujące rzeczy od {merchant}:",
+      "ExpandTrade": "Zobacz pełne dane transakcji",
+      "Split": "Zawartość stosu przedmiotów została podzielona pomiędzy {num_players} graczy, a każdy z nich otrzymał:",
+      "TradeComplete": "{party_1} i {party_2} dokonali transakcji."
+    },
+    "VaultLog": {
+      "Deposit": "{actor_name} ({user_name}) *zdeponował* {item_name} x {quantity} ({date})",
+      "Withdraw": "{actor_name} ({user_name}) **wycofał** {item_name} x {quantity} ({date})"
+    },
+    "PlayerList": {
+      "TradeButton": "Handel"
+    },
+    "General": {
+      "Short": "Krótki",
+      "Primary": "Podstawowy",
+      "Exchange": "Wymiana",
+      "Name": "Nazwa",
+      "Cost": "Koszt",
+      "Fixed": "Pośrednik",
+      "Icon": "Ikona",
+      "Data": "Dane"
+    },
+    "Hints": {
+      "CtrlClear": "CTRL + kliknij, aby wyczyścić"
+    }
+  }
+}

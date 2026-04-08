@@ -1,0 +1,67 @@
+{
+  "stairways": {
+    "ui": {
+      "config": {
+        "title": "Konfiguracja schodów",
+        "tab-main": "Główna",
+        "tab-label": "Etykieta",
+        "tab-position": "Pozycja",
+        "status": "Status",
+        "name": "ID",
+        "name-warning": "Pamiętaj, aby mieć tylko dwoje schodów o tym samym ID!",
+        "scene": "Scena partnerska",
+        "current-scene": "(Scena Bieżąca)",
+        "partner-scene-label": "Użyj nazwy sceny partnerskiej",
+        "font-family": "Rodzina czcionek",
+        "font-size": "Rozmiar czcionki",
+        "text-color": "Kolor tekstu",
+        "icon": "Ikona",
+        "icons": {
+          "stairway": "Schody (domyślnie)",
+          "door-steel": "Stalowe drzwi",
+          "door-closed": "Zamknięte drzwi",
+          "cave": "Jaskinia",
+          "house": "Dom",
+          "city": "Miasto",
+          "castle": "Zamek",
+          "door-exit": "Drzwi wyjściowe"
+        },
+        "disabled": "Wyłączony (zablokowany)",
+        "hidden": "Ukryj się przed graczami",
+        "animate-hint-2": "Dostępne tylko w obrębie tej samej sceny.",
+        "locked": "Pozycja Ustalona",
+        "reset": "Przywróć ustawienia domyślne",
+        "submit": "Zapisz",
+        "name-hint": "Schody są połączone, gdy oba mają ten sam identyfikator.",
+        "label": "Etykieta",
+        "animate": "Animacja ruchu",
+        "animate-hint-1": "Użycie schodów spowoduje normalny ruch tokenu."
+      },
+      "controls": {
+        "group": "Sterowanie schodami",
+        "hidden": "Ukryj schody",
+        "animate": "Animacja ruchu",
+        "clear": "Wyczyszcz schody",
+        "stairway": "Utwórz schody",
+        "disabled": "Wyłącz (zablokuj) schody"
+      },
+      "messages": {
+        "disabled": "Nie można korzystać z tych schodów, wyglądają na wyłączone.",
+        "no-gm": "Aby skorzystać ze schodów trzeba poczekać na swojego GM.",
+        "no-partner": "Schody prowadzą donikąd!",
+        "no-token-selected": "Proszę wybrać conajmniej jeden token.",
+        "data-update-error": "Nie udało się zapisać zmian.",
+        "internal-error": "Błąd wewnętrzny w module Stairway."
+      },
+      "status": {
+        "connected": "Podłączony.",
+        "no-partner-other-scene": "Brak partnera w innej scenie.",
+        "no-partner": "Brak partnera w obecnej scenie.",
+        "non-monogamous": "Ma więcej niż jednego partnera!"
+      }
+    }
+  },
+  "DOCUMENT": {
+    "Stairway": "Schody"
+  }
+}

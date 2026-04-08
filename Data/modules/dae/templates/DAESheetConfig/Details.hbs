@@ -1,0 +1,102 @@
+<section class="tab scrollable{{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+    {{formGroup fields.tint value=source.tint rootId=rootId placeholder="#ffffff"}}
+    {{formGroup fields.description value=source.description rootId=rootId}}
+    {{formGroup fields.disabled value=source.disabled rootId=rootId}}
+    
+    {{#if isActorEffect}}
+        {{formGroup fields.origin value=source.origin rootId=rootId disabled=true}}
+    {{/if}}
+
+    {{#unless isEnchantment}}
+        {{#if (and isItemEffect (not isConditionalActivationEffect))}}
+          <div class="transferCheckbox">
+            {{formGroup fields.transfer value=source.transfer rootId=rootId label=(localize "EFFECT.FIELDS.transfer.label") hint=(localize "dae.transfer.Hint")}}
+          </div>
+        {{/if}}
+    {{/unless}}
+    
+    {{formGroup fields.statuses value=source.statuses options=statuses rootId=rootId classes="statuses"}}
+
+    <fieldset>
+        <legend>DAE</legend>
+        {{#unless transfer}}
+            <div class="form-group stacked">
+                <label>{{ localize "dae.EnableCondition" }}</label>
+                <div class="form-fields value">
+                    <textarea rows="1" name="flags.dae.enableCondition">{{source.flags.dae.enableCondition}}</textarea>
+                </div>
+            </div>
+        {{/unless}}
+
+        <div class="form-group stacked">
+            <label>{{ localize "dae.DisableCondition" }}</label>
+            <div class="form-fields value">
+                <textarea rows="1" name="flags.dae.disableCondition">{{source.flags.dae.disableCondition}}</textarea>
+            </div>
+        </div>
+
+        {{#if isItemEffect}}
+            <div class="form-group">
+                <label>{{localize "dae.Stackable"}}</label>
+                <div class="form-fields">
+                    <select name="flags.dae.stackable" data-dtype="String">
+                        {{selectOptions stackableOptions selected=source.flags.dae.stackable localize=true}}
+                    </select>
+                </div>
+            </div>
+        {{/if}}
+        <div class="form-group">
+            <label>{{ localize "dae.ShowIcon.Name" }}</label>
+            <input type="checkbox" name="flags.dae.showIcon" {{ checked source.flags.dae.showIcon }} />
+            <p class="hint" style="margin-bottom:1em">
+                {{ localize "dae.ShowIcon.Hint" }}
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label>{{ localize "dae.IconOverlay.Name" }}</label>
+            <input type="checkbox" name="flags.core.overlay" {{ checked source.flags.core.overlay }} />
+            <p class="hint" style="margin-bottom:1em">
+                {{ localize "dae.IconOverlay.Hint" }}
+            </p>
+        </div>
+    </fieldset>
+    {{#if midiActive}}
+    {{#unless isEnchantment}}
+        <fieldset>
+            <legend>Midi-QOL</legend>
+            <div class="form-group">
+                <label>{{ localize "dae.IncapacitatedDisabled" }}</label>
+                <input type="checkbox" name="flags.dae.disableIncapacitated" {{ checked source.flags.dae.disableIncapacitated }} />
+            </div>
+            {{#unless transfer}}
+                {{#if (and isItemEffect (not isConditionalActivationEffect))}}
+                    <div class="form-group">
+                        <label>{{ localize "dae.SelfTarget.Name" }}</label>
+                        <input type="checkbox" name="flags.dae.selfTarget" {{ checked source.flags.dae.selfTarget }} />
+                        <p class="hint" style="margin-bottom:1em">
+                            {{ localize "dae.SelfTarget.Hint" }}
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ localize "dae.SelfTargetAlways.Name" }}</label>
+                        <input type="checkbox" name="flags.dae.selfTargetAlways" {{ checked source.flags.dae.selfTargetAlways }} />
+                        <p class="hint" style="margin-bottom:1em">
+                            {{ localize "dae.SelfTargetAlways.Hint" }}
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ localize "dae.DontApply.Name" }}</label>
+                        <input type="checkbox" name="flags.dae.dontApply" {{ checked source.flags.dae.dontApply }} />
+                        <p class="hint" style="margin-bottom:1em">
+                            {{ localize "dae.DontApply.Hint" }}
+                        </p>
+                    </div>
+                {{/if}}
+            {{/unless}}
+        </fieldset>
+    {{/unless}}
+    {{/if}}
+</section>

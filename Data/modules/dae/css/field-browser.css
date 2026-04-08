@@ -1,0 +1,93 @@
+.dae-fb-browser {
+  border: 1px solid #ccc;
+  padding: 8px;
+  max-height: calc(100vh - 20px);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  position: absolute;
+  border: 1px solid rgba(0, 0, 0, 0.75);
+}
+.dae-fb-browser.dae-v12 {
+  background-color: #f0f0f0;
+}
+.dae-fb-browser.dae-v12 .dae-fb-field-option:hover {
+  background-color: #e0e0e0;
+}
+.dae-fb-browser:not(.dae-fb-full-browser) .dae-fb-tabs {
+  display: none;
+}
+.dae-fb-browser .dae-fb-content {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: auto;
+}
+.dae-fb-browser .dae-fb-toggle-container {
+  display: flex;
+  margin-top: 0.5em;
+  gap: 0.5em;
+  max-width: 250px;
+  white-space: nowrap;
+}
+.dae-fb-browser .dae-fb-toggle-button {
+  border-radius: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 18px;
+  font-size: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+.dae-fb-browser .dae-fb-toggle-button:hover {
+  font-weight: bold;
+  border-color: black;
+  box-shadow: none;
+}
+.dae-fb-browser .dae-fb-toggle-button.active {
+  background-color: rgba(193, 251, 168, 0.25);
+  border-color: rgba(34, 73, 35, 0.75);
+}
+.dae-fb-browser .dae-fb-field-option {
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd;
+}
+.dae-fb-browser .dae-fb-field-option:hover {
+  background-color: var(--color-text-selection-bg);
+}
+.dae-fb-browser .dae-fb-tabs {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  margin: 0 -1px 0.5em;
+  scrollbar-width: thin;
+  scrollbar-color: #cfcfcf transparent;
+}
+.dae-fb-browser .dae-fb-tabs::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.dae-fb-browser .dae-fb-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dae-fb-browser .dae-fb-tabs::-webkit-scrollbar-thumb {
+  background-color: white;
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.dae-fb-browser .dae-fb-tabs::-webkit-scrollbar-thumb:hover {
+  background-color: #cfcfcf;
+}
+.dae-fb-browser .dae-fb-tab-button {
+  flex: 1;
+  padding: 0 0.5em;
+  cursor: pointer;
+  border: none;
+  background-color: #e0e0e0;
+  border-bottom: 2px solid #bbb;
+  color: var(--color-text-dark-primary);
+}
+.dae-fb-browser .dae-fb-tab-button.active {
+  background-color: #fff;
+  border-bottom: 2px solid #000;
+}

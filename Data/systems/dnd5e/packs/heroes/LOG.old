@@ -1,0 +1,5 @@
+2026/04/08-09:01:15.656 1abc Recovering log #7
+2026/04/08-09:01:15.662 1abc Level-0 table #9: started
+2026/04/08-09:01:15.667 1abc Level-0 table #9: 481602 bytes OK
+2026/04/08-09:01:15.689 1abc Delete type=0 #7
+2026/04/08-09:01:15.689 1abc Delete type=3 #6

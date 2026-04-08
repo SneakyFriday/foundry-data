@@ -1,0 +1,74 @@
+<section class="fxmaster-particles-container">
+  {{#each particleEffectGroups as |group groupId|}}
+    <div class="fxmaster-particles-group-wrapper">
+        <div
+          class="fxmaster-particles-group{{#if (or group.expanded (lt @index 3))}} open{{/if}}"
+          data-action="toggleCollapse"
+        >
+        <div class="fxmaster-particles-group-name">
+          {{localize group.label}}
+        </div>
+        <span class="fxmaster-collapse-arrow fxmaster-arrow-group">
+          <i class="fa-solid fa-chevron-down"></i>
+        </span>
+      </div>
+
+      <div class="fxmaster-particles-group-expand">
+        {{#each group.effects as |effect type|}}
+          <div class="fxmaster-particles-row{{#if (lookup ../../activeEffects type)}} open{{/if}}"
+               data-type="{{type}}"
+               data-action="toggleCollapse">
+            <div class="fxmaster-particle-name">
+              {{#if effect.icon}}
+                <img class="fxmaster-particle-icon"
+                     src="{{effect.icon}}"
+                     width="30" height="30"
+                     alt="{{localize effect.label}} Icon">
+              {{else}}
+                <i class="fa-solid fa-circle-notch"></i>
+              {{/if}}
+              {{localize effect.label}}
+            </div>
+
+            <span class="fxmaster-collapse-arrow fxmaster-arrow-row">
+              <i class="fa-solid fa-chevron-down"></i>
+            </span>
+
+            <button type="button"
+                    class="fxmaster-particle-toggle {{#if (lookup ../../activeEffects type)}}enabled{{/if}}"
+                    data-action="toggleFilter"
+                    data-filter="{{type}}">
+              <span class="fa-solid fa-power-off"></span>
+            </button>
+          </div>
+
+          <div class="fxmaster-particle-expand">
+            <div class="fxmaster-particle-params">
+              {{#each effect.parameters as |parameterConfig parameterName|}}
+                {{#if (fxmasterShouldRenderParam "particle" type parameterName)}}
+                  <label class="fxmaster-param-label">
+                    {{localize parameterConfig.label}}
+
+                    {{{fxmasterParameter
+                          effect
+                          parameterConfig
+                          parameterName
+                          (getEffectParams ../../../activeEffects ../../../passiveEffects type)
+                       }}}
+                  </label>
+                {{else}}
+                  {{{fxmasterHiddenParameter
+                        effect
+                        parameterConfig
+                        parameterName
+                        (getEffectParams ../../../activeEffects ../../../passiveEffects type)
+                  }}}
+                {{/if}}
+              {{/each}}
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+  {{/each}}
+</section>

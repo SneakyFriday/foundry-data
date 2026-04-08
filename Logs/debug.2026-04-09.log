@@ -1,0 +1,185 @@
+{"level":"info","message":"Running on Node.js - Version 24.14.1","timestamp":"2026-04-09 00:13:11"}
+{"level":"info","message":"Foundry Virtual Tabletop - Version 14 Build 359","timestamp":"2026-04-09 00:13:11"}
+{"level":"info","message":"User Data Directory - \"/home/foundry/data\"","timestamp":"2026-04-09 00:13:11"}
+{"level":"info","message":"Application Options:\n{\n  \"compressStatic\": true,\n  \"fullscreen\": false,\n  \"hostname\": null,\n  \"language\": \"en.core\",\n  \"localHostname\": null,\n  \"port\": 30000,\n  \"proxyPort\": null,\n  \"proxySSL\": false,\n  \"routePrefix\": null,\n  \"updateChannel\": \"stable\",\n  \"upnp\": true,\n  \"awsConfig\": null,\n  \"compressSocket\": true,\n  \"cssTheme\": \"dark\",\n  \"tempDir\": null,\n  \"deleteNEDB\": false,\n  \"hotReload\": false,\n  \"passwordSalt\": null,\n  \"adminPassword\": \"••••••••••••••••\",\n  \"unixSocket\": null,\n  \"sslCert\": null,\n  \"sslKey\": null,\n  \"world\": null,\n  \"serviceConfig\": null,\n  \"telemetry\": false,\n  \"noBackups\": false\n}","timestamp":"2026-04-09 00:13:11"}
+{"level":"info","message":"Software license verification succeeded","timestamp":"2026-04-09 00:13:11"}
+{"level":"info","message":"Requesting UPnP port forwarding to destination port 30000","timestamp":"2026-04-09 00:13:11"}
+{"level":"info","message":"Server started and listening on port 30000","timestamp":"2026-04-09 00:13:14"}
+{"level":"info","message":"Created client session 22f9ed3298e20e351f010f1c","timestamp":"2026-04-09 00:13:32"}
+{"ip":"::1","level":"warn","message":"Administrator authentication failed for session 22f9ed3298e20e351f010f1c; invalid password","status":403,"timestamp":"2026-04-09 00:13:54"}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"Administrator authentication failed for session 22f9ed3298e20e351f010f1c; invalid password","status":403,"timestamp":"2026-04-09 00:14:08"}
+{"level":"info","message":"Administrator authentication successful for session 22f9ed3298e20e351f010f1c","timestamp":"2026-04-09 00:14:53"}
+{"level":"info","message":"Connected to database \"effects\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 7%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"actors\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 13%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"cards\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 20%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"messages\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 27%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"combats\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 33%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"fog\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 40%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"folders\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 47%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"items\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 53%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"journal\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 60%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"macros\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 67%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"playlists\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 73%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"tables\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 80%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"scenes\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 87%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"settings\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 93%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"users\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading World Data - 100%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 7%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 13%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 20%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 27%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 33%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 40%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 47%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 53%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 60%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 67%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 73%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 80%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 87%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 93%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Migrating World Data - 100%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-tables\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading Package Data - 2%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-adventures\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading Package Data - 5%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-backgrounds\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading Package Data - 7%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-classes\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading Package Data - 10%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-subclasses\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading Package Data - 12%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-class-features\"","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Launching World | Loading Package Data - 15%","timestamp":"2026-04-09 00:15:02"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-feats\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 17%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-items\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 20%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-monsters\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 22%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-vehicles\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 24%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-races\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 27%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-racial-traits\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 29%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-spells\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 32%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-override\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 34%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-species\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 37%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-journals\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 39%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"world.ddb-cos-ddb-summons\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 41%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.heroes\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 44%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.monsters\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 46%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.items\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 49%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.tradegoods\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 51%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.spells\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 54%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.backgrounds\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 56%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.classes\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 59%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.subclasses\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 61%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.classfeatures\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 63%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.races\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 66%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.monsterfeatures\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 68%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.rules\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 71%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.tables\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 73%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.content24\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 76%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.classes24\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 78%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.origins24\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 80%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.feats24\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 83%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.spells24\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 85%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.equipment24\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 88%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.tables24\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 90%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.actors24\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 93%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"dnd5e.monsterfeatures24\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 95%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"fxmaster.fxmaster\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 98%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Connected to database \"pdf-pager.macros\"","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Loading Package Data - 100%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Created 0 Folder documents with ids: []","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 2%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 5%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 7%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 10%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 12%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 15%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 17%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 20%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 22%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 24%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 27%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 29%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 32%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 34%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 37%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 39%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 41%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 44%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 46%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 49%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 51%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 54%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 56%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 59%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 61%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 63%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 66%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 68%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 71%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 73%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 76%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 78%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 80%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 83%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 85%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 88%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 90%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 93%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 95%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 98%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Migrating Package Data - 100%","timestamp":"2026-04-09 00:15:03"}
+{"level":"info","message":"Launching World | Complete","timestamp":"2026-04-09 00:15:03"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"User authentication successful for user Gamemaster","session":"22f9ed3298e20e351f010f1c","timestamp":"2026-04-09 00:15:10"}
+{"level":"info","message":"No system update for Dungeons & Dragons Fifth Edition is currently available.","timestamp":"2026-04-09 00:15:12"}
+{"level":"info","message":"Vended World data to User [YzL2W1htQr2gHsBA] in 491ms","timestamp":"2026-04-09 00:15:12"}
+{"level":"info","message":"Created client session bae03fd17032d4528018ffb1","timestamp":"2026-04-09 00:40:41"}

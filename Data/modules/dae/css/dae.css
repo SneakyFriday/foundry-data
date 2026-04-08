@@ -1,0 +1,533 @@
+/* ------------------------------------ */
+/*  	     ActiveEffect.HTML	        */
+/* ------------------------------------ */
+/*/ Filters /*/
+.dae-inventory-filters .dae-filter-container {
+  border: none;
+  margin: 0 6px 6px 6px;
+}
+.dae-inventory-filters .dae-filter-container .dae-filter-list {
+  line-height: 20px;
+}
+.dae-filter-container {
+  border: 2px groove var(--color-form-label);
+}
+.dae-filter-container .dae-filter-list {
+  min-width: 100%;
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.dae-active-effects .window-content {
+  overflow-y: scroll;
+}
+/*/ Unused? /*/
+.dnd5e.sheet.item {
+  /*/ List /*/
+  /*/ Header /*/
+  /*/ Layout /*/
+}
+.dnd5e.sheet.item .dae-effect-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+.dnd5e.sheet.item .dae-effect-list .effect {
+  line-height: 30px;
+  padding: 0 2px;
+  border-bottom: 1px solid #c9c7b8;
+}
+.dnd5e.sheet.item .dae-effect-list .effect .effect-name {
+  cursor: pointer;
+  min-width: 220px;
+}
+.dnd5e.sheet.item .dae-effect-list .effect .effect-name h4 {
+  margin: 0;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-header h3 {
+  margin: 0 0px 0 0;
+  padding-left: 0px;
+  font-size: 13px;
+  font-weight: bold;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-name,
+.dnd5e.sheet.item .dae-effect-list .effect-label {
+  flex: 0 0 220px;
+  padding-left: 4px;
+  overflow-wrap: anywhere;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-transfer {
+  flex: 0 0 100px;
+  padding-left: 4px;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-mode {
+  flex: 0 0 100px;
+  padding-left: 4px;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-value {
+  flex: 0 0 120px;
+  padding-left: 4px;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-value-value {
+  flex: 0 0 120px;
+  padding-left: 4px;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-controls {
+  flex: 2 0 20px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-controls .flex1 {
+  flex: 1;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-controls .flex2 {
+  flex: 2;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-controls .flex3 {
+  flex: 3;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-controls .flex4 {
+  flex: 4;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-controls a {
+  flex: 0 0 22px;
+  font-size: 12px;
+  text-align: center;
+  color: #3c3c3c;
+}
+.dnd5e.sheet.item .dae-effect-list .effect-controls > * {
+  flex: 1;
+}
+.dnd5e.sheet.item .dae-effect-header {
+  margin: 10px 0 2px 0;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.05);
+  border: 3px groove var(--color-fieldset-border);
+  font-weight: bold;
+  line-height: 24px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+}
+.dnd5e.sheet.item .dae-effect-first-header {
+  height: 40px;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px 8px 0 0;
+}
+.dnd5e.sheet.item .dae-effect-first-header .effect-add {
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+.dnd5e.sheet.item .dae-effect-first-header .effect-add i {
+  font-size: 12px;
+  color: black;
+}
+.dnd5e.sheet.item .dae-change-list {
+  line-height: 1.5em;
+  display: flex;
+  align-items: center;
+}
+.dnd5e.sheet.item .dae-change-list .effect-name {
+  border-left: 2px solid rgba(0, 0, 0, 0.2);
+  padding-left: 6px;
+}
+.dnd5e.sheet.item .dae-change-list .effect-mode {
+  border-left: 2px solid rgba(0, 0, 0, 0.2);
+  padding-left: 6px;
+}
+.dnd5e.sheet.item .dae-change-list .effect-value-value {
+  border-left: 2px solid rgba(0, 0, 0, 0.2);
+  padding-left: 6px;
+}
+.dnd5e.sheet.item .dae-change-list:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.dnd5e.sheet.item .dae-change-list .change-controls {
+  flex: 2 0 20px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.dnd5e.sheet.item .smallbox {
+  line-height: 14px;
+  font-size: 14px;
+}
+.dnd5e.sheet.item .dae-effect-label {
+  display: flex;
+  align-items: center;
+}
+.dnd5e.sheet.item .dae-new-effect {
+  flex-grow: 1;
+  margin-right: 5px;
+}
+.dnd5e.sheet.item .dae-new-effect select {
+  width: 100%;
+  color: var(--color-text-primary);
+  background-color: var(--input-background-color);
+}
+.dae-arrow-down,
+.dae-arrow-right {
+  padding-top: 4px;
+  padding-left: 4px;
+  width: 100px;
+  flex: 0 0 100px;
+}
+.dae-effect-status,
+.dae-effect-duration {
+  flex: 0 0 120px;
+}
+.dae-effect-icon,
+.dae-effect-img {
+  height: 24px;
+  width: 24px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  vertical-align: middle;
+  margin-right: 5px;
+}
+/* Other */
+.dae-green-text {
+  color: #36ba36;
+}
+.dae-active-button {
+  border: none;
+  padding: 0;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  display: flex;
+  font-weight: bold;
+  color: #8daf8d;
+  justify-content: space-between;
+}
+.dae-active-button-styling {
+  border: none;
+  padding: 0px;
+}
+.dae-active-itemeffect {
+  text-indent: 10px;
+  font-size: 12px;
+}
+.dae-active-toggle {
+  border: none;
+  padding: 0;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  display: flex;
+  justify-content: space-between;
+}
+.dae-inactive-button {
+  border: none;
+  padding: 0;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  display: flex;
+  color: grey;
+  justify-content: space-between;
+}
+.dae-inactive-itemeffect {
+  color: grey;
+  text-indent: 10px;
+  font-size: 12px;
+}
+[id^="DAEActiveEffectConfig"] .active-effect-sheet .dae-scrollable-list,
+[id^="DAEActiveEffectConfig"] .active-effect-config .dae-scrollable-list {
+  overflow: visible;
+}
+/* ------------------------------------ */
+/*  	 DAE ACTIVE EFFECT EDITOR		*/
+/* ------------------------------------ */
+.dae-sheet-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 4px;
+}
+.dae-sheet-header .dae-effect-icon {
+  height: 64px !important;
+  margin-right: 16px;
+  border-color: var(--color-border-light-tertiary);
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 4px;
+  border-radius: 4px;
+  transition: transform 0.2s ease-in-out;
+}
+.dae-sheet-header .dae-effect-icon:hover {
+  transform: scale(1.05);
+}
+.dae-sheet-header .dae-effect-title input {
+  width: 100% !important;
+  height: 64px !important;
+  margin: 0 !important;
+  padding: 8px 12px;
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--color-border-light-tertiary);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+.dae-sheet-header .dae-effect-title input::placeholder {
+  color: #999;
+  font-style: italic;
+}
+.dae-form-group {
+  padding: 1px 4px;
+}
+/*/ Details Tab /*/
+.dae-notes {
+  padding: 0 4px 10px;
+}
+.dae-prosemirror .editor {
+  margin-bottom: 5px;
+}
+.dae-prosemirror .editor .editor-container {
+  border: 2px groove #eeede0;
+  height: 100%;
+  margin: 0;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.dae-prosemirror .editor .editor-container .editor-content {
+  padding: 0 6px;
+}
+.dae-prosemirror label {
+  padding: 2px;
+  font-weight: bold;
+}
+.dae-prosemirror menu {
+  border-radius: 0;
+  border: 2px groove #eeede0;
+  border-bottom: none;
+}
+/*/ Duration Tab /*/
+.dae-special-duration-container {
+  border: 2px groove var(--color-fieldset-border);
+  border-radius: 8px;
+  padding: 6px;
+  margin: 8px 0 !important;
+  text-align: center;
+}
+.dae-special-duration-container .dae-special-duration-title {
+  text-align: left;
+  height: 24px;
+  line-height: 24px;
+  vertical-align: center;
+  padding-left: 4px;
+  color: var(--color-form-label);
+}
+.dae-special-duration-container .dae-special-duration-title:hover {
+  color: var(--color-form-label-hover);
+}
+.dae-special-duration-container .dae-effect-control {
+  width: 120px;
+  border: 2px groove var(--color-fieldset-border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  margin-right: 27px;
+  border-radius: 8px;
+  padding-top: 3px;
+  padding-bottom: 2px;
+  transition: border 250ms;
+}
+.dae-special-duration-container .dae-effect-control:hover {
+  border-color: var(--color-form-hint-hover);
+  transition: border-color 250ms;
+}
+.dae-special-duration-container .special-duration-list {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+.dae-special-duration-container .special-duration-list .form-group {
+  margin-top: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.dae-special-duration-container .special-duration-list select {
+  flex-grow: 1;
+  margin-right: 4px;
+}
+.dae-special-duration-container .special-duration-list .effect-control {
+  flex: 0;
+}
+.dae-special-duration-container .dae-effect-controls {
+  flex: 0;
+}
+/*/ Changes tab /*/
+.dae-effects-table {
+  width: 100% ;
+  border-collapse: separate ;
+  border-spacing: 0 ;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  min-height: 144px;
+}
+.dae-effects-table th {
+  white-space: nowrap ;
+  box-sizing: border-box;
+  background-color: #343434;
+  font-weight: normal ;
+}
+.dae-effects-table .flexrow {
+  display: table-row;
+}
+.dae-effects-tab[data-tab="effects"] .dae-effects-table td {
+  vertical-align: top ;
+  padding: 10px 6px 8px 6px;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.2);
+  min-height: 200px !important;
+}
+.dae-effects-tab .dae-effects-table tr:last-child td {
+  border-bottom: none;
+}
+.dae-effects-tab .dae-effects-table input,
+.dae-effects-tab .dae-effects-table select {
+  border: 1px solid rgba(0, 0, 0, 0.7);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.dae-effects-tab .dae-effects-table input:focus,
+.dae-effects-tab .dae-effects-table select:focus {
+  border: 1px solid #000000;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+.dae-effects-tab .dae-value-textarea textarea {
+  border: 1px solid rgba(0, 0, 0, 0.7);
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 0;
+  min-width: 250px;
+}
+.dae-effects-tab .dae-value-textarea textarea:focus {
+  border: 1px solid #000000;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+.dae-effects-tab .dae-value {
+  min-width: 250px;
+}
+.dae-effects-tab .dae-key-wrapper,
+.dae-effects-tab .dae-key {
+  width: 400px;
+  min-height: 66px;
+}
+.dae-effects-tab .dae-field-description {
+  font-size: smaller;
+  overflow: auto;
+  margin-top: 1px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+}
+.dae-effects-tab .dae-field-name {
+  padding-bottom: 1px;
+  font-weight: bold;
+}
+.dae-effects-tab .dae-field-info {
+  padding: 4px 2px 0;
+}
+.dae-effects-tab .dae-mode select,
+.dae-effects-tab .dae-mode {
+  width: 110px;
+}
+.dae-effects-tab .dae-priority {
+  align-content: center;
+}
+.dae-priority {
+  width: 60px;
+}
+.dae-priority input {
+  text-align: center;
+  max-width: 60px;
+}
+.priority.dae-priority {
+  text-align: center;
+}
+.dae-controls {
+  width: 50px;
+}
+.dae.active-effect-config .tab.changes header {
+  grid-template-columns: 400px 110px 1fr 60px 1rem;
+  padding-right: 14px;
+}
+.dae.active-effect-config .tab.changes ol {
+  grid-template-columns: 400px 110px 1fr 60px 1rem;
+  align-items: start;
+}
+.dae.active-effect-config .tab.changes .key {
+  min-width: 400px;
+}
+.dae.active-effect-config .tab.changes .key-wrapper {
+  flex-direction: column;
+  align-items: start;
+}
+.dae.active-effect-config .tab.changes .mode {
+  min-width: 110px;
+}
+.dae.active-effect-config .tab.changes .mode select {
+  min-width: 110px;
+}
+.dae.active-effect-config .tab.changes .value {
+  min-width: 250px;
+}
+.dae.active-effect-config .tab.changes .value input,
+.dae.active-effect-config .tab.changes .value textarea {
+  min-width: 250px;
+  width: 100%;
+}
+.dae.active-effect-config .tab.changes .priority {
+  width: 60px;
+}
+.dae.active-effect-config .tab.changes .controls:has(a[data-action="deleteChange"]) {
+  margin-top: 7.25px;
+}
+.dae.active-effect-config .tab.changes .dae-field-info {
+  padding: 4px 2px 0;
+}
+.dae.active-effect-config .tab.changes .dae-field-name {
+  padding-bottom: 1px;
+  font-weight: bold;
+}
+.dae.active-effect-config .tab.changes .dae-field-description {
+  font-size: smaller;
+  max-height: 36px;
+  overflow: auto;
+  margin-top: 1px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+}
+/* ------------------------------------ */
+/*  	            DIME      	          */
+/* ------------------------------------ */
+.dimeditor .dime-img {
+  flex: none;
+}
+.dae-dimeditor {
+  font-family: var(--font-awesome);
+}
+.dimeditor div[data-application-part="body"]:has(.form-group.stacked.command) {
+  height: 100%;
+}
+.dimeditor .form-group.stacked.command {
+  height: calc(100% - 100px);
+}
+.dimeditor .form-group.stacked.command textarea {
+  height: 100%;
+  resize: none;
+}
