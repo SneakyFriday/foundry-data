@@ -19,6 +19,11 @@
             "date": 1775686391380,
             "name": "/home/foundry/data/Logs/error.2026-04-09.log",
             "hash": "278204d922506b6991b7ecfaea2093e1057715ae3004731d285a83c1f6a4d9f0"
+        },
+        {
+            "date": 1776338445869,
+            "name": "/home/foundry/data/Logs/error.2026-04-16.log",
+            "hash": "90b9c0d5a019ff21fcdf5141bcb2518c0ea0df8ea475eb1d68e6c7d0c574a777"
         }
     ],
     "hashType": "sha256"
