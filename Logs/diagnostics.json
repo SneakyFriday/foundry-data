@@ -1,5 +1,5 @@
 {
-  "timestamp": 1777050773735,
+  "timestamp": 1778225531326,
   "os": {
     "platform": "linux",
     "version": "Debian GNU/Linux 13 (trixie)",
@@ -21,9 +21,6 @@
     "color-picker": {
       "version": "1.7"
     },
-    "dae": {
-      "version": "13.0.22"
-    },
     "ddb-importer": {
       "version": "7.2.4"
     },
@@ -35,12 +32,6 @@
     },
     "fxmaster": {
       "version": "7.5.2"
-    },
-    "item-piles": {
-      "version": "3.2.32"
-    },
-    "lang-de": {
-      "version": "13.1"
     },
     "levels": {
       "version": "6.0.21"
