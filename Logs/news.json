@@ -1,6 +1,12 @@
 {
   "news": [
     {
+      "title": "2026 Anniversary Celebration Events",
+      "caption": "This May we're celebrating the sixth anniversary of the release of Foundry Virtual Tabletop in 2020. We're very happy to be able to mark this special occasion with special events, behind-the-curtain peeks at our projects, and of course, our anniversary sale. We hope everyone in the community will join us in marking this milestone!",
+      "url": "https://foundryvtt.com/article/anniversary-2026/",
+      "image": "https://r2.foundryvtt.com/website-uploads-public/screen/user_70/foundry-6th-anniversary-blank-2026-05-15.webp"
+    },
+    {
       "title": "Version 14 Stable Release",
       "caption": "Version 14 Stable has now been released! Check out our release notes for everything you need to know.",
       "url": "https://foundryvtt.com/releases/14.359",
@@ -17,12 +23,6 @@
       "caption": "Watch a comprehensive video overview which summarizes the features of Foundry Virtual Tabletop.",
       "url": "https://youtu.be/_d7k8ognC0w",
       "image": "https://r2.foundryvtt.com/website-uploads-public/screen/user_70/2023-overview-banner-2023-06-23.webp"
-    },
-    {
-      "title": "2025 Year in Review",
-      "caption": "Join us in a look back at what we accomplished since our last anniversary celebration, and look ahead towards the exciting things we plan for during the coming year. This annual article is a great way to get some insight into what we do as a company and how we do it.",
-      "url": "https://foundryvtt.com/article/year-in-review-2025/",
-      "image": "https://r2.foundryvtt.com/website-uploads-public/asset/user_671/year-in-review-2025-banner-2025-05-26.webp"
     }
   ],
   "featuredContent": {
