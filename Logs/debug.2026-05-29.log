@@ -35,3 +35,447 @@
 {"level":"info","message":"Created client session 57412d28f405bac373ac3685","timestamp":"2026-05-29 03:12:56"}
 {"level":"info","message":"Created client session 42a383450148737cca2a786a","timestamp":"2026-05-29 03:24:36"}
 {"level":"info","message":"Created client session 27c4bc4eea5b170e6b52804c","timestamp":"2026-05-29 03:57:28"}
+{"level":"info","message":"Created client session f31bd532f6ce9a65347ebfb3","timestamp":"2026-05-29 04:43:03"}
+{"level":"info","message":"Created client session b7f159c85865b96573fc6ea2","timestamp":"2026-05-29 05:01:35"}
+{"level":"info","message":"Created client session 43e67e1c0ad0f40490ed996c","timestamp":"2026-05-29 05:08:38"}
+{"level":"info","message":"Created client session 13a3bc70badd3ead9a347d69","timestamp":"2026-05-29 05:36:21"}
+{"level":"info","message":"Created client session 9651731b09b2d83766311dd1","timestamp":"2026-05-29 05:39:45"}
+{"level":"info","message":"Created client session 6c13349d1bd355432f80285e","timestamp":"2026-05-29 05:42:53"}
+{"level":"info","message":"Created client session 73392fb4a32d208f81f2dfbc","timestamp":"2026-05-29 05:45:44"}
+{"level":"info","message":"Created client session c0ae1c8eb28065eaef7a135a","timestamp":"2026-05-29 06:15:26"}
+{"level":"info","message":"Created client session 25920188226386430970593a","timestamp":"2026-05-29 06:16:22"}
+{"level":"info","message":"Created client session 326595d4568d06566796a1af","timestamp":"2026-05-29 06:26:26"}
+{"level":"info","message":"Created client session 8b16bd99666c9f8fc2f81cf8","timestamp":"2026-05-29 06:38:21"}
+{"level":"info","message":"Created client session 0036d8d1e4c3016e02e23a4a","timestamp":"2026-05-29 07:05:04"}
+{"level":"info","message":"Created client session 752f010553edf66afc857747","timestamp":"2026-05-29 07:19:05"}
+{"level":"info","message":"Created client session 99e81327596bad18b7aca7a0","timestamp":"2026-05-29 07:24:13"}
+{"level":"info","message":"Created client session 16a8b0898ed312c37de49302","timestamp":"2026-05-29 07:47:01"}
+{"level":"info","message":"Created client session 1ab4a55811362508f42a2b0e","timestamp":"2026-05-29 08:17:22"}
+{"level":"info","message":"Created client session d43169fbc0fea7b8e5f560ec","timestamp":"2026-05-29 08:32:07"}
+{"level":"info","message":"Created client session 8f8aa97a7c5a082207e23303","timestamp":"2026-05-29 09:28:41"}
+{"level":"info","message":"Created client session a1bcb6e8b28b81089886a11b","timestamp":"2026-05-29 10:06:24"}
+{"level":"info","message":"Created client session d5efe26c6df2980ba4268add","timestamp":"2026-05-29 10:06:50"}
+{"level":"info","message":"Created client session 80b35cbf45f1f1840807f168","timestamp":"2026-05-29 10:44:30"}
+{"level":"info","message":"Created client session 85f53b00688601188600e9a7","timestamp":"2026-05-29 11:00:00"}
+{"level":"info","message":"Created client session cb0e3e9e5670ddac2f1b50c1","timestamp":"2026-05-29 11:15:39"}
+{"level":"info","message":"Created client session 843c8965bfc5b6f9355663d0","timestamp":"2026-05-29 11:38:49"}
+{"level":"info","message":"Created client session 36c66d907b39d0187703aa8e","timestamp":"2026-05-29 11:50:24"}
+{"level":"info","message":"Created client session 9ce451d4d8b5a889a014a229","timestamp":"2026-05-29 12:08:39"}
+{"level":"info","message":"Created client session 15c4a63d7f29f59a4ef240a4","timestamp":"2026-05-29 12:19:55"}
+{"level":"info","message":"Created client session 72bcf28f5313f679e84dd1cd","timestamp":"2026-05-29 12:19:55"}
+{"level":"info","message":"Created client session 8b8e8f8d5a87347045a2d6c7","timestamp":"2026-05-29 12:19:55"}
+{"level":"info","message":"Created client session ac7939f332d030980040a787","timestamp":"2026-05-29 12:51:56"}
+{"level":"info","message":"Created client session 4bf2fb18b0a48b5ffa5c781d","timestamp":"2026-05-29 13:02:02"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"User authentication successful for user Gamemaster","session":"4bf2fb18b0a48b5ffa5c781d","timestamp":"2026-05-29 13:02:09"}
+{"level":"info","message":"Dungeons & Dragons Fifth Edition update 5.3.3 is now available!","timestamp":"2026-05-29 13:02:11"}
+{"level":"info","message":"Core software stable update 14.363 is available!","timestamp":"2026-05-29 13:02:12"}
+{"level":"info","message":"Vended World data to User [YzL2W1htQr2gHsBA] in 1256ms","timestamp":"2026-05-29 13:02:12"}
+{"level":"info","message":"Created client session 5ff6f51876718213615769bf","timestamp":"2026-05-29 13:06:16"}
+{"level":"info","message":"Created client session 971383450ba03ba821de8d60","timestamp":"2026-05-29 13:06:19"}
+{"level":"info","message":"Created client session a4e58b1a57f0a7c807f965ca","timestamp":"2026-05-29 13:06:36"}
+{"level":"info","message":"Created client session 16b770de9a6b8eadb83f6413","timestamp":"2026-05-29 13:10:27"}
+{"level":"debug","message":"Starting edit session for user 'YzL2W1htQr2gHsBA' and instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 13:20:02"}
+{"level":"info","message":"Created client session ef48f31dabe12458a09404d1","timestamp":"2026-05-29 13:20:25"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 13:21:02"}
+{"level":"info","message":"Created client session 2ae1cd9b5078ad8545c845c2","timestamp":"2026-05-29 13:27:09"}
+{"level":"info","message":"Created client session 7c6f047a85de0951343f6083","timestamp":"2026-05-29 13:27:28"}
+{"level":"info","message":"Created client session 005527a58449bc6c8556439c","timestamp":"2026-05-29 13:44:50"}
+{"level":"info","message":"Created client session 1da2358091a8dd6acd545b98","timestamp":"2026-05-29 13:50:13"}
+{"level":"info","message":"Created client session a5b1d4516199afe8d4e512c5","timestamp":"2026-05-29 13:50:14"}
+{"level":"info","message":"Created client session e978ad6b7f22f60801efb51c","timestamp":"2026-05-29 13:50:16"}
+{"level":"info","message":"Created client session df2ae4a34bc1bd96f5c69b46","timestamp":"2026-05-29 13:50:17"}
+{"level":"info","message":"Created client session 4636d4e4b01315b117495363","timestamp":"2026-05-29 13:50:18"}
+{"level":"info","message":"Created client session d42208da7b2eebd0f8b01243","timestamp":"2026-05-29 13:50:18"}
+{"level":"info","message":"Created client session bb5841bc804eb88aa98d91cb","timestamp":"2026-05-29 13:50:18"}
+{"level":"info","message":"Created client session d841f87833c00e691c15b393","timestamp":"2026-05-29 13:50:19"}
+{"level":"info","message":"Created client session a902655c3a4eba9feb43c072","timestamp":"2026-05-29 13:50:20"}
+{"level":"info","message":"Created client session e09dceebc9c380de97669a54","timestamp":"2026-05-29 13:50:22"}
+{"level":"info","message":"Created client session 02523ac8faf096cde11cb2e5","timestamp":"2026-05-29 13:50:24"}
+{"level":"info","message":"Created client session bd2d2173bf0ae25f68f39f74","timestamp":"2026-05-29 13:50:25"}
+{"level":"info","message":"Created client session d81f8173c1b576ff604b2912","timestamp":"2026-05-29 13:50:25"}
+{"level":"info","message":"Created client session dd75873caefa70bba32a0926","timestamp":"2026-05-29 13:50:25"}
+{"level":"info","message":"Created client session 22580dcacb01500a2176991e","timestamp":"2026-05-29 13:50:25"}
+{"level":"info","message":"Created client session 2c2ee1b1cd22cd326abf3111","timestamp":"2026-05-29 13:50:25"}
+{"level":"info","message":"Created client session 4321881508ac24cf4a12c76d","timestamp":"2026-05-29 13:50:26"}
+{"level":"info","message":"Created client session 6dfe380697b5acfa088f7f26","timestamp":"2026-05-29 13:50:27"}
+{"level":"info","message":"Created client session db2612d078683cf56a393d0c","timestamp":"2026-05-29 13:50:29"}
+{"level":"info","message":"Created client session cbe9336d897e9626118f60bd","timestamp":"2026-05-29 13:50:29"}
+{"level":"info","message":"Created client session 7accabdfd97ddd2fde072111","timestamp":"2026-05-29 13:50:30"}
+{"level":"info","message":"Created client session b10211feef7a6ba726fe49ab","timestamp":"2026-05-29 13:50:31"}
+{"level":"info","message":"Created client session d4d89c75463fac620eb913c5","timestamp":"2026-05-29 13:50:32"}
+{"level":"info","message":"Created client session 480829581a075cc182dc334e","timestamp":"2026-05-29 13:50:33"}
+{"level":"info","message":"Created client session b1e69f9d06058b78c44cfa11","timestamp":"2026-05-29 13:50:34"}
+{"level":"info","message":"Created client session 20245ad80aea07a732545e12","timestamp":"2026-05-29 13:50:35"}
+{"level":"info","message":"Created client session e5449643e3d9d5c0e4e37922","timestamp":"2026-05-29 13:50:36"}
+{"level":"info","message":"Created client session 6090a83bfb0ad9dd1e371840","timestamp":"2026-05-29 13:50:38"}
+{"level":"info","message":"Created client session 3c2363b10e2cc0cee866a808","timestamp":"2026-05-29 14:00:03"}
+{"level":"info","message":"Created client session 96e2d05f42be840ac990da64","timestamp":"2026-05-29 14:00:03"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 14:27:02"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 14:28:02"}
+{"level":"info","message":"Created Actor with id [t8O63Nx1LjGOLUut]","timestamp":"2026-05-29 14:39:05"}
+{"level":"info","message":"Created Token with id [anxVjtuv8QnVU76H] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 14:39:05"}
+{"level":"info","message":"Created Actor with id [XxvPPxj3uMPI0PsV]","timestamp":"2026-05-29 14:39:08"}
+{"level":"info","message":"Created Token with id [fz3OkW3SpFpJGU2Y] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 14:39:08"}
+{"level":"info","message":"Created Actor with id [KnY475vijYAlwgQr]","timestamp":"2026-05-29 14:39:10"}
+{"level":"info","message":"Created Token with id [mrdO0EkuGi5Z9h8R] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 14:39:10"}
+{"level":"info","message":"Created Actor with id [Yi0jbaWPQ6WqZ5xH]","timestamp":"2026-05-29 14:39:14"}
+{"level":"info","message":"Created Token with id [cYlR98yrzugYhCqI] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 14:39:14"}
+{"level":"info","message":"Created ChatMessage with id [t7tNM627EsViiCsG]","timestamp":"2026-05-29 14:44:40"}
+{"level":"info","message":"Deleted ChatMessage with id [t7tNM627EsViiCsG]","timestamp":"2026-05-29 14:44:48"}
+{"level":"info","message":"Created ChatMessage with id [nuL04VEYuUVEa6L8]","timestamp":"2026-05-29 14:45:18"}
+{"level":"info","message":"Created ChatMessage with id [AnDWaAcBZJ9cSXoH]","timestamp":"2026-05-29 14:45:37"}
+{"level":"info","message":"Created ChatMessage with id [ZTGslY4lThGFkrrf]","timestamp":"2026-05-29 14:46:14"}
+{"level":"info","message":"Deleted ChatMessage with id [ZTGslY4lThGFkrrf]","timestamp":"2026-05-29 14:46:31"}
+{"level":"info","message":"Deleted ChatMessage with id [AnDWaAcBZJ9cSXoH]","timestamp":"2026-05-29 14:46:34"}
+{"level":"info","message":"Deleted ChatMessage with id [nuL04VEYuUVEa6L8]","timestamp":"2026-05-29 14:46:36"}
+{"level":"debug","message":"Retiring user 'YzL2W1htQr2gHsBA' from editing session for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 14:46:43"}
+{"level":"debug","message":"Instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content' has no more active editors, cleaning up.","timestamp":"2026-05-29 14:46:43"}
+{"level":"info","message":"Created FogExploration with id [25Qzy62cIlR8y70m]","timestamp":"2026-05-29 14:46:46"}
+{"level":"info","message":"Created ChatMessage with id [wnKE2lG1Dm79uiet]","timestamp":"2026-05-29 14:46:49"}
+{"level":"info","message":"Created ChatMessage with id [MniRQFCJxJ7Fgx5I]","timestamp":"2026-05-29 14:46:50"}
+{"level":"info","message":"Created ChatMessage with id [dX4z6flFH2AG3odd]","timestamp":"2026-05-29 14:46:57"}
+{"level":"info","message":"Deleted ChatMessage with id [dX4z6flFH2AG3odd]","timestamp":"2026-05-29 14:47:22"}
+{"level":"info","message":"Deleted ChatMessage with id [MniRQFCJxJ7Fgx5I]","timestamp":"2026-05-29 14:47:25"}
+{"level":"info","message":"Deleted ChatMessage with id [wnKE2lG1Dm79uiet]","timestamp":"2026-05-29 14:47:27"}
+{"level":"info","message":"Created client session a5db682b3a24ea1247e72e3f","timestamp":"2026-05-29 14:50:20"}
+{"level":"debug","message":"Starting edit session for user 'YzL2W1htQr2gHsBA' and instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 14:57:59"}
+{"level":"debug","message":"Retiring user 'YzL2W1htQr2gHsBA' from editing session for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 14:59:00"}
+{"level":"debug","message":"Instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content' has no more active editors, cleaning up.","timestamp":"2026-05-29 14:59:00"}
+{"level":"info","message":"Created Token with id [ZysdXFOJ06dZo81Y] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 14:59:06"}
+{"level":"info","message":"Created Token with id [FpKHsiJ1lDc8Rfzz] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 14:59:15"}
+{"level":"debug","message":"Starting edit session for user 'YzL2W1htQr2gHsBA' and instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:00:27"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:01:27"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:03:27"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:08:27"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:09:27"}
+{"level":"info","message":"Created client session 6962e029bbcc72463043b2f6","timestamp":"2026-05-29 15:14:39"}
+{"level":"info","message":"Created client session a0126eedd8e82673b7a79ced","timestamp":"2026-05-29 15:21:26"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:21:27"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:22:27"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:23:27"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:25:27"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:28:27"}
+{"level":"info","message":"Created RollTable with id [yG3DUBogsSJImZum]","timestamp":"2026-05-29 15:29:29"}
+{"level":"info","message":"Created TableResult with id [buXM93GhoHJiAspt] in parent RollTable [yG3DUBogsSJImZum]","timestamp":"2026-05-29 15:29:34"}
+{"level":"info","message":"Created TableResult with id [TT7mf7IGqLCeWW7T] in parent RollTable [yG3DUBogsSJImZum]","timestamp":"2026-05-29 15:29:35"}
+{"level":"info","message":"Created TableResult with id [dRp1PYokpyPwsoHq] in parent RollTable [yG3DUBogsSJImZum]","timestamp":"2026-05-29 15:29:36"}
+{"level":"info","message":"Created TableResult with id [7DuDdfgcOpKpuxIF] in parent RollTable [yG3DUBogsSJImZum]","timestamp":"2026-05-29 15:29:37"}
+{"level":"info","message":"Created Token with id [04xfpBLAGvqa0xaS] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 15:33:26"}
+{"level":"debug","message":"Retiring user 'YzL2W1htQr2gHsBA' from editing session for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:34:01"}
+{"level":"debug","message":"Instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content' has no more active editors, cleaning up.","timestamp":"2026-05-29 15:34:01"}
+{"level":"info","message":"Created Note with id [hImGctMsOelFo1tr] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 15:35:32"}
+{"level":"info","message":"Created Note with id [99Ds4lGy1xenZKHF] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 15:36:16"}
+{"level":"debug","message":"Starting edit session for user 'YzL2W1htQr2gHsBA' and instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:36:54"}
+{"level":"debug","message":"Broadcasting autosave update for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:37:54"}
+{"level":"debug","message":"Retiring user 'YzL2W1htQr2gHsBA' from editing session for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:39:20"}
+{"level":"debug","message":"Instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content' has no more active editors, cleaning up.","timestamp":"2026-05-29 15:39:20"}
+{"level":"info","message":"Created TableResult with id [XeCDJkv22PKVV7yY] in parent RollTable [yG3DUBogsSJImZum]","timestamp":"2026-05-29 15:55:07"}
+{"level":"debug","message":"Starting edit session for user 'YzL2W1htQr2gHsBA' and instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:58:50"}
+{"level":"debug","message":"Retiring user 'YzL2W1htQr2gHsBA' from editing session for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:59:19"}
+{"level":"debug","message":"Instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content' has no more active editors, cleaning up.","timestamp":"2026-05-29 15:59:19"}
+{"level":"debug","message":"Starting edit session for user 'YzL2W1htQr2gHsBA' and instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 15:59:39"}
+{"level":"info","message":"Created client session 4c28f1d13fe35c89870162c6","timestamp":"2026-05-29 16:17:54"}
+{"level":"debug","message":"Retiring user 'YzL2W1htQr2gHsBA' from editing session for instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content'.","timestamp":"2026-05-29 16:22:43"}
+{"level":"debug","message":"Instance 'JournalEntry.pvj1i6lt1v1F6z6Q.JournalEntryPage.maNriiJo0MlDyrPh#text.content' has no more active editors, cleaning up.","timestamp":"2026-05-29 16:22:43"}
+{"level":"info","message":"Created Actor with id [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:23:05"}
+{"level":"info","message":"TheHorror.png saved to Chapters/10. Die Ruinen von Beres/Images","timestamp":"2026-05-29 16:23:30"}
+{"level":"info","message":"Created Item with id [L51uhbPx2huNRtcV] in parent Actor [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:28:45"}
+{"level":"info","message":"Created ChatMessage with id [VceyWQck50ebeYZH]","timestamp":"2026-05-29 16:33:21"}
+{"level":"info","message":"Deleted ChatMessage with id [VceyWQck50ebeYZH]","timestamp":"2026-05-29 16:33:30"}
+{"level":"info","message":"Created ActiveEffect with id [0NXcnzlVkMceYqJq] in parent Actor [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:33:41"}
+{"level":"info","message":"Deleted ActiveEffect with id [0NXcnzlVkMceYqJq] in parent Actor [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:33:50"}
+{"level":"info","message":"Created Item with id [gccZyOugCLxJg8Sz] in parent Actor [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:33:56"}
+{"level":"info","message":"Deleted Item with id [gccZyOugCLxJg8Sz] in parent Actor [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:34:00"}
+{"level":"info","message":"Created Item with id [c1p5FkqiWuJMeGBi] in parent Actor [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:35:20"}
+{"level":"info","message":"Created Item with id [HGcBAk3dHqQt7Kfz] in parent Actor [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:38:35"}
+{"level":"info","message":"Created ChatMessage with id [L4YSyATXI4zkVaNK]","timestamp":"2026-05-29 16:41:29"}
+{"level":"info","message":"Created ChatMessage with id [oYDBd78aBPuFJYio]","timestamp":"2026-05-29 16:41:39"}
+{"level":"info","message":"Deleted ChatMessage with id [oYDBd78aBPuFJYio]","timestamp":"2026-05-29 16:42:12"}
+{"level":"info","message":"Deleted ChatMessage with id [L4YSyATXI4zkVaNK]","timestamp":"2026-05-29 16:42:15"}
+{"level":"info","message":"Created Item with id [O4MPiMcx1xLyy9HN] in parent Actor [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:42:47"}
+{"level":"info","message":"Created Item with id [GI5aS8glCLdvJS9n] in parent Actor [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:42:48"}
+{"level":"info","message":"Created ChatMessage with id [MCcWQV1xokutprNy]","timestamp":"2026-05-29 16:45:42"}
+{"level":"info","message":"Deleted ChatMessage with id [MCcWQV1xokutprNy]","timestamp":"2026-05-29 16:45:58"}
+{"level":"info","message":"Created Item with id [EY3CAbSFSzqYGAy6] in parent Actor [morWBXKlwZU4BMkv]","timestamp":"2026-05-29 16:46:08"}
+{"level":"info","message":"Created Combat with id [BeNqhV64BaYxVl6t]","timestamp":"2026-05-29 16:53:20"}
+{"level":"info","message":"Created Combat with id [AFKpJdY6iM6AoRHz]","timestamp":"2026-05-29 16:53:22"}
+{"level":"info","message":"Created Token with id [VMpW0Y5a8NYoMF4h] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:53:42"}
+{"level":"info","message":"Created Wall with id [qJ2WzeqXbxZfYp32] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:54:57"}
+{"level":"info","message":"Created Wall with id [wBC7YXLjOMajYzB5] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:54:59"}
+{"level":"info","message":"Created Wall with id [ChfPaKTygBJNLT0d] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:00"}
+{"level":"info","message":"Created Wall with id [O3F1huypphvRbDuV] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:02"}
+{"level":"info","message":"Created Wall with id [N2BbyaZu1EZrxT1O] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:04"}
+{"level":"info","message":"Created Wall with id [SLcGlFoJtcnML4jC] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:09"}
+{"level":"info","message":"Deleted Wall with id [SLcGlFoJtcnML4jC] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:12"}
+{"level":"info","message":"Created Wall with id [lXCBOUiO23RGOkk6] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:14"}
+{"level":"info","message":"Created Wall with id [hOz4q0rYBaBn1M6R] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:16"}
+{"level":"info","message":"Created Wall with id [Zwz5My6YEpWUV7D5] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:17"}
+{"level":"info","message":"Created Wall with id [piYIDWd9X9RkHdZu] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:18"}
+{"level":"info","message":"Created Wall with id [oMKvso9GJNha2hgE] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:19"}
+{"level":"info","message":"Created Wall with id [eklptfz9HmrOMMc2] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:20"}
+{"level":"info","message":"Created Wall with id [lqFmetkCcz2hsoit] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:22"}
+{"level":"info","message":"Created Wall with id [JHwII1VTVSJBmwZz] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:23"}
+{"level":"info","message":"Created Wall with id [Hbf8FxFb5nkurU3y] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:24"}
+{"level":"info","message":"Created Wall with id [BWVbMITFaExXcx4V] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:25"}
+{"level":"info","message":"Created Wall with id [GTX5VBeiFbn2W7Gh] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:30"}
+{"level":"info","message":"Created Wall with id [JxVIvavNPI1qXoVu] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:33"}
+{"level":"info","message":"Created Wall with id [aMdh8L5236gZ0nWA] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:35"}
+{"level":"info","message":"Created Wall with id [qbrMEl7B4xKLCeeC] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:35"}
+{"level":"info","message":"Created Wall with id [0qrBKyZZW8L6pGWw] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:36"}
+{"level":"info","message":"Created Wall with id [JTu0AkgDBewQvNgr] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:44"}
+{"level":"info","message":"Created Wall with id [UvtLvHfvkpiuNjWw] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:46"}
+{"level":"info","message":"Created Wall with id [4TLnm5m18wHnQuOf] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:49"}
+{"level":"info","message":"Created Wall with id [EPnS26CXLFcVGkBj] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:52"}
+{"level":"info","message":"Created Wall with id [5XZsMRBMjSRCVCag] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:55"}
+{"level":"info","message":"Created Wall with id [07O2sKVqAwAnS0xv] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:55:57"}
+{"level":"info","message":"Created Wall with id [qfK2elWi9wQgiIe9] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:03"}
+{"level":"info","message":"Created Wall with id [ep6XSqR3THzCTNuC] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:05"}
+{"level":"info","message":"Created Wall with id [tm3ahxxzEnteNO9p] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:11"}
+{"level":"info","message":"Created Wall with id [gl3CCIBrwyoivF2Q] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:14"}
+{"level":"info","message":"Created Wall with id [o6I1A412REj8yWS5] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:15"}
+{"level":"info","message":"Created Wall with id [cRs7pVSxmL6eeX4E] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:18"}
+{"level":"info","message":"Created Wall with id [7BoGiGcwD6kpkCPT] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:20"}
+{"level":"info","message":"Created Wall with id [FgWv3n9ZgalTt8kr] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:23"}
+{"level":"info","message":"Created Wall with id [tDpJNAix7qfeYy5k] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:33"}
+{"level":"info","message":"Created Wall with id [I8P1frIlBEb8fEDC] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:37"}
+{"level":"info","message":"Created Wall with id [d9YtiLuBHwBUXdI7] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:40"}
+{"level":"info","message":"Created Wall with id [yAWaqhEtSUUl6KWt] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:48"}
+{"level":"info","message":"Created Wall with id [EO3dscaZX7H9SRDv] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:49"}
+{"level":"info","message":"Created Wall with id [rIl72MXXyIzwh0jU] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:51"}
+{"level":"info","message":"Created Wall with id [DqbQF2iNqU8WJc7o] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:52"}
+{"level":"info","message":"Created Wall with id [RyUBp4xfywURzgLN] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:56:54"}
+{"level":"info","message":"Created Wall with id [XBjkEGuYGt7S9snZ] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:01"}
+{"level":"info","message":"Created Wall with id [H50LsYGjZlFriOJc] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:02"}
+{"level":"info","message":"Created Wall with id [q98VrO920Y6PfcVt] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:04"}
+{"level":"info","message":"Created Wall with id [iM2EFM9IPkc5zLsb] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:07"}
+{"level":"info","message":"Created Wall with id [v6TNB17y7y2HqVIU] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:09"}
+{"level":"info","message":"Created Wall with id [Pp4SqEXEpfgCC8xE] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:09"}
+{"level":"info","message":"Created Wall with id [NTJiQN05TnPHvDEC] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:11"}
+{"level":"info","message":"Created Wall with id [pWhISFdrb7Q6eUIy] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:15"}
+{"level":"info","message":"Created Wall with id [sAE4SJrIPqDrlW37] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:18"}
+{"level":"info","message":"Created Wall with id [6snMwOVPNJv9asmM] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:19"}
+{"level":"info","message":"Created Wall with id [GdRHP5V20MofFMrp] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:25"}
+{"level":"info","message":"Created Wall with id [4PqoPP3tykY4PLnZ] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:28"}
+{"level":"info","message":"Created Wall with id [6uptrM6zQgnvVcwY] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:29"}
+{"level":"info","message":"Created Wall with id [igLigyKICEPECdnk] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:30"}
+{"level":"info","message":"Created Wall with id [CTbD10YHHTH0ZKWG] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:32"}
+{"level":"info","message":"Created Wall with id [BJGqmS5EqJqRe7Nv] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:34"}
+{"level":"info","message":"Created Wall with id [wYvv9xkDKxOfL6eF] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:38"}
+{"level":"info","message":"Created Wall with id [qHHP0G65UwiIjjPW] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:40"}
+{"level":"info","message":"Created Wall with id [AP1QzYRIsi61uvXm] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:43"}
+{"level":"info","message":"Created Wall with id [IJi9zsvRZ3uPUHKq] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:45"}
+{"level":"info","message":"Created Wall with id [V3JBZlZv18neczGI] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:47"}
+{"level":"info","message":"Created Wall with id [pwNRgz4cTwheUATs] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:51"}
+{"level":"info","message":"Created Wall with id [z7Ch1mRvgRsi7p5k] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:53"}
+{"level":"info","message":"Created Wall with id [6xyDaQtuBiQrtUeL] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:57"}
+{"level":"info","message":"Created Wall with id [Lq8P40HHVuzAZGCK] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:57:57"}
+{"level":"info","message":"Created Wall with id [8YjkMbh9Uwf7nmuG] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:58:01"}
+{"level":"info","message":"Created Wall with id [PMZQcG1ZJC0wSmsq] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:58:03"}
+{"level":"info","message":"Created Wall with id [5UM8Zfx5VARwuiZt] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 16:58:06"}
+{"level":"info","message":"Created client session feff79a1eb252f2a3c4d4bc7","timestamp":"2026-05-29 16:58:21"}
+{"level":"info","message":"Created Combatant with id [uPEXQdEq8BCddCrF] in parent Combat [BeNqhV64BaYxVl6t]","timestamp":"2026-05-29 16:59:19"}
+{"level":"info","message":"Created Combatant with id [dcVn7CJNFEv3Maje] in parent Combat [BeNqhV64BaYxVl6t]","timestamp":"2026-05-29 16:59:21"}
+{"level":"info","message":"Created Combatant with id [aPc1QuA6Xt3TVMFw] in parent Combat [BeNqhV64BaYxVl6t]","timestamp":"2026-05-29 16:59:22"}
+{"level":"info","message":"Created Combatant with id [ZTDeUM61qzIMi7t7] in parent Combat [BeNqhV64BaYxVl6t]","timestamp":"2026-05-29 16:59:25"}
+{"level":"info","message":"Created Combatant with id [vUZsDpZxX8saejuz] in parent Combat [BeNqhV64BaYxVl6t]","timestamp":"2026-05-29 16:59:28"}
+{"level":"info","message":"Created Combatant with id [Mi8QNEM29mEvToG0] in parent Combat [BeNqhV64BaYxVl6t]","timestamp":"2026-05-29 16:59:32"}
+{"level":"info","message":"Created Combatant with id [PKBRhM2NcKwEum67] in parent Combat [AFKpJdY6iM6AoRHz]","timestamp":"2026-05-29 17:00:00"}
+{"level":"info","message":"Deleted Combatant with id [PKBRhM2NcKwEum67] in parent Combat [AFKpJdY6iM6AoRHz]","timestamp":"2026-05-29 17:00:38"}
+{"level":"info","message":"Created Combatant with id [gg0Ffe3FqxMahD68] in parent Combat [AFKpJdY6iM6AoRHz]","timestamp":"2026-05-29 17:00:40"}
+{"level":"info","message":"Created Combat with id [Bhdjlg3wFQRzMhY5]","timestamp":"2026-05-29 17:01:13"}
+{"level":"info","message":"Created ChatMessage with id [LllGkyhInp6LyTco]","timestamp":"2026-05-29 17:01:38"}
+{"level":"info","message":"Deleted ChatMessage with id [LllGkyhInp6LyTco]","timestamp":"2026-05-29 17:01:51"}
+{"level":"info","message":"Created Actor with id [rXFlX33FT4s2OqdZ]","timestamp":"2026-05-29 17:04:28"}
+{"level":"info","message":"Created Token with id [qEhA86itPuqaCmey] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 17:04:43"}
+{"level":"info","message":"Created Combatant with id [vmelMVQVDPRsL6RD] in parent Combat [AFKpJdY6iM6AoRHz]","timestamp":"2026-05-29 17:04:52"}
+{"level":"info","message":"Deleted Combatant with id [vmelMVQVDPRsL6RD] in parent Combat [AFKpJdY6iM6AoRHz]","timestamp":"2026-05-29 17:05:17"}
+{"level":"info","message":"Created Combatant with id [bnSAYIZ6Vcp0gdD8] in parent Combat [AFKpJdY6iM6AoRHz]","timestamp":"2026-05-29 17:05:19"}
+{"level":"info","message":"Deleted Item with id [HGcBAk3dHqQt7Kfz] in parent ActorDelta [VMpW0Y5a8NYoMF4h]","timestamp":"2026-05-29 17:06:41"}
+{"level":"info","message":"Created Item with id [Ino88wk2qSCY74Y1] in parent ActorDelta [VMpW0Y5a8NYoMF4h]","timestamp":"2026-05-29 17:07:05"}
+{"level":"info","message":"Deleted Item with id [Ino88wk2qSCY74Y1] in parent ActorDelta [VMpW0Y5a8NYoMF4h]","timestamp":"2026-05-29 17:08:41"}
+{"level":"info","message":"Created Actor with id [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:09:13"}
+{"level":"info","message":"Berez_Pixie.png saved to Chapters/10. Die Ruinen von Beres/Images","timestamp":"2026-05-29 17:10:55"}
+{"level":"info","message":"Created Item with id [X1XVGiIjFZK6BJmT] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:14:23"}
+{"level":"info","message":"Created Item with id [oowZRlYbwmY5NDSw] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:14:48"}
+{"level":"info","message":"Created Item with id [aLLbGtBMG28eUBT1] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:14:58"}
+{"level":"info","message":"Created Item with id [ZVShvDdEZfVrwq3x] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:15:15"}
+{"level":"info","message":"Created Item with id [NOS2drhzzImkkSUD] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:15:22"}
+{"level":"info","message":"Created Item with id [YHw9qRz3Scrka5EK] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:15:26"}
+{"level":"info","message":"Created Item with id [x4iPNGLxdQteyS3B] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:15:31"}
+{"level":"info","message":"Created Item with id [7yc5cBlhozM2Mi0j] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:15:36"}
+{"level":"info","message":"Created Item with id [iiXZg4VNB4tpiIUD] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:15:42"}
+{"level":"info","message":"Created Item with id [eJFynl6QTkjT6dLN] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:15:48"}
+{"level":"info","message":"Created Item with id [fdtn5RicQ1JMw7SF] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:15:53"}
+{"level":"info","message":"Created Item with id [MeFu8UNZRFal3tlI] in parent Actor [XEBzD5qedgokyhu4]","timestamp":"2026-05-29 17:15:57"}
+{"level":"info","message":"Created Token with id [qGKsm8sicQTqE1V8] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 17:18:06"}
+{"level":"info","message":"Created Token with id [vuytuQDsafL0JcuA] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 17:18:34"}
+{"level":"info","message":"Created Token with id [0PfMg1o3yvsNw4et] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 17:18:45"}
+{"level":"info","message":"Created Token with id [f0jBax57Uj1oc0RX] in parent Scene [1pPkPGf4hkF95Vo6]","timestamp":"2026-05-29 17:18:53"}
+{"level":"info","message":"Dungeons & Dragons Fifth Edition update 5.3.3 is now available!","timestamp":"2026-05-29 17:32:24"}
+{"level":"info","message":"Vended World data to User [YzL2W1htQr2gHsBA] in 796ms","timestamp":"2026-05-29 17:32:24"}
+{"level":"info","message":"Created client session 6bae319d908c9094f40f84f1","timestamp":"2026-05-29 17:44:08"}
+{"level":"info","message":"Created client session 3a712ec8c84c835ac7596f9f","timestamp":"2026-05-29 17:48:53"}
+{"level":"info","message":"Created client session a2829336f93e9fb3a57ad07c","timestamp":"2026-05-29 18:01:34"}
+{"level":"info","message":"Created client session 34e0f74ff17990a4d8841d60","timestamp":"2026-05-29 18:06:06"}
+{"level":"info","message":"Created client session 568727104a6e96679d206bff","timestamp":"2026-05-29 18:06:07"}
+{"level":"info","message":"Created client session b8242e513b13c4055fbdfe7b","timestamp":"2026-05-29 18:06:07"}
+{"level":"info","message":"Created client session 74a4023a0c3b5121efddf51f","timestamp":"2026-05-29 18:06:08"}
+{"level":"info","message":"Created client session 6a57af4a38e98ed26ca3cbce","timestamp":"2026-05-29 18:06:08"}
+{"level":"info","message":"Created client session 570ac456e92927bf8bfea8bb","timestamp":"2026-05-29 18:06:09"}
+{"level":"info","message":"Created client session 28cca680980ce2ee8878fd7f","timestamp":"2026-05-29 18:06:10"}
+{"level":"info","message":"Created client session 9ff925bbdf88c8a37306bf23","timestamp":"2026-05-29 18:06:10"}
+{"level":"info","message":"Created client session 7cd19371dcf3eebe35a27f26","timestamp":"2026-05-29 18:06:11"}
+{"level":"info","message":"Created client session 529447ea5c992237200afa36","timestamp":"2026-05-29 18:06:12"}
+{"level":"info","message":"Created client session b712b82b30f72b7adaebf3dd","timestamp":"2026-05-29 18:06:12"}
+{"level":"info","message":"Created client session f7e241d558400f7cf08b58e6","timestamp":"2026-05-29 18:06:13"}
+{"level":"info","message":"Created client session a45cdbebe7889deaf9cd1806","timestamp":"2026-05-29 18:06:14"}
+{"level":"info","message":"Created client session 79509057f137c2945415c4e0","timestamp":"2026-05-29 18:06:14"}
+{"level":"info","message":"Created client session de4d497d084866a1e70d10e3","timestamp":"2026-05-29 18:06:15"}
+{"level":"info","message":"Created client session 6e381ab90493b67d910f33d5","timestamp":"2026-05-29 18:06:16"}
+{"level":"info","message":"Created client session 7cb84029f58b991cc78db6c6","timestamp":"2026-05-29 18:06:16"}
+{"level":"info","message":"Created client session f2e143383ac71a56c7372177","timestamp":"2026-05-29 18:06:17"}
+{"level":"info","message":"Created client session e582d57aff0ac9c61f4e8902","timestamp":"2026-05-29 18:06:18"}
+{"level":"info","message":"Created client session 46af37b36fea0279a1b10af7","timestamp":"2026-05-29 18:06:18"}
+{"level":"info","message":"Created client session aea9f7f3d1c71f318667ec4b","timestamp":"2026-05-29 18:06:19"}
+{"level":"info","message":"Created client session c96f94d81c125be4615dc125","timestamp":"2026-05-29 18:06:19"}
+{"level":"info","message":"Created client session bdc181b0e14671d3fa34a776","timestamp":"2026-05-29 18:06:20"}
+{"level":"info","message":"Created client session 4daa41041d7ee8d19dd71ff6","timestamp":"2026-05-29 18:06:21"}
+{"level":"info","message":"Created client session 38fe97dd5088af8057c10175","timestamp":"2026-05-29 18:06:22"}
+{"level":"info","message":"Created client session 5cd2b554d6beb8b47f1e2e99","timestamp":"2026-05-29 18:06:23"}
+{"level":"info","message":"Created client session 7a910ddfd69319b88eb3853b","timestamp":"2026-05-29 18:06:23"}
+{"level":"info","message":"Created client session f984194a03a48f50dec55c18","timestamp":"2026-05-29 18:06:24"}
+{"level":"info","message":"Created client session e12f281fec0314a2c08019b6","timestamp":"2026-05-29 18:06:25"}
+{"level":"info","message":"Created client session 03fb098f937eeb94a9798ed3","timestamp":"2026-05-29 18:06:26"}
+{"level":"info","message":"Created client session f55582fe3562b79105203b9d","timestamp":"2026-05-29 18:06:26"}
+{"level":"info","message":"Created client session b5f01b74decb1e9cf891f6cf","timestamp":"2026-05-29 18:06:27"}
+{"level":"info","message":"Created client session 797795caf744cbb1d007b7ee","timestamp":"2026-05-29 18:06:28"}
+{"level":"info","message":"Created client session d6df0a7e422c0172b880c659","timestamp":"2026-05-29 18:06:28"}
+{"level":"info","message":"Created client session e56cec3bcf7328113aa93f2e","timestamp":"2026-05-29 18:06:29"}
+{"level":"info","message":"Created client session 3f72ed8f9c3c3dd18a3bb28e","timestamp":"2026-05-29 18:06:30"}
+{"level":"info","message":"Created client session fe830ecc2137a679091aeeff","timestamp":"2026-05-29 18:06:30"}
+{"level":"info","message":"Created client session 815f92833dd47879cff3a4b9","timestamp":"2026-05-29 18:06:31"}
+{"level":"info","message":"Created client session f6525992b409e9590dca4203","timestamp":"2026-05-29 18:06:32"}
+{"level":"info","message":"Created client session e0d8d2a78d63e0893a4fa99d","timestamp":"2026-05-29 18:06:32"}
+{"level":"info","message":"Created client session 253659a50f98e089033bce3a","timestamp":"2026-05-29 18:06:33"}
+{"level":"info","message":"Created client session f39b73e038e05235e59f0996","timestamp":"2026-05-29 18:06:34"}
+{"level":"info","message":"Created client session 82e665125fdd31ad510fc9a1","timestamp":"2026-05-29 18:06:34"}
+{"level":"info","message":"Created client session e3ca9eb0f2e8ae1d795a1043","timestamp":"2026-05-29 18:06:35"}
+{"level":"info","message":"Dungeons & Dragons Fifth Edition update 5.3.3 is now available!","timestamp":"2026-05-29 18:18:07"}
+{"level":"info","message":"Vended World data to User [YzL2W1htQr2gHsBA] in 707ms","timestamp":"2026-05-29 18:18:07"}
+{"level":"info","message":"Created client session 129132dff56c611291c7d29b","timestamp":"2026-05-29 18:25:55"}
+{"level":"info","message":"Created client session 81ffca54ab5d8c4a31dec0fe","timestamp":"2026-05-29 18:48:59"}
+{"level":"info","message":"Created client session ef7e8330422b14a7063813a8","timestamp":"2026-05-29 19:21:04"}
+{"level":"info","message":"Created client session b2c0a44a51907e8848b8b701","timestamp":"2026-05-29 19:33:21"}
+{"level":"info","message":"Created client session 853b18c5ce3fdcb6a29b086f","timestamp":"2026-05-29 20:00:10"}
+{"level":"info","message":"Created client session 463a612cbc6f914e47c3d8d1","timestamp":"2026-05-29 20:10:16"}
+{"level":"info","message":"Created client session 10dff5a9e3996a5b08f073bb","timestamp":"2026-05-29 20:46:11"}
+{"level":"info","message":"Created client session a6207f0556d5da55efd98c2e","timestamp":"2026-05-29 20:46:14"}
+{"level":"info","message":"Created client session 1505a2174b2dce7e1ddf00a1","timestamp":"2026-05-29 20:50:07"}
+{"level":"info","message":"Created client session 4a74555d6f94cfa885214139","timestamp":"2026-05-29 21:01:15"}
+{"level":"info","message":"Created client session bbbafbba95bb6434df8f83ed","timestamp":"2026-05-29 21:20:25"}
+{"level":"info","message":"Created client session e1274c10dc8936e56e9a4d76","timestamp":"2026-05-29 21:20:48"}
+{"level":"info","message":"Created client session 0b94f67085c81ac23f1d3fff","timestamp":"2026-05-29 21:37:27"}
+{"level":"info","message":"Created client session 74a451719de39245b52d725b","timestamp":"2026-05-29 21:37:34"}
+{"level":"info","message":"Created client session 0cf34dd368824c9695f729e5","timestamp":"2026-05-29 22:09:00"}
+{"level":"info","message":"Created client session 4af0bfb11092c0962e0ca16c","timestamp":"2026-05-29 22:11:52"}
+{"level":"info","message":"Created client session cbf42dd85cb254c1dc700337","timestamp":"2026-05-29 22:21:33"}
+{"level":"info","message":"Created client session cf2f2a10009029b5f5c04cf5","timestamp":"2026-05-29 22:29:28"}
+{"level":"info","message":"Created client session dcea2cfbecad58aa650f2a2e","timestamp":"2026-05-29 22:42:16"}
+{"level":"info","message":"Created client session 52f358067d985a5088a38298","timestamp":"2026-05-29 22:46:36"}
+{"level":"info","message":"Created client session befc23ce665aa16ef1bcdc87","timestamp":"2026-05-29 22:46:36"}
+{"level":"info","message":"Created client session 85dbe93492b7e2294015c62e","timestamp":"2026-05-29 22:46:37"}
+{"level":"info","message":"Created client session 757dd2b0a64096ca5c3ce9f0","timestamp":"2026-05-29 22:46:37"}
+{"level":"info","message":"Created client session 301435095f41abddac62ecc8","timestamp":"2026-05-29 22:46:37"}
+{"level":"info","message":"Created client session b17f3728cdd92c9f5d3a7050","timestamp":"2026-05-29 22:46:37"}
+{"level":"info","message":"Created client session 40d73303ca63d597409a8f28","timestamp":"2026-05-29 22:46:38"}
+{"level":"info","message":"Created client session 06e103d347e297953f90837c","timestamp":"2026-05-29 22:46:38"}
+{"level":"info","message":"Created client session 5e55358d844af8b3ed8ae6b4","timestamp":"2026-05-29 22:46:38"}
+{"level":"info","message":"Created client session 4f67c73848f2315863ddf3b7","timestamp":"2026-05-29 22:46:39"}
+{"level":"info","message":"Created client session 5c5436cbc477d12d8f47d96a","timestamp":"2026-05-29 22:46:39"}
+{"level":"info","message":"Created client session b3137738ba851991742eed9e","timestamp":"2026-05-29 22:46:39"}
+{"level":"info","message":"Created client session 8072279afd9e0fc888dd54d4","timestamp":"2026-05-29 22:46:39"}
+{"level":"info","message":"Created client session 6775c51cfc537c2c75dc1c26","timestamp":"2026-05-29 22:46:40"}
+{"level":"info","message":"Created client session 2cb0c017fc6a194a72ff9d52","timestamp":"2026-05-29 22:46:40"}
+{"level":"info","message":"Created client session 5bcc96c896e3336aed48092c","timestamp":"2026-05-29 22:46:40"}
+{"level":"info","message":"Created client session 419f57545970f0bc2f622bd6","timestamp":"2026-05-29 22:46:41"}
+{"level":"info","message":"Created client session 6d2df3857047dad395899bbe","timestamp":"2026-05-29 22:46:41"}
+{"level":"info","message":"Created client session 4d6c3698063fddd8dcffd728","timestamp":"2026-05-29 22:46:41"}
+{"level":"info","message":"Created client session af707f2a35ada95a0dce8e0b","timestamp":"2026-05-29 22:46:42"}
+{"level":"info","message":"Created client session 970fa8f30b23e390e1279e53","timestamp":"2026-05-29 22:46:42"}
+{"level":"info","message":"Created client session 079d77b60c6bb73ad1d6a12f","timestamp":"2026-05-29 22:46:42"}
+{"level":"info","message":"Created client session d0b5684c31e48a595392c696","timestamp":"2026-05-29 22:46:42"}
+{"level":"info","message":"Created client session 160614e1359238fd2d5bc060","timestamp":"2026-05-29 22:46:43"}
+{"level":"info","message":"Created client session 2c6d5f6b3f4963f72056fc75","timestamp":"2026-05-29 22:46:43"}
+{"level":"info","message":"Created client session 20d965174da29ee181dfa054","timestamp":"2026-05-29 22:46:43"}
+{"level":"info","message":"Created client session 1b3926737d4bc7c80bf66a96","timestamp":"2026-05-29 22:46:44"}
+{"level":"info","message":"Created client session 6c104ed787348a0950913be8","timestamp":"2026-05-29 22:46:44"}
+{"level":"info","message":"Created client session eb33e4e147b3f364a0107d76","timestamp":"2026-05-29 22:46:44"}
+{"level":"info","message":"Created client session 486fe24a6bc982aa99ac741a","timestamp":"2026-05-29 22:46:44"}
+{"level":"info","message":"Created client session 07151922a724d888a3cef714","timestamp":"2026-05-29 22:46:45"}
+{"level":"info","message":"Created client session 2f9b829343ded0349606d34a","timestamp":"2026-05-29 22:46:45"}
+{"level":"info","message":"Created client session cd4b7d70a12b01e9f5dc211e","timestamp":"2026-05-29 22:46:45"}
+{"level":"info","message":"Created client session d7d0611a3b05a8707f489be6","timestamp":"2026-05-29 22:46:46"}
+{"level":"info","message":"Created client session 339981b8d104c0ec2c838dca","timestamp":"2026-05-29 22:46:46"}
+{"level":"info","message":"Created client session bfa7882dcb2dc1290e2ccec0","timestamp":"2026-05-29 22:46:46"}
+{"level":"info","message":"Created client session a10589c8cd088d2c31b4508d","timestamp":"2026-05-29 22:46:47"}
+{"level":"info","message":"Created client session ac75337485b41fe0945cd247","timestamp":"2026-05-29 22:46:47"}
+{"level":"info","message":"Created client session bfbc8cfc9dfda76fe87e69a7","timestamp":"2026-05-29 22:46:47"}
+{"level":"info","message":"Created client session acff09d5f8855efc6c1f69ab","timestamp":"2026-05-29 22:46:47"}
+{"level":"info","message":"Created client session be3ca764b0857f8b9713c465","timestamp":"2026-05-29 22:46:48"}
+{"level":"info","message":"Created client session 5c2b6f0b5d70dfadddb76044","timestamp":"2026-05-29 22:46:48"}
+{"level":"info","message":"Created client session 5aad3a318d2713e2f287891b","timestamp":"2026-05-29 22:46:48"}
+{"level":"info","message":"Created client session eace226ebcc55c051be018c8","timestamp":"2026-05-29 22:46:49"}
+{"level":"info","message":"Created client session bd41b5cd53e79ea06522f373","timestamp":"2026-05-29 23:06:34"}
+{"level":"info","message":"Created client session 9b16b8ab3b6783fe96dece51","timestamp":"2026-05-29 23:19:08"}
+{"level":"info","message":"Created client session 2b7f49169fdd6fdc9d9519d7","timestamp":"2026-05-29 23:25:49"}
+{"level":"info","message":"Created client session 6dae2df87f2ddf4fad4ccc72","timestamp":"2026-05-29 23:25:50"}
+{"level":"info","message":"Created client session 7685b39942fa3f4cebab3ba2","timestamp":"2026-05-29 23:25:50"}
+{"level":"info","message":"Created client session 47267550014e6ebcccf66feb","timestamp":"2026-05-29 23:25:50"}
+{"level":"info","message":"Created client session c13a295a6356d8f94bd64711","timestamp":"2026-05-29 23:25:51"}
+{"level":"info","message":"Created client session 59b3b50511b2bb45e59d1f43","timestamp":"2026-05-29 23:25:51"}
+{"level":"info","message":"Created client session d8c09c72fb0836bc61530dc2","timestamp":"2026-05-29 23:25:52"}
+{"level":"info","message":"Created client session d9579909f0c780e50e724edc","timestamp":"2026-05-29 23:25:52"}
+{"level":"info","message":"Created client session ce02f3698eb3d17ce2a9a6cb","timestamp":"2026-05-29 23:25:52"}
+{"level":"info","message":"Created client session 9c1f804a7c5477c7ea0088ed","timestamp":"2026-05-29 23:25:53"}
+{"level":"info","message":"Created client session e7aa27247b393ff005039b82","timestamp":"2026-05-29 23:25:53"}
+{"level":"info","message":"Created client session e4eefb5503bc41bab9cd0bd0","timestamp":"2026-05-29 23:25:54"}
+{"level":"info","message":"Created client session ea5e9e71adfe33bcb30280e6","timestamp":"2026-05-29 23:25:54"}
+{"level":"info","message":"Created client session cfb876013c2bcc9f93e96892","timestamp":"2026-05-29 23:25:54"}
+{"level":"info","message":"Created client session 35e93a8a9a1ba2dce4fdebf8","timestamp":"2026-05-29 23:25:55"}
+{"level":"info","message":"Created client session 2b0fa567ca996ff2b75fdc77","timestamp":"2026-05-29 23:25:55"}
+{"level":"info","message":"Created client session b464b665e20e49cc306cdeff","timestamp":"2026-05-29 23:25:56"}
+{"level":"info","message":"Created client session 488a8f73b2a8c66988d84c13","timestamp":"2026-05-29 23:25:56"}
+{"level":"info","message":"Created client session 90325a5345ff86d45b749fc7","timestamp":"2026-05-29 23:25:56"}
+{"level":"info","message":"Created client session a4862219b113d1cdf00e0b23","timestamp":"2026-05-29 23:25:57"}
+{"level":"info","message":"Created client session 5c511ef2b5c7cb76fcd32537","timestamp":"2026-05-29 23:25:57"}
+{"level":"info","message":"Created client session ec8cb733461f3420cd9d0b05","timestamp":"2026-05-29 23:25:58"}
+{"level":"info","message":"Created client session b7db8ff12c5ddcefb11f3a66","timestamp":"2026-05-29 23:25:58"}
+{"level":"info","message":"Created client session 3c2f51f76a5a60bca6685dab","timestamp":"2026-05-29 23:25:58"}
+{"level":"info","message":"Created client session 2830f3c4fc500a70b451f123","timestamp":"2026-05-29 23:25:59"}
+{"level":"info","message":"Created client session 15af720e44ed69db39ba0922","timestamp":"2026-05-29 23:25:59"}
+{"level":"info","message":"Created client session ccc46860479dba68765522ef","timestamp":"2026-05-29 23:26:00"}
+{"level":"info","message":"Created client session f5e97b8e21057a48e79fdb07","timestamp":"2026-05-29 23:26:00"}
+{"level":"info","message":"Created client session 4109ec49fed2b6700645501d","timestamp":"2026-05-29 23:26:00"}
+{"level":"info","message":"Created client session c0f06d30c14bef7b55a99d19","timestamp":"2026-05-29 23:26:01"}
+{"level":"info","message":"Created client session a54bc0a4bc0ef2352044dbff","timestamp":"2026-05-29 23:26:01"}
+{"level":"info","message":"Created client session 86bc0d2c76e009a88ccf94f4","timestamp":"2026-05-29 23:26:02"}
+{"level":"info","message":"Created client session 9131763a58e7ec1c71034525","timestamp":"2026-05-29 23:26:02"}
+{"level":"info","message":"Created client session f4a7856df617ab036efc2f31","timestamp":"2026-05-29 23:26:02"}
+{"level":"info","message":"Created client session cb044ad6c5bf2ed117ebd63e","timestamp":"2026-05-29 23:26:03"}
+{"level":"info","message":"Created client session 5a12fda9e882895290d5fa19","timestamp":"2026-05-29 23:26:03"}
+{"level":"info","message":"Created client session 9e7011a44de3e96cd26af3a4","timestamp":"2026-05-29 23:26:03"}
+{"level":"info","message":"Created client session da710dd4d26533920712c751","timestamp":"2026-05-29 23:26:04"}
+{"level":"info","message":"Created client session cfaf1e1393d8227e350e60ee","timestamp":"2026-05-29 23:26:04"}
+{"level":"info","message":"Created client session 8179d7fc005d613484351cb1","timestamp":"2026-05-29 23:26:05"}
+{"level":"info","message":"Created client session cc84a07296fc1b25982a6354","timestamp":"2026-05-29 23:26:05"}
+{"level":"info","message":"Created client session d7fc1fa87d8354830278a7af","timestamp":"2026-05-29 23:26:05"}
+{"level":"info","message":"Created client session b0017e8880390521a6747d27","timestamp":"2026-05-29 23:26:06"}
+{"level":"info","message":"Created client session d0d2f06cdbce504f10f2e3c0","timestamp":"2026-05-29 23:26:06"}
+{"level":"info","message":"Created client session b5f86a6866ce19c895f95290","timestamp":"2026-05-29 23:26:06"}
+{"level":"info","message":"Created client session a34f5ae4e9415ee75f141dfc","timestamp":"2026-05-29 23:26:07"}
+{"level":"info","message":"Created client session 6cff9e1257353bab9dfda6d8","timestamp":"2026-05-29 23:26:07"}
+{"level":"info","message":"Created client session 1c0b96c81917d2f589a1e82c","timestamp":"2026-05-29 23:26:08"}
+{"level":"info","message":"Created client session 48e51820b0a31f411256ea0c","timestamp":"2026-05-29 23:26:08"}
+{"level":"info","message":"Created client session e6a88815ba9a8619acafbda5","timestamp":"2026-05-29 23:26:08"}
+{"level":"info","message":"Created client session 3602cb0c91d82a27b8eece8b","timestamp":"2026-05-29 23:26:09"}
+{"level":"info","message":"Created client session 82f4d757f3de16e08702b04d","timestamp":"2026-05-29 23:26:09"}
