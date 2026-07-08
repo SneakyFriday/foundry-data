@@ -6,11 +6,6 @@
     "auditLog": "/home/foundry/data/Logs/.fabaedf98f076ce7f8478bd3b687161d4c3cc7aa-audit.json",
     "files": [
         {
-            "date": 1783030330060,
-            "name": "/home/foundry/data/Logs/debug.2026-07-03.log",
-            "hash": "24a7352e042a46094b3ff36a322f776e986b8bad746ef37688a833921b0a1ef7"
-        },
-        {
             "date": 1783116849216,
             "name": "/home/foundry/data/Logs/debug.2026-07-04.log",
             "hash": "974e617d7a3386dce065d155c9f7ac5b33cc26e66cb4d64b5ef2dd15cfc0fb8d"
@@ -29,6 +24,11 @@
             "date": 1783376834167,
             "name": "/home/foundry/data/Logs/debug.2026-07-07.log",
             "hash": "889f3f0dd29dc5030fa68cd7ff94c03313114c3afe22647c5cea193a5f4d0820"
+        },
+        {
+            "date": 1783462290171,
+            "name": "/home/foundry/data/Logs/debug.2026-07-08.log",
+            "hash": "86e3177f67d7d36e20eebf43ac4a06c24f2b7622aef575173066ae6fd7fa8785"
         }
     ],
     "hashType": "sha256"
