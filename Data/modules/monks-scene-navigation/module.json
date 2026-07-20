@@ -1,7 +1,7 @@
 {
   "title": "Monk's Scene Navigation",
   "description": "Re-organize the scene navigation to show scenes on one line, and to respect the folder structure.  As well as adding some quality of life improvments for navigating scenes.",
-  "version": "13.03",
+  "version": "14.02",
   "authors": [
     {
       "name": "IronMonk",
@@ -9,7 +9,7 @@
 	  "flags": {
 		  "github": "ironmonk108",
 		  "patreon": "ironmonk",
-		  "ko-fi": "ironmonk88"
+		  "ko-fi": "ironmonk108"
 	  }
     }
   ],
@@ -36,6 +36,11 @@
       "path": "lang/it.json"
     },
     {
+      "lang": "ja",
+      "name": "日本語",
+      "path": "lang/ja.json"
+    },
+    {
       "lang": "pl",
       "name": "Polski",
       "path": "lang/pl.json"
@@ -49,17 +54,14 @@
     "css/monks-scene-navigation.css"
   ],
   "url": "https://github.com/ironmonk108/monks-scene-navigation",
-  "download": "https://github.com/ironmonk108/monks-scene-navigation/archive/13.03.zip",
+  "download": "https://github.com/ironmonk108/monks-scene-navigation/archive/14.02.zip",
   "manifest": "https://github.com/ironmonk108/monks-scene-navigation/releases/latest/download/module.json",
   "bugs": "https://github.com/ironmonk108/monks-scene-navigation/issues",
   "id": "monks-scene-navigation",
   "compatibility": {
-    "minimum": "13",
-    "verified": "13"
+    "minimum": "14",
+    "verified": "14"
   },
-  "name": "monks-scene-navigation",
-  "minimumCoreVersion": "13",
-  "compatibleCoreVersion": "13",
   "flags": {
     "allowBugReporter": true
   }

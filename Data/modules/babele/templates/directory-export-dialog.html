@@ -1,0 +1,202 @@
+<section class="babele-export-dialog babele-directory-export-dialog">
+    <section class="babele-export-card babele-export-card--directory">
+        <header class="babele-export-header">
+            <p class="hint">{{texts.notes}}</p>
+        </header>
+
+        <section class="form-group stacked babele-export-section">
+            <input
+                class="babele-export-section__toggle"
+                id="babele-directory-export-compendiums"
+                type="checkbox"
+                name="includeCompendiums"
+                value="true"
+                {{#if includeCompendiums}}checked{{/if}}
+            >
+            <label class="babele-export-section__header" for="babele-directory-export-compendiums">
+                <span class="babele-export-section__title">{{texts.includeCompendiums}}</span>
+            </label>
+
+            <div class="babele-export-subsection">
+                <div class="form-group stacked">
+                    <label>{{texts.packMode}}</label>
+                    <div class="form-fields babele-export-toggle-group">
+                        <input
+                            class="babele-export-choice-input"
+                            id="babele-directory-pack-mode-all"
+                            type="radio"
+                            name="packMode"
+                            value="all"
+                            {{#if isAllPacks}}checked{{/if}}
+                        >
+                        <label class="babele-export-option" for="babele-directory-pack-mode-all">
+                            <span class="babele-export-option__body">
+                                <span class="babele-export-option__label">{{texts.packModeAll}}</span>
+                            </span>
+                        </label>
+
+                        <input
+                            class="babele-export-choice-input"
+                            id="babele-directory-pack-mode-selected"
+                            type="radio"
+                            name="packMode"
+                            value="selected"
+                            {{#if isSelectedPacks}}checked{{/if}}
+                        >
+                        <label class="babele-export-option" for="babele-directory-pack-mode-selected">
+                            <span class="babele-export-option__body">
+                                <span class="babele-export-option__label">{{texts.packModeSelected}}</span>
+                            </span>
+                        </label>
+
+                        <div class="form-group stacked babele-export-dependent">
+                            <label>{{texts.compendiums}}</label>
+                            {{#if hasPacks}}
+                            <div class="form-fields babele-export-list">
+                                {{#each packs}}
+                                <label class="babele-export-list__item">
+                                    <input type="checkbox" name="packs" value="{{collection}}" {{#if checked}}checked{{/if}}>
+                                    <span class="babele-export-list__body">
+                                        <span class="babele-export-list__label">{{label}}</span>
+                                        <small class="hint babele-export-list__hint">{{packageId}}</small>
+                                    </span>
+                                </label>
+                                {{/each}}
+                            </div>
+                            {{else}}
+                            <p class="hint babele-export-empty">{{texts.noPacks}}</p>
+                            {{/if}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group stacked">
+                    <label>{{texts.format}}</label>
+                    <div class="form-fields babele-export-options">
+                        <label class="babele-export-option">
+                            <input type="radio" name="format" value="compatible" {{#if isCompatible}}checked{{/if}}>
+                            <span class="babele-export-option__body">
+                                <span class="babele-export-option__label">{{texts.formatCompatible}}</span>
+                                <small class="hint">{{texts.compatibleHint}}</small>
+                            </span>
+                        </label>
+
+                        <label class="babele-export-option babele-export-option--deprecated">
+                            <input type="radio" name="format" value="legacy" {{#if isLegacy}}checked{{/if}}>
+                            <span class="babele-export-option__body">
+                                <span class="babele-export-option__label">{{texts.formatLegacy}}</span>
+                                <small class="hint">{{texts.legacyDeprecation}}</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group stacked">
+                    <label>{{texts.selection}}</label>
+                    <div class="form-fields babele-export-options">
+                        <label class="babele-export-option">
+                            <input type="radio" name="selection" value="all" {{#if isAll}}checked{{/if}}>
+                            <span class="babele-export-option__body">
+                                <span class="babele-export-option__label">{{texts.selectionAll}}</span>
+                                <small class="hint">{{texts.selectionAllHint}}</small>
+                            </span>
+                        </label>
+
+                        <label class="babele-export-option">
+                            <input type="radio" name="selection" value="source" {{#if isSource}}checked{{/if}}>
+                            <span class="babele-export-option__body">
+                                <span class="babele-export-option__label">{{texts.selectionSource}}</span>
+                                <small class="hint">{{texts.selectionSourceHint}}</small>
+                            </span>
+                        </label>
+
+                        <label class="babele-export-option">
+                            <input type="radio" name="selection" value="present" {{#if isPresent}}checked{{/if}}>
+                            <span class="babele-export-option__body">
+                                <span class="babele-export-option__label">{{texts.selectionPresent}}</span>
+                            </span>
+                        </label>
+
+                        <label class="babele-export-option">
+                            <input type="radio" name="selection" value="missing" {{#if isMissing}}checked{{/if}}>
+                            <span class="babele-export-option__body">
+                                <span class="babele-export-option__label">{{texts.selectionMissing}}</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="form-group stacked babele-export-section">
+            <input
+                class="babele-export-section__toggle"
+                id="babele-directory-export-pack-folders"
+                type="checkbox"
+                name="includePackFolders"
+                value="true"
+                {{#if includePackFolders}}checked{{/if}}
+            >
+            <label class="babele-export-section__header" for="babele-directory-export-pack-folders">
+                <span class="babele-export-section__title">{{texts.includePackFolders}}</span>
+            </label>
+
+            <div class="babele-export-subsection">
+                <p class="hint">{{texts.packFoldersHint}}</p>
+
+                {{#if hasPackages}}
+                <div class="form-group stacked">
+                    <label>{{texts.packageMode}}</label>
+                    <div class="form-fields babele-export-toggle-group">
+                        <input
+                            class="babele-export-choice-input"
+                            id="babele-directory-package-mode-all"
+                            type="radio"
+                            name="packageMode"
+                            value="all"
+                            {{#if isAllPackages}}checked{{/if}}
+                        >
+                        <label class="babele-export-option" for="babele-directory-package-mode-all">
+                            <span class="babele-export-option__body">
+                                <span class="babele-export-option__label">{{texts.packageModeAll}}</span>
+                            </span>
+                        </label>
+
+                        <input
+                            class="babele-export-choice-input"
+                            id="babele-directory-package-mode-selected"
+                            type="radio"
+                            name="packageMode"
+                            value="selected"
+                            {{#if isSelectedPackages}}checked{{/if}}
+                        >
+                        <label class="babele-export-option" for="babele-directory-package-mode-selected">
+                            <span class="babele-export-option__body">
+                                <span class="babele-export-option__label">{{texts.packageModeSelected}}</span>
+                            </span>
+                        </label>
+
+                        <div class="form-group stacked babele-export-dependent">
+                            <label>{{texts.packages}}</label>
+                            <div class="form-fields babele-export-list">
+                                {{#each packages}}
+                                <label class="babele-export-list__item">
+                                    <input type="checkbox" name="packageIds" value="{{value}}" {{#if checked}}checked{{/if}}>
+                                    <span class="babele-export-list__body">
+                                        <span class="babele-export-list__label">{{label}}</span>
+                                        <small class="hint babele-export-list__hint">{{count}}</small>
+                                    </span>
+                                </label>
+                                {{/each}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{else}}
+                <p class="hint babele-export-empty">{{texts.noPackages}}</p>
+                <input type="hidden" name="packageMode" value="all">
+                {{/if}}
+            </div>
+        </section>
+    </section>
+</section>

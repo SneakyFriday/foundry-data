@@ -1,0 +1,34 @@
+<form class="babele-export-dialog standard-form" autocomplete="off">
+    <section class="babele-export-card">
+        <header class="babele-export-header">
+            <p class="hint">{{texts.notes}}</p>
+        </header>
+
+        {{#if hasPackages}}
+        <div class="form-group stacked">
+            <label>{{texts.selection}}</label>
+            <div class="form-fields babele-export-options">
+                <label class="babele-export-option">
+                    <input type="radio" name="selection" value="all" {{#if isAll}}checked{{/if}}>
+                    <span class="babele-export-option__body">
+                        <span class="babele-export-option__label">{{texts.selectionAll}}</span>
+                    </span>
+                </label>
+
+                {{#each packages}}
+                <label class="babele-export-option">
+                    <input type="radio" name="selection" value="{{value}}" {{#if selected}}checked{{/if}}>
+                    <span class="babele-export-option__body">
+                        <span class="babele-export-option__label">{{label}}</span>
+                        <small class="hint">{{count}}</small>
+                    </span>
+                </label>
+                {{/each}}
+            </div>
+        </div>
+        {{else}}
+        <p class="hint babele-export-empty">{{texts.noPackages}}</p>
+        <input type="hidden" name="selection" value="all">
+        {{/if}}
+    </section>
+</form>

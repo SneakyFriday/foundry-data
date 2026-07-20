@@ -1,0 +1,64 @@
+<div class="dice-library-dialog">
+    {{#if hasAnySections}}
+    <div class="dice-library-list">
+        {{#each sections}}
+        <div class="dice-library-section {{#unless this.expanded}}collapsed{{/unless}}" data-die-type="{{this.dieType}}">
+            <div class="dice-library-section-header" data-action="toggleSection">
+                <i class="fas fa-chevron-down section-chevron"></i>
+                <span class="die-type-badge">{{this.label}}</span>
+                <button type="button" data-action="createNew" data-die-type="{{this.dieType}}" class="section-create-btn" title="{{localize "DICESONICE.editorCreateNew"}}"><i class="fas fa-plus"></i></button>
+            </div>
+            <div class="dice-library-section-body">
+                <div class="dice-library-subsection">
+                    <div class="dice-library-subsection-header">{{localize "DICESONICE.libraryMyDice"}}</div>
+                    {{#if this.myDice.length}}
+                    <ol class="dice-list">
+                        {{#each this.myDice}}
+                        <li class="dice-list-entry" data-die-id="{{this.id}}">
+                            <span class="die-name">{{this.name}}</span>
+                            <div class="die-actions">
+                                <a data-action="editDie" data-die-id="{{this.id}}" title="{{localize "DICESONICE.editorEdit"}}"><i class="fas fa-edit"></i></a>
+                                <a data-action="duplicateDie" data-die-id="{{this.id}}" title="{{localize "DICESONICE.editorDuplicate"}}"><i class="fas fa-copy"></i></a>
+                                <a data-action="deleteDie" data-die-id="{{this.id}}" title="{{localize "DICESONICE.Delete"}}"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </li>
+                        {{/each}}
+                    </ol>
+                    {{else}}
+                    <div class="dice-library-empty-sub">{{localize "DICESONICE.libraryNoDice"}}</div>
+                    {{/if}}
+                </div>
+                {{#each this.otherUsers}}
+                <div class="dice-library-subsection dice-library-other-user">
+                    <div class="dice-library-subsection-header">{{this.userName}}</div>
+                    <ol class="dice-list">
+                        {{#each this.dice}}
+                        <li class="dice-list-entry other-user-entry" data-die-id="{{this.id}}">
+                            <span class="die-name">{{this.name}}</span>
+                            <div class="die-actions">
+                                <a data-action="duplicateOtherDie" data-die-id="{{this.id}}" data-user-id="{{../userId}}" title="{{localize "DICESONICE.editorDuplicate"}}"><i class="fas fa-copy"></i></a>
+                            </div>
+                        </li>
+                        {{/each}}
+                    </ol>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+        {{/each}}
+    </div>
+    {{else}}
+    <div class="dice-library-empty">
+        <i class="fas fa-dice-d20"></i>
+        <p>{{localize "DICESONICE.editorNoCustomDice"}}</p>
+    </div>
+    {{/if}}
+    <div class="dice-library-footer">
+        <select data-footer-dietype>
+            {{#each dieTypeOptions}}
+            <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+            {{/each}}
+        </select>
+        <button type="button" data-action="createFromFooter" class="dialog-button"><i class="fas fa-plus"></i> {{localize "DICESONICE.editorCreateNew"}}</button>
+    </div>
+</div>

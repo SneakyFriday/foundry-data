@@ -1,0 +1,41 @@
+<div class="dsn-glyph-picker-inner">
+    <nav class="dsn-glyph-picker-tabs">
+        <button type="button" data-dsn-tab="icons" class="{{#if iconsActive}}active{{/if}}">
+            <i class="fa-solid fa-icons"></i> {{localize "DICESONICE.glyphPicker.tabIcons"}}
+        </button>
+        <button type="button" data-dsn-tab="emoji" class="{{#if emojiActive}}active{{/if}}">
+            <i class="fa-solid fa-face-smile"></i> {{localize "DICESONICE.glyphPicker.tabEmoji"}}
+        </button>
+    </nav>
+    <input type="search" class="dsn-glyph-search" data-dsn-tab-content="icons" placeholder="{{localize 'DICESONICE.glyphPicker.searchPlaceholder'}}" />
+    <div class="dsn-glyph-picker-grid" data-dsn-tab-content="icons">
+        {{#each iconCategories}}
+            <div class="dsn-icon-category" data-dsn-icon-cat data-label="{{localizedLabel}}">
+                <h4>{{localizedLabel}}</h4>
+                <div class="dsn-glyph-grid">
+                    {{#each icons}}
+                        <button type="button" class="dsn-glyph dsn-glyph-icon" data-name="{{className}}" data-glyph="{{glyph}}" title="{{className}}">
+                            <i class="fa-solid {{className}}"></i>
+                        </button>
+                    {{/each}}
+                </div>
+            </div>
+        {{/each}}
+    </div>
+    <div class="dsn-glyph-picker-grid" data-dsn-tab-content="emoji">
+        {{#each emojiCategories}}
+            <div class="dsn-emoji-category" data-dsn-emoji-cat data-label="{{label}}">
+                <h4>{{label}}</h4>
+                <div class="dsn-glyph-grid">
+                    {{#each emojis}}
+                        <button type="button" class="dsn-glyph dsn-glyph-emoji" data-glyph="{{this}}" title="{{this}}">{{this}}</button>
+                    {{/each}}
+                </div>
+            </div>
+        {{/each}}
+    </div>
+    <footer class="dsn-glyph-hint">
+        <i class="fa-solid fa-lightbulb"></i>
+        {{{localize "DICESONICE.glyphPicker.nativeHint"}}}
+    </footer>
+</div>

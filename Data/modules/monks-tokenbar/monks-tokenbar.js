@@ -5,12 +5,14 @@ import { SavingThrow, SavingThrowApp } from "./apps/savingthrow.js";
 import { ContestedRoll, ContestedRollApp } from "./apps/contestedroll.js";
 import { LootablesApp } from "./apps/lootables.js";
 import { MonksTokenBarAPI } from "./monks-tokenbar-api.js";
-import { dcconfiginit } from "./plugins/dcconfig.plugin.js"
+import { dcconfiginit } from "./plugins/dcconfig.plugin.js";
 
 import { BaseRolls } from "./systems/base-rolls.js";
+import { A5eRolls } from "./systems/a5e-rolls.js";
 import { DS4Rolls } from "./systems/ds4-rolls.js";
 import { DnD5eRolls } from "./systems/dnd5e-rolls.js";
 import { DnD4eRolls } from "./systems/dnd4e-rolls.js";
+import { DrawSteelRolls } from "./systems/draw-steel-rolls.js";
 import { D35eRolls } from "./systems/d35e-rolls.js";
 import { PF1Rolls } from "./systems/pf1-rolls.js";
 import { PF2eRolls } from "./systems/pf2e-rolls.js";
@@ -21,6 +23,7 @@ import { SwadeRolls } from "./systems/swade-rolls.js";
 import { SW5eRolls } from "./systems/sw5e-rolls.js";
 import { CoC7Rolls } from "./systems/coc7-rolls.js";
 import { T2K4ERolls } from "./systems/t2k4e-rolls.js";
+import { FBLRolls } from "./systems/fbl-rolls.js";
 
 
 export let debug = (...args) => {
@@ -47,7 +50,7 @@ export let patchFunc = (prop, func, type = "WRAPPER") => {
     }
     if (game.modules.get("lib-wrapper")?.active) {
         try {
-            libWrapper.register("monks-enhanced-journal", prop, func, type);
+            libWrapper.register("monks-tokenbar", prop, func, type);
         } catch (e) {
             nonLibWrapper();
         }
@@ -60,7 +63,7 @@ export const MTB_MOVEMENT_TYPE = {
     FREE: 'free',
     NONE: 'none',
     COMBAT: 'combat'
-}
+};
 
 /*
 export let manageTokenControl = (token, isShiftPressed) => {
@@ -145,7 +148,7 @@ export class MonksTokenBar {
             editable: [{ key: 'KeyR', modifiers: [foundry.helpers.interaction.KeyboardManager.MODIFIER_KEYS?.ALT, foundry.helpers.interaction.KeyboardManager.MODIFIER_KEYS?.SHIFT] }],
             restricted: true,
             onDown: (data) => {
-                new SavingThrowApp(null, {rollmode: "selfroll"}).render(true);
+                new SavingThrowApp(null, { rollmode: "selfroll" }).render(true);
             },
         });
 
@@ -201,7 +204,7 @@ export class MonksTokenBar {
                 {
                     name: "PF2E.RerollMenu.HeroPoint",
                     icon: '<i class="fas fa-hospital-symbol"></i>',
-                    condition: canHeroPointReroll,
+                    visible: canHeroPointReroll,
                     callback: li => {
                         const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
@@ -214,7 +217,7 @@ export class MonksTokenBar {
                 {
                     name: "Reroll and keep the new result",
                     icon: '<i class="fas fa-dice"></i>',
-                    condition: canReroll,
+                    visible: canReroll,
                     callback: li => {
                         const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
@@ -227,7 +230,7 @@ export class MonksTokenBar {
                 {
                     name: "Reroll and keep the worst result",
                     icon: '<i class="fas fa-dice-one"></i>',
-                    condition: canReroll,
+                    visible: canReroll,
                     callback: li => {
                         const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
@@ -240,7 +243,7 @@ export class MonksTokenBar {
                 {
                     name: "Reroll and keep the better result",
                     icon: '<i class="fas fa-dice-six"></i>',
-                    condition: canReroll,
+                    visible: canReroll,
                     callback: li => {
                         const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
@@ -331,7 +334,7 @@ export class MonksTokenBar {
             if (localize) label = game.i18n.has(label) ? game.i18n.localize(label) : label;
             let key = (groupid ? groupid + ":" : "") + id;
             let isSelected = selected.includes(key);
-            html += `<option value="${key}" ${isSelected ? "selected" : ""}>${label}</option>`
+            html += `<option value="${key}" ${isSelected ? "selected" : ""}>${label}</option>`;
         };
 
         // Create the options
@@ -371,7 +374,7 @@ export class MonksTokenBar {
                 return Array.from(t.actor.members);
             } else
                 return [t];
-        }
+        };
 
         tokens = (tokens || []).flatMap(t => {
             if (typeof t == 'string' && t.startsWith('{') && t.endsWith('}'))
@@ -396,7 +399,7 @@ export class MonksTokenBar {
                 });
 
                 return (!!tkn.token || !!tkn.request ? tkn : null);
-            })
+            });
         }).filter(c => !!c);
 
         return tokens;
@@ -417,14 +420,14 @@ export class MonksTokenBar {
             // Case 2 - use Actor ID directory
             const actorId = card.dataset.actorId;
             return game.actors.get(actorId) || null;
-        }
+        };
 
         let _getChatCardTargets = function (card) {
             let targets = canvas.tokens.controlled.filter(t => !!t.actor);
             if (!targets.length && game.user.character) targets = targets.concat(game.user.character.getActiveTokens());
             if (!targets.length) ui.notifications.warn(game.i18n.localize("DND5E.ActionWarningNoToken"));
             return targets;
-        }
+        };
 
         // Extract card data
         const button = event.currentTarget;
@@ -475,7 +478,7 @@ export class MonksTokenBar {
 
         game.settings.settings.get("monks-tokenbar.stats").default = MonksTokenBar.system.defaultStats;
 
-        tinyMCE?.PluginManager.add('dcconfig', dcconfiginit);
+        //tinyMCE?.PluginManager.add('dcconfig', dcconfiginit);
 
         MonksTokenBar.setTokenSize();
 
@@ -593,7 +596,7 @@ export class MonksTokenBar {
                             entity.sheet.render(true);
                     } else
                         entity.sheet.render(true);
-                })
+                });
             } break;
             case 'closeLootable': {
                 $(`#lootables[data-combat-id="${data.id}"] a.close`).click();
@@ -606,7 +609,7 @@ export class MonksTokenBar {
                         rolls[data.tokenid] = data.roll;
                         await msg.setFlag('monks-tokenbar', "rolls", rolls);
 
-                        let response = { id: data.tokenid, roll: Roll.fromData(data.roll), finish: null, reveal: true }
+                        let response = { id: data.tokenid, roll: Roll.fromData(data.roll), finish: null, reveal: true };
 
                         const revealDice = MonksTokenBar.revealDice();
                         await SavingThrow.updateMessage([response], msg, revealDice);
@@ -619,7 +622,7 @@ export class MonksTokenBar {
                     if (msg) {
                         if (data.type == "savingthrow")
                             SavingThrow.updateReroll(msg, data.tokenid, Roll.fromData(data.roll), data.options);
-                        else if(data.type == "contestedroll")
+                        else if (data.type == "contestedroll")
                             ContestedRoll.updateReroll(msg, data.tokenid, Roll.fromData(data.roll), data.options);
                     }
                 }
@@ -768,7 +771,7 @@ export class MonksTokenBar {
             }
 
             return true;
-        }
+        };
 
         if (!game.user.isGM && token != undefined) {
             let movement = token.getFlag("monks-tokenbar", "movement") || game.settings.get("monks-tokenbar", "movement") || MTB_MOVEMENT_TYPE.FREE;
@@ -887,8 +890,8 @@ export class MonksTokenBar {
                 if (!request)
                     continue;
 
-                let type = request.type
-                let key = request.key
+                let type = request.type;
+                let key = request.key;
                 if (typeof request == "string") {
                     if (request.indexOf(':') > -1) {
                         let parts = request.split(':');
@@ -946,7 +949,7 @@ export class MonksTokenBar {
 
     static selectActors(message, filter, event) {
         let tokens = Object.entries(message.flags['monks-tokenbar'])
-            .map(([k, v]) => { return (k.startsWith('token') ? v : null) })
+            .map(([k, v]) => { return (k.startsWith('token') ? v : null); })
             .filter(filter)
             .map(t => { return canvas.tokens.get(t?.id); })
             .filter(t => t);
@@ -998,7 +1001,7 @@ export class MonksTokenBar {
             lootsheetoptions['merchantsheetnpc'] = "Merchant Sheet NPC";
         if (game.modules.get("item-piles")?.active)
             lootsheetoptions['item-piles'] = "Item Piles";
-        if (game.modules.get("monks-enhanced-journal")?.active && game.modules.get("monks-enhanced-journal").version > "1.0.39" && lootType !='convert')
+        if (game.modules.get("monks-enhanced-journal")?.active && game.modules.get("monks-enhanced-journal").version > "1.0.39" && lootType != 'convert')
             lootsheetoptions['monks-enhanced-journal'] = "Monk's Enhanced Journal";
         if (game.system.id == "pf2e")
             lootsheetoptions['pf2e'] = "PF2e Party Stash";
@@ -1044,7 +1047,7 @@ export class MonksTokenBar {
                 entity = "";
             }
 
-            if (entity?.documentCollection == collection && collection != null) {
+            if ((entity?.collection == collection || entity?.parent?.collection == collection) && collection != null) {
                 if (entity instanceof JournalEntryPage || entity instanceof Actor)
                     return "<i>Adding</i> to <b>" + entity.name + "</b>";
                 else if (entity instanceof JournalEntry)
@@ -1072,7 +1075,7 @@ export class MonksTokenBar {
                 })
                 .sort((a, b) => { return a.sort < b.sort ? -1 : a.sort > b.sort ? 1 : 0; })
                 .map(e => {
-                    return $('<li>').addClass('journal-item flexrow').toggleClass('selected', uuid == (e.pages?.contents[0].uuid || e.uuid)).attr('data-uuid', e.pages?.contents[0].uuid || e.uuid).html($('<div>').addClass('journal-title').html(e.name)).click(selectItem.bind())
+                    return $('<li>').addClass('journal-item flexrow').toggleClass('selected', uuid == (e.pages?.contents[0].uuid || e.uuid)).attr('data-uuid', e.pages?.contents[0].uuid || e.uuid).html($('<div>').addClass('journal-title').html(e.name)).click(selectItem.bind());
                 }));
         }
 
@@ -1097,7 +1100,7 @@ export class MonksTokenBar {
             .append(getFolders(collection?.folders?.filter(f => f.folder == null)))
             .append(getEntries(null, collection?.contents.filter(j => j.folder == null)));
 
-        $(html).click(function () { list.removeClass('open') });
+        $(html).click(function () { list.removeClass('open'); });
 
         let name = await getEntityName(uuid, collection);
 
@@ -1130,7 +1133,7 @@ export class MonksTokenBar {
         let dataset = {
             requesttype: command,
             request: request,
-        }
+        };
 
         if (command == "Contested") {
             dataset.request1 = props[0];
@@ -1139,7 +1142,7 @@ export class MonksTokenBar {
         let dc = props.filter(p => $.isNumeric(p) || p.toLowerCase().startsWith('dc')).map(p => !$.isNumeric(p) ? parseInt(p.toLowerCase().replace('dc:', '')) : p);
         if (dc.length)
             dataset.dc = parseInt(dc[0]);
-        let rollmode = props.filter(p => { if ($.isNumeric(p)) return false; return p.toLowerCase().startsWith('rollmode') }).map(p => p.toLowerCase().replace('rollmode:', ''));
+        let rollmode = props.filter(p => { if ($.isNumeric(p)) return false; return p.toLowerCase().startsWith('rollmode'); }).map(p => p.toLowerCase().replace('rollmode:', ''));
         if (rollmode.length) {
             if (["roll", "gmroll", "blindroll", "selfroll"].includes(rollmode[0]))
                 dataset.rollmode = rollmode;
@@ -1193,7 +1196,7 @@ export class MonksTokenBar {
         let requesttype = a.dataset.requesttype.toLowerCase();
         if (requesttype == 'request')
             MonksTokenBarAPI.requestRoll(canvas.tokens.controlled, options);
-        else if (requesttype == 'contested') 
+        else if (requesttype == 'contested')
             MonksTokenBarAPI.requestContestedRoll({ request: options.request }, { request: options.request1 }, options);
     }
 }
@@ -1228,6 +1231,8 @@ Hooks.on("updateCombat", function (combat, delta) {
 Hooks.on("setup", () => {
     MonksTokenBar.system = new BaseRolls();
     switch (game.system.id.toLowerCase()) {
+        case 'a5e':
+            MonksTokenBar.system = new A5eRolls(); break;
         case 'dnd5e':
             MonksTokenBar.system = new DnD5eRolls(); break;
         case 'sw5e':
@@ -1254,7 +1259,11 @@ Hooks.on("setup", () => {
         case 'coc7':
             MonksTokenBar.system = new CoC7Rolls(); break;
         case 't2k4e':
-            MonksTokenBar.system = new T2K4ERolls(); break; 
+            MonksTokenBar.system = new T2K4ERolls(); break;
+        case 'draw-steel':
+            MonksTokenBar.system = new DrawSteelRolls(); break;
+        case 'forbidden-lands':
+            MonksTokenBar.system = new FBLRolls(); break; 
     }
 
     MonksTokenBar.system.constructor.activateHooks();
@@ -1347,7 +1356,7 @@ Hooks.on("renderCombatTracker", (app, html, data) => {
                     .click(MonksTokenBar.toggleMovement.bind(MonksTokenBar, combatant))
                 ).insertBefore($('.token-effects', this));
             }
-        })
+        });
 
     }
 });
@@ -1567,8 +1576,8 @@ Hooks.on("setupTileActions", (app) => {
             const { action, tile, tokens, userid, value, method, change, event } = args;
             let entities = await game.MonksActiveTiles.getEntities(args);
 
-            //if (entities.length == 0)
-            //    return;
+            if (entities.length == 0)
+                return;
 
             entities = entities.map(e => e.object);
 
@@ -1716,8 +1725,8 @@ Hooks.on("setupTileActions", (app) => {
             let entities1 = await game.MonksActiveTiles.getEntities(args, "tokens", action.data.entity1);
             let entities2 = await game.MonksActiveTiles.getEntities(args, "tokens", action.data.entity2);
 
-            //if (entities1.length == 0 || entities2.length == 0)
-            //    return;
+            if (entities1.length == 0 || entities2.length == 0)
+                return;
 
             let entity1 = entities1[0].object;
             let entity2 = entities2[0].object;
@@ -1861,7 +1870,7 @@ Hooks.on("setupTileActions", (app) => {
                 id: "dividexp",
                 name: "Divide XP",
                 list: () => {
-                    return divideXpOptions
+                    return divideXpOptions;
                 },
                 type: "list"
             },

@@ -188,7 +188,7 @@
     "DICESONICE.MSAA": "MSAA (Hardware, empfohlen)",
     "DICESONICE.imageQuality": "Bildqualität",
     "DICESONICE.glow": "Glühende Beleuchtung",
-    "DICESONICE.enableFlavorColorset": "Passe dein Würfeldesign an, wenn eine Beschreibung zum Wurf angefügt wird (z.B.: 2d10[Säure])",
+    "DICESONICE.enableFlavorColorset": "Schadenstyp-Theme auf Würfel anwenden",
     "DICESONICE.migrateMessageNeedGM": "'Dice So Nice' muss auf v4 migriert werden. Bitte verbinden Sie sich mit einem GM-Account.",
     "DICESONICE.disabledForInitiative": "Deaktiviert für Initiativrollen",
     "DICESONICE.enabledSimultaneousRollForMessageHint": "Wenn eine einzelne Nachricht mehrere Würfe enthält, werden alle gleichzeitig abgespielt",
@@ -279,5 +279,14 @@
     "DICESONICE.hide3dDiceOnSecretRolls": "Verberge 3D Würfel bei GM/versteckten Würfen",
     "DICESONICE.hide3dDiceOnSecretRollsHint": "Zeige anderen Spielern keine 3D Würfel beim GM/versteckten Wurf.",
     "DICESONICE.ghostDiceForAll": "An alle Spieler",
-    "DICESONICE.ghostDiceForRollAuthor": "Nur an den Rollenden"
+    "DICESONICE.ghostDiceForRollAuthor": "Nur an den Rollenden",
+    "DICESONICE.ExportLibrary": "Exportiere meine Würfel-Bibliothek",
+    "DICESONICE.settingsProfilesData": "Profile & Daten",
+    "DICESONICE.ResetActorConfirm": "Sind Sie sicher, dass die Würfel-Einstellungen dieses Aktors zurücksetzen wollen?",
+    "DICESONICE.ImportLibrarySuccess": "Würfel-Bibliothek erfolgreich importiert! {count} Würfel importiert, {skipped} übersprungen (doppelte IDs).",
+    "DICESONICE.persistentDiceOutlines": "Konturfarbe persistenter Würfel",
+    "DICESONICE.AmbianceNeutral": "Neutral",
+    "DICESONICE.AmbianceTavern": "Taverne",
+    "DICESONICE.AmbianceNeon": "Neon",
+    "DICESONICE.skipAnimationOnInactiveTab": "Überspringe Animationen wenn der Tab inaktiv ist"
 }

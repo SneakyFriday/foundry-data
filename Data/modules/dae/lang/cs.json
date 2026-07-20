@@ -371,8 +371,6 @@
   "dae.DontApply.Hint": "Když DAE (a Midi) aplikuje aktivní efekty, tento efekt přeskočí.",
   "dae.DIMEditor.Name": "DIME",
   "dae.IncapacitatedDisabled": "Deaktivovat efekt, když je aktér neschopný akce?",
-  "dae.DIMESyncItemacro.Name": "Synchronizovat DIME a Itemacro?",
-  "dae.DIMESyncItemacro.Hint": "Po zaškrtnutí budou makra DIME a makra Itemacro synchronizovány. Lze je pak upravovat v kterémkoli z nich. Pokud není zaškrtnuto, bude mít prioritu editor DIME.",
   "dae.halfHealthEffectLabel": "Poloviční výdrž",
   "dae.DAEAddHalfHealthEffect.Name": "Přidávat efekt poloviční výdrže?",
   "dae.DAEAddHalfHealthEffect.Hint": "Přidá stavový efekt poloviční výdrže nastavující maximální body výdrže aktéra na polovinu jeho běžného maxima.",

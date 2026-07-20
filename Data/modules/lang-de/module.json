@@ -2,78 +2,72 @@
   "id": "lang-de",
   "title": "German [Core]",
   "description": "German language support for Foundry VTT",
-  "version": "13.1",
+  "version": "14.364",
   "authors": [
     {
       "name": "Hydroxi",
-      "flags": {}
+      "discord": "@hydroxi"
     },
     {
-      "name": "lutece",
-      "flags": {}
+      "name": "Lutece",
+      "discord": "@nagetiermann"
     },
     {
       "name": "henry4k",
-      "discord": "@henry4k",
-      "flags": {}
+      "discord": "@henry4k"
     },
     {
       "name": "ElCamino",
-      "flags": {}
+      "discord": "@e1camino"
     },
     {
-      "name": "SirGawain",
-      "discord": "@_sirgawain",
-      "flags": {}
+      "name": "Sir Gawain",
+      "discord": "@_sirgawain"
     },
     {
-      "name": "kosmos.ac",
-      "discord": "@kosmos.ac",
-      "flags": {}
+      "name": "Kosmos",
+      "discord": "@kosmos.ac"
+    },
+    {
+      "name": "Manni",
+      "discord": "@manni.mammut"
     }
   ],
   "languages": [
     {
       "lang": "de",
       "name": "Deutsch (German)",
-      "path": "lang/de.json",
-      "flags": {}
+      "path": "translations/de/core.json"
     },
     {
       "lang": "de",
       "name": "Tour: Spielflächen-Bedienelemente",
-      "path": "tours/canvas-controls.json",
-      "flags": {}
+      "path": "translations/de/tours/canvas-controls.json"
     },
     {
       "lang": "de",
       "name": "Tour: Eine Welt erstellen",
-      "path": "tours/creating-a-world.json",
-      "flags": {}
+      "path": "translations/de/tours/creating-a-world.json"
     },
     {
       "lang": "de",
       "name": "Tour: Ein System installieren",
-      "path": "tours/installing-a-system.json",
-      "flags": {}
+      "path": "translations/de/tours/installing-a-system.json"
     },
     {
       "lang": "de",
       "name": "Tour: Die Seitenleiste",
-      "path": "tours/sidebar.json",
-      "flags": {}
+      "path": "translations/de/tours/sidebar.json"
     },
     {
       "lang": "de",
       "name": "Tour: UI Übersicht",
-      "path": "tours/ui-overview.json",
-      "flags": {}
+      "path": "translations/de/tours/ui-overview.json"
     },
     {
       "lang": "de",
       "name": "Tour: Willkommen zu Foundry Virtual Tabletop",
-      "path": "tours/welcome.json",
-      "flags": {}
+      "path": "translations/de/tours/welcome.json"
     }
   ],
   "coreTranslation": true,
@@ -83,9 +77,8 @@
   "bugs": "https://gitlab.com/henry4k/foundryvtt-lang-de/-/issues",
   "readme": "https://gitlab.com/henry4k/foundryvtt-lang-de/-/raw/master/README.md",
   "compatibility": {
-    "minimum": "13",
-    "verified": "13",
-    "maximum": "13"
-  },
-  "flags": {}
+    "minimum": "14",
+    "verified": "14",
+    "maximum": "14"
+  }
 }

@@ -1,9 +1,9 @@
 {
-  "timestamp": 1784321442355,
+  "timestamp": 1784473435357,
   "os": {
     "platform": "linux",
     "version": "Debian GNU/Linux 13 (trixie)",
-    "node": "24.14.1"
+    "node": "24.18.0"
   },
   "foundry": {
     "generation": 14,
@@ -21,6 +21,9 @@
     "color-picker": {
       "version": "1.7"
     },
+    "dae": {
+      "version": "13.0.22"
+    },
     "ddb-importer": {
       "version": "7.2.4"
     },
@@ -32,6 +35,12 @@
     },
     "fxmaster": {
       "version": "7.5.2"
+    },
+    "item-piles": {
+      "version": "3.2.32"
+    },
+    "lang-de": {
+      "version": "13.1"
     },
     "levels": {
       "version": "6.0.21"
@@ -67,12 +76,12 @@
   "systems": {
     "dnd5e": {
       "version": "5.3.0",
-      "playtime": 86740
+      "playtime": 7192367
     }
   },
   "worlds": {},
   "playtime": {
-    "total": 86740,
-    "max": 86740
+    "total": 7192367,
+    "max": 7192367
   }
 }

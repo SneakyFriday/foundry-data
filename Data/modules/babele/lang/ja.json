@@ -18,5 +18,7 @@
     "BABELE.ShowOriginalNameHint": "翻訳されたアイテムや辞典に元の名前も表示します。翻訳前・後のどちらの名称でも検索できるようになります。",
     "BABELE.ShowTranslateOption": "翻訳ボタンを表示？",
     "BABELE.ShowTranslateOptionHint": "キャラクターのシートに翻訳ボタンの表示を切り替えます。",
+    "BABELE.SyncImportedAdventureTokenNames": "インポートしたアドベンチャーのトークン名を同期",
+    "BABELE.SyncImportedAdventureTokenNamesHint": "アドベンチャーをインポートするとき、同じアドベンチャーによってインポートされたアクターに対応するトークンだけを、インポートされたシーン内で更新します。",
     "BABELE.requireLibWrapperMessage": "Babeleを起動するには依存関係にある「libWrapper」が必要です。有効化してください。"
   }

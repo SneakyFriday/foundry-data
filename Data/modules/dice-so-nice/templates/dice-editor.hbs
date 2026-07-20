@@ -1,0 +1,78 @@
+<form class="dice-editor" autocomplete="off">
+    <div class="dice-editor-header">
+        <div class="form-group">
+            <label>{{localize "DICESONICE.editorDieName"}}</label>
+            <input type="text" name="dieName" value="{{dieName}}" placeholder="{{localize 'DICESONICE.editorDieNamePlaceholder'}}" />
+        </div>
+        <div class="form-group">
+            <label>{{localize "DICESONICE.editorDieType"}}</label>
+            <span class="die-type-label">{{dieType}}</span>
+        </div>
+    </div>
+
+    <div class="dice-editor-body">
+        <div class="dice-editor-preview" id="dice-editor-preview-container">
+            <p class="hint">{{localize "DICESONICE.editorPreviewHint"}}</p>
+        </div>
+
+        <div class="dice-editor-face-indicator">
+            <span data-face-indicator>{{localize "DICESONICE.editorClickFace"}}</span>
+        </div>
+
+        <div class="dice-editor-properties">
+            <h3>{{localize "DICESONICE.editorGlobalProps"}}</h3>
+            <div class="form-group">
+                <label>{{localize "DICESONICE.material"}}</label>
+                <div class="form-fields">
+                    <select name="baseMaterial">
+                        {{selectOptions materialList selected=baseAppearance.material}}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>{{localize "DICESONICE.edgeColor"}}</label>
+                <div class="form-fields">
+                    <input type="text" name="baseEdgeColor" value="{{baseAppearance.edgeColor}}" data-dtype="String" />
+                    <input type="color" name="baseEdgeColorSelector" value="{{#if baseAppearance.edgeColor}}{{baseAppearance.edgeColor}}{{else}}#000000{{/if}}" data-edit="baseEdgeColor" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>{{localize "DICESONICE.diceColor"}}</label>
+                <div class="form-fields">
+                    <input type="text" name="baseDiceColor" value="{{baseAppearance.diceColor}}" data-dtype="String" />
+                    <input type="color" name="baseDiceColorSelector" value="{{baseAppearance.diceColor}}" data-edit="baseDiceColor" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>{{localize "DICESONICE.texture"}}</label>
+                <div class="form-fields">
+                    <select name="baseTexture" {{#if isCustomTexture}}disabled{{/if}}>
+                        {{selectOptions textureList selected=builtinTexture}}
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="baseTextureEffective" value="{{baseAppearance.texture}}" />
+            <div class="form-group">
+                <label>{{localize "DICESONICE.editorCustomTexture"}}</label>
+                <div class="form-fields custom-texture-fields">
+                    <input type="text" name="baseCustomTexturePath" value="{{customTexturePath}}" readonly placeholder="" />
+                    <button type="button" class="file-picker" data-base-texture-filepicker><i class="fas fa-file-import"></i></button>
+                    <button type="button" class="custom-texture-clear" data-base-texture-clear title="{{localize 'DICESONICE.editorClearCustomTexture'}}" {{#unless isCustomTexture}}hidden{{/unless}}><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="form-group texture-composite" {{#unless hasBaseTexture}}hidden{{/unless}}>
+                <label>{{localize "DICESONICE.editorBlendMode"}}</label>
+                <div class="form-fields">
+                    <select name="baseTextureComposite">
+                        {{selectOptions compositeOptions selected=baseTextureComposite}}
+                    </select>
+                </div>
+            </div>
+            <hr />
+            <div class="dice-editor-face-props" data-face-props hidden>
+                <h3>{{localize "DICESONICE.editorFaceProps"}}</h3>
+                {{{facePropsHtml}}}
+            </div>
+        </div>
+    </div>
+</form>

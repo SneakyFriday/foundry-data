@@ -4,7 +4,6 @@ const baseFlag = `flags.${module_name}`;
 const CONSTANTS = {
   MODULE_NAME: module_name,
   PATH: module_path,
-  IS_V13: false,
   ACTOR_DELTA_PROPERTY: "delta",
   FLAGS: {
     VERSION: `${baseFlag}.version`,
@@ -234,6 +233,8 @@ CONSTANTS.HOOKS = {
   DROP_DOCUMENT: module`onDropDocument`,
   PRE_TRANSFER_EVERYTHING: module`preTransferEverything`,
   TRANSFER_EVERYTHING: module`transferEverything`,
+  PRE_COMBINE_ITEM_PILES: module`preCombineItemPiles`,
+  COMBINE_ITEM_PILES: module`combineItemPiles`,
   PRE_RENDER_SHEET: module`preRenderActorSheet`,
   PRE_RENDER_INTERFACE: module`preRenderInterface`,
   PRE_OPEN_INTERFACE: module`preOpenInterface`,
@@ -382,8 +383,8 @@ const SYSTEMS = {
     this._currentSystem = foundry.utils.mergeObject(this.DEFAULT_SETTINGS, system[version]);
     return this._currentSystem;
   },
-  addSystem(data2, version = "latest") {
-    this.SUPPORTED_SYSTEMS[game.system.id.toLowerCase()] = { [version]: data2 };
+  addSystem(data, version = "latest") {
+    this.SUPPORTED_SYSTEMS[game.system.id.toLowerCase()] = { [version]: data };
   }
 };
 function set(obj, key, val) {
@@ -530,15 +531,15 @@ function isPlainObject(value) {
   const prototype = Object.getPrototypeOf(value);
   return prototype === null || prototype === Object.prototype;
 }
-function safeAccess(data2, accessor, defaultValue) {
-  if (typeof data2 !== "object" || data2 === null) {
+function safeAccess(data, accessor, defaultValue) {
+  if (typeof data !== "object" || data === null) {
     return defaultValue;
   }
   if (typeof accessor !== "string") {
     return defaultValue;
   }
   const keys = accessor.split(".");
-  let result = data2;
+  let result = data;
   for (let cntr = 0; cntr < keys.length; cntr++) {
     if (result[keys[cntr]] === void 0 || result[keys[cntr]] === null) {
       return defaultValue;
@@ -547,8 +548,8 @@ function safeAccess(data2, accessor, defaultValue) {
   }
   return result;
 }
-function safeSet(data2, accessor, value, { operation = "set", createMissing = false } = {}) {
-  if (typeof data2 !== "object" || data2 === null) {
+function safeSet(data, accessor, value, { operation = "set", createMissing = false } = {}) {
+  if (typeof data !== "object" || data === null) {
     throw new TypeError(`safeSet error: 'data' is not an object.`);
   }
   if (typeof accessor !== "string") {
@@ -565,11 +566,11 @@ function safeSet(data2, accessor, value, { operation = "set", createMissing = fa
   }
   const access = accessor.split(".");
   let result = false;
-  if (access.length === 1 && !createMissing && !(access[0] in data2)) {
+  if (access.length === 1 && !createMissing && !(access[0] in data)) {
     return false;
   }
   for (let cntr = 0; cntr < access.length; cntr++) {
-    if (Array.isArray(data2)) {
+    if (Array.isArray(data)) {
       const number = +access[cntr];
       if (!Number.isInteger(number) || number < 0) {
         return false;
@@ -578,40 +579,40 @@ function safeSet(data2, accessor, value, { operation = "set", createMissing = fa
     if (cntr === access.length - 1) {
       switch (operation) {
         case "add":
-          data2[access[cntr]] += value;
+          data[access[cntr]] += value;
           result = true;
           break;
         case "div":
-          data2[access[cntr]] /= value;
+          data[access[cntr]] /= value;
           result = true;
           break;
         case "mult":
-          data2[access[cntr]] *= value;
+          data[access[cntr]] *= value;
           result = true;
           break;
         case "set":
-          data2[access[cntr]] = value;
+          data[access[cntr]] = value;
           result = true;
           break;
         case "set-undefined":
-          if (data2[access[cntr]] === void 0) {
-            data2[access[cntr]] = value;
+          if (data[access[cntr]] === void 0) {
+            data[access[cntr]] = value;
           }
           result = true;
           break;
         case "sub":
-          data2[access[cntr]] -= value;
+          data[access[cntr]] -= value;
           result = true;
           break;
       }
     } else {
-      if (createMissing && data2[access[cntr]] === void 0) {
-        data2[access[cntr]] = {};
+      if (createMissing && data[access[cntr]] === void 0) {
+        data[access[cntr]] = {};
       }
-      if (data2[access[cntr]] === null || typeof data2[access[cntr]] !== "object") {
+      if (data[access[cntr]] === null || typeof data[access[cntr]] !== "object") {
         return false;
       }
-      data2 = data2[access[cntr]];
+      data = data[access[cntr]];
     }
   }
   return result;
@@ -653,23 +654,23 @@ function src_url_equal(element_src, url) {
 function is_empty(obj) {
   return Object.keys(obj).length === 0;
 }
-function subscribe(store2, ...callbacks) {
-  if (store2 == null) {
+function subscribe(store, ...callbacks) {
+  if (store == null) {
     for (const callback of callbacks) {
       callback(void 0);
     }
     return noop;
   }
-  const unsub = store2.subscribe(...callbacks);
+  const unsub = store.subscribe(...callbacks);
   return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
 }
-function get_store_value(store2) {
+function get_store_value(store) {
   let value;
-  subscribe(store2, (_) => value = _)();
+  subscribe(store, (_) => value = _)();
   return value;
 }
-function component_subscribe(component, store2, callback) {
-  component.$$.on_destroy.push(subscribe(store2, callback));
+function component_subscribe(component, store, callback) {
+  component.$$.on_destroy.push(subscribe(store, callback));
 }
 function create_slot(definition, ctx, $$scope, fn) {
   if (definition) {
@@ -730,8 +731,8 @@ function compute_slots(slots) {
 function null_to_empty(value) {
   return value == null ? "" : value;
 }
-function set_store_value(store2, ret, value) {
-  store2.set(value);
+function set_store_value(store, ret, value) {
+  store.set(value);
   return ret;
 }
 function action_destroyer(action_result) {
@@ -814,8 +815,8 @@ function element(name) {
 function svg_element(name) {
   return document.createElementNS("http://www.w3.org/2000/svg", name);
 }
-function text(data2) {
-  return document.createTextNode(data2);
+function text(data) {
+  return document.createTextNode(data);
 }
 function space() {
   return text(" ");
@@ -837,6 +838,11 @@ function stop_propagation(fn) {
   return function(event) {
     event.stopPropagation();
     return fn.call(this, event);
+  };
+}
+function self(fn) {
+  return function(event) {
+    if (event.target === this) fn.call(this, event);
   };
 }
 function attr(node, attribute, value) {
@@ -866,11 +872,11 @@ function to_number(value) {
 function children(element2) {
   return Array.from(element2.childNodes);
 }
-function set_data(text2, data2) {
-  data2 = "" + data2;
-  if (text2.data === data2) return;
+function set_data(text2, data) {
+  data = "" + data;
+  if (text2.data === data) return;
   text2.data = /** @type {string} */
-  data2;
+  data;
 }
 function set_input_value(input, value) {
   input.value = value == null ? "" : value;
@@ -1885,8 +1891,8 @@ function derived(stores, fn, initial_value) {
       }
     };
     const unsubscribers = stores_array.map(
-      (store2, i) => subscribe(
-        store2,
+      (store, i) => subscribe(
+        store,
         (value) => {
           values[i] = value;
           pending &= ~(1 << i);
@@ -1908,31 +1914,31 @@ function derived(stores, fn, initial_value) {
     };
   });
 }
-function isMinimalWritableStore(store2) {
-  if (store2 === null || store2 === void 0) {
+function isMinimalWritableStore(store) {
+  if (store === null || store === void 0) {
     return false;
   }
-  switch (typeof store2) {
+  switch (typeof store) {
     case "function":
     case "object":
-      return typeof store2.subscribe === "function" && typeof store2.set === "function";
+      return typeof store.subscribe === "function" && typeof store.set === "function";
   }
   return false;
 }
-function isWritableStore(store2) {
-  if (store2 === null || store2 === void 0) {
+function isWritableStore(store) {
+  if (store === null || store === void 0) {
     return false;
   }
-  switch (typeof store2) {
+  switch (typeof store) {
     case "function":
     case "object":
-      return typeof store2.subscribe === "function" && typeof store2.set === "function" && typeof store2.update === "function";
+      return typeof store.subscribe === "function" && typeof store.set === "function" && typeof store.update === "function";
   }
   return false;
 }
-function subscribeIgnoreFirst(store2, update2) {
+function subscribeIgnoreFirst(store, update2) {
   let firedFirst = false;
-  return store2.subscribe((value) => {
+  return store.subscribe((value) => {
     if (!firedFirst) {
       firedFirst = true;
     } else {
@@ -2453,7 +2459,7 @@ function storeGenerator({ storage, serialize = JSON.stringify, deserialize = JSO
           }
         }
       };
-      const unsubscribers = stores_array.map((store2, i) => store2.subscribe((value) => {
+      const unsubscribers = stores_array.map((store, i) => store.subscribe((value) => {
         values[i] = value;
         pending &= ~(1 << i);
         if (inited) {
@@ -2557,13 +2563,13 @@ class TJSWebStorage {
     if (storeEntry) {
       return storeEntry.store;
     }
-    const store2 = this.#createStore(key, defaultValue, storageStores);
+    const store = this.#createStore(key, defaultValue, storageStores);
     this.#stores.set(key, {
-      store: store2,
+      store,
       deserialize: storageStores?.deserialize,
       serialize: storageStores?.serialize
     });
-    return store2;
+    return store;
   }
   /**
    * Get value from the storage API.
@@ -2625,8 +2631,8 @@ class TJSWebStorage {
    * @param {*}        value - A value to set for this key.
    */
   setItem(key, value) {
-    const store2 = this.#getStore(key);
-    store2.set(value);
+    const store = this.#getStore(key);
+    store.set(value);
   }
   /**
    * Convenience method to swap a boolean value stored in storage API updating the associated store value.
@@ -2638,14 +2644,14 @@ class TJSWebStorage {
    * @returns {boolean} The boolean swap for the given key.
    */
   swapItemBoolean(key, defaultValue) {
-    const store2 = this.#getStore(key, defaultValue);
+    const store = this.#getStore(key, defaultValue);
     let currentValue = false;
     try {
       currentValue = !!this.#getDeserialize(key)(this.#storageStores.storage.getItem(key));
     } catch (err) {
     }
     const newValue = typeof currentValue === "boolean" ? !currentValue : false;
-    store2.set(newValue);
+    store.set(newValue);
     return newValue;
   }
   // Iterators ------------------------------------------------------------------------------------------------------
@@ -3613,8 +3619,8 @@ class A11yHelper {
    *
    * @returns {boolean} Is valid focus source.
    */
-  static isFocusSource(data2) {
-    return typeof data2 === "string" || data2?.nodeType === Node.ELEMENT_NODE && typeof data2?.focus === "function";
+  static isFocusSource(data) {
+    return typeof data === "string" || data?.nodeType === Node.ELEMENT_NODE && typeof data?.focus === "function";
   }
   /**
    * Tests if the given `element` is a Element node and has a `focus` method.
@@ -7737,7 +7743,7 @@ class AnimationManager {
   /**
    * Cancels all animations except `quickTo` animations.
    */
-  static cancelFn = (data2) => data2?.quickTo !== true;
+  static cancelFn = (data) => data?.quickTo !== true;
   /**
    * Cancels all animations.
    */
@@ -7785,12 +7791,12 @@ class AnimationManager {
    *
    * @param data -
    */
-  static add(data2) {
-    if (data2.cancelled) {
-      this.#cleanupData(data2);
+  static add(data) {
+    if (data.cancelled) {
+      this.#cleanupData(data);
       return;
     }
-    AnimationManager.#pendingList.push(data2);
+    AnimationManager.#pendingList.push(data);
     if (!AnimationManager.#rafPending) {
       AnimationManager.#rafPending = true;
       globalThis.requestAnimationFrame(this.#animateBound);
@@ -7810,45 +7816,45 @@ class AnimationManager {
     }
     if (AnimationManager.#pendingList.length) {
       for (let cntr = AnimationManager.#pendingList.length; --cntr >= 0; ) {
-        const data2 = AnimationManager.#pendingList[cntr];
-        if (data2.cancelled || data2.el !== void 0 && !data2.el.isConnected) {
+        const data = AnimationManager.#pendingList[cntr];
+        if (data.cancelled || data.el !== void 0 && !data.el.isConnected) {
           AnimationManager.#pendingList.splice(cntr, 1);
-          this.#cleanupData(data2);
+          this.#cleanupData(data);
         }
-        if (data2.active) {
-          if (data2.transformOrigin) {
-            data2.position.set({ transformOrigin: data2.transformOrigin });
+        if (data.active) {
+          if (data.transformOrigin) {
+            data.position.set({ transformOrigin: data.transformOrigin });
           }
-          data2.start = AnimationManager.#timeFrame;
+          data.start = AnimationManager.#timeFrame;
           AnimationManager.#pendingList.splice(cntr, 1);
-          AnimationManager.#activeList.push(data2);
+          AnimationManager.#activeList.push(data);
         }
       }
     }
     for (let cntr = AnimationManager.#activeList.length; --cntr >= 0; ) {
-      const data2 = AnimationManager.#activeList[cntr];
-      if (data2.cancelled || data2.el !== void 0 && !data2.el.isConnected) {
+      const data = AnimationManager.#activeList[cntr];
+      if (data.cancelled || data.el !== void 0 && !data.el.isConnected) {
         AnimationManager.#activeList.splice(cntr, 1);
-        this.#cleanupData(data2);
+        this.#cleanupData(data);
         continue;
       }
-      data2.current = timeFrame - data2.start;
-      if (data2.current >= data2.duration) {
-        for (let dataCntr = data2.keys.length; --dataCntr >= 0; ) {
-          const key = data2.keys[dataCntr];
-          data2.newData[key] = data2.destination[key];
+      data.current = timeFrame - data.start;
+      if (data.current >= data.duration) {
+        for (let dataCntr = data.keys.length; --dataCntr >= 0; ) {
+          const key = data.keys[dataCntr];
+          data.newData[key] = data.destination[key];
         }
-        data2.position.set(data2.newData, AnimationManager.#tjsPositionSetOptions);
+        data.position.set(data.newData, AnimationManager.#tjsPositionSetOptions);
         AnimationManager.#activeList.splice(cntr, 1);
-        this.#cleanupData(data2);
+        this.#cleanupData(data);
         continue;
       }
-      const easedTime = data2.ease(data2.current / data2.duration);
-      for (let dataCntr = data2.keys.length; --dataCntr >= 0; ) {
-        const key = data2.keys[dataCntr];
-        data2.newData[key] = data2.interpolate(data2.initial[key], data2.destination[key], easedTime);
+      const easedTime = data.ease(data.current / data.duration);
+      for (let dataCntr = data.keys.length; --dataCntr >= 0; ) {
+        const key = data.keys[dataCntr];
+        data.newData[key] = data.interpolate(data.initial[key], data.destination[key], easedTime);
       }
-      data2.position.set(data2.newData, AnimationManager.#tjsPositionSetOptions);
+      data.position.set(data.newData, AnimationManager.#tjsPositionSetOptions);
     }
     globalThis.requestAnimationFrame(this.#animateBound);
   }
@@ -7861,19 +7867,19 @@ class AnimationManager {
    */
   static cancel(position, cancelFn = AnimationManager.cancelFn) {
     for (let cntr = AnimationManager.#activeList.length; --cntr >= 0; ) {
-      const data2 = AnimationManager.#activeList[cntr];
-      if (data2.position === position && cancelFn(data2)) {
+      const data = AnimationManager.#activeList[cntr];
+      if (data.position === position && cancelFn(data)) {
         AnimationManager.#activeList.splice(cntr, 1);
-        data2.cancelled = true;
-        this.#cleanupData(data2);
+        data.cancelled = true;
+        this.#cleanupData(data);
       }
     }
     for (let cntr = AnimationManager.#pendingList.length; --cntr >= 0; ) {
-      const data2 = AnimationManager.#pendingList[cntr];
-      if (data2.position === position && cancelFn(data2)) {
+      const data = AnimationManager.#pendingList[cntr];
+      if (data.position === position && cancelFn(data)) {
         AnimationManager.#pendingList.splice(cntr, 1);
-        data2.cancelled = true;
-        this.#cleanupData(data2);
+        data.cancelled = true;
+        this.#cleanupData(data);
       }
     }
   }
@@ -7882,14 +7888,14 @@ class AnimationManager {
    */
   static cancelAll() {
     for (let cntr = AnimationManager.#activeList.length; --cntr >= 0; ) {
-      const data2 = AnimationManager.#activeList[cntr];
-      data2.cancelled = true;
-      this.#cleanupData(data2);
+      const data = AnimationManager.#activeList[cntr];
+      data.cancelled = true;
+      this.#cleanupData(data);
     }
     for (let cntr = AnimationManager.#pendingList.length; --cntr >= 0; ) {
-      const data2 = AnimationManager.#pendingList[cntr];
-      data2.cancelled = true;
-      this.#cleanupData(data2);
+      const data = AnimationManager.#pendingList[cntr];
+      data.cancelled = true;
+      this.#cleanupData(data);
     }
     AnimationManager.#activeList.length = 0;
     AnimationManager.#pendingList.length = 0;
@@ -7897,30 +7903,30 @@ class AnimationManager {
   /**
    * @param data - Animation data to cleanup.
    */
-  static #cleanupData(data2) {
-    data2.active = false;
-    data2.finished = true;
-    if (data2.transformOriginInitial) {
-      data2.position.set({ transformOrigin: data2.transformOriginInitial });
+  static #cleanupData(data) {
+    data.active = false;
+    data.finished = true;
+    if (data.transformOriginInitial) {
+      data.position.set({ transformOrigin: data.transformOriginInitial });
     }
-    if (typeof data2.cleanup === "function") {
-      data2.cleanup(data2);
+    if (typeof data.cleanup === "function") {
+      data.cleanup(data);
     }
-    if (typeof data2.resolve === "function") {
-      data2.resolve({ cancelled: data2.cancelled });
+    if (typeof data.resolve === "function") {
+      data.resolve({ cancelled: data.cancelled });
     }
-    if (!data2.quickTo) {
-      data2.cleanup = void 0;
-      data2.control = void 0;
-      data2.destination = void 0;
-      data2.el = void 0;
-      data2.ease = void 0;
-      data2.initial = void 0;
-      data2.interpolate = void 0;
-      data2.keys = void 0;
-      data2.newData = void 0;
-      data2.position = void 0;
-      data2.resolve = void 0;
+    if (!data.quickTo) {
+      data.cleanup = void 0;
+      data.control = void 0;
+      data.destination = void 0;
+      data.el = void 0;
+      data.ease = void 0;
+      data.initial = void 0;
+      data.interpolate = void 0;
+      data.keys = void 0;
+      data.newData = void 0;
+      data.position = void 0;
+      data.resolve = void 0;
     }
   }
   /**
@@ -7933,15 +7939,15 @@ class AnimationManager {
   static getScheduled(position) {
     const results = [];
     for (let cntr = AnimationManager.#activeList.length; --cntr >= 0; ) {
-      const data2 = AnimationManager.#activeList[cntr];
-      if (data2.position === position && data2.control) {
-        results.push(data2.control);
+      const data = AnimationManager.#activeList[cntr];
+      if (data.position === position && data.control) {
+        results.push(data.control);
       }
     }
     for (let cntr = AnimationManager.#pendingList.length; --cntr >= 0; ) {
-      const data2 = AnimationManager.#pendingList[cntr];
-      if (data2.position === position && data2.control) {
-        results.push(data2.control);
+      const data = AnimationManager.#pendingList[cntr];
+      if (data.position === position && data.control) {
+        results.push(data.control);
       }
     }
     return results;
@@ -8152,9 +8158,9 @@ class TJSPositionDataUtil {
    *
    * @returns Data at key or numeric default.
    */
-  static getDataOrDefault(data2, key) {
+  static getDataOrDefault(data, key) {
     key = this.#animateKeyAliases.get(key) ?? key;
-    return data2[key] ?? this.#numericDefaults[key];
+    return data[key] ?? this.#numericDefaults[key];
   }
   /**
    * Tests if the given key is an animation key.
@@ -8171,27 +8177,27 @@ class TJSPositionDataUtil {
    *
    * @param data - A TJSPositionData like object.
    */
-  static setNumericDefaults(data2) {
-    if (data2.rotateX === null) {
-      data2.rotateX = 0;
+  static setNumericDefaults(data) {
+    if (data.rotateX === null) {
+      data.rotateX = 0;
     }
-    if (data2.rotateY === null) {
-      data2.rotateY = 0;
+    if (data.rotateY === null) {
+      data.rotateY = 0;
     }
-    if (data2.rotateZ === null) {
-      data2.rotateZ = 0;
+    if (data.rotateZ === null) {
+      data.rotateZ = 0;
     }
-    if (data2.translateX === null) {
-      data2.translateX = 0;
+    if (data.translateX === null) {
+      data.translateX = 0;
     }
-    if (data2.translateY === null) {
-      data2.translateY = 0;
+    if (data.translateY === null) {
+      data.translateY = 0;
     }
-    if (data2.translateZ === null) {
-      data2.translateZ = 0;
+    if (data.translateZ === null) {
+      data.translateZ = 0;
     }
-    if (data2.scale === null) {
-      data2.scale = 1;
+    if (data.scale === null) {
+      data.scale = 1;
     }
   }
 }
@@ -8257,12 +8263,12 @@ class ConvertStringData {
    *
    * @returns Converted data.
    */
-  static process(data2, position, el) {
+  static process(data, position, el) {
     let parentClientHeight = Number.NaN;
     let parentClientWidth = Number.NaN;
-    for (const key in data2) {
+    for (const key in data) {
       if (TJSPositionDataUtil.isAnimationKey(key)) {
-        const value = data2[key];
+        const value = data[key];
         if (typeof value !== "string") {
           continue;
         }
@@ -8288,35 +8294,35 @@ class ConvertStringData {
                   parentClientHeight = 0;
                   parentClientWidth = 0;
                   console.warn(`TJSPosition - ConvertStringData warning: could not determine parent constraints for key '${key}' with value '${value}'.`);
-                  data2[key] = void 0;
+                  data[key] = void 0;
                   continue;
                 }
               }
-              handled = this.#handlePercent(animKey, current, data2, results, parentClientHeight, parentClientWidth);
+              handled = this.#handlePercent(animKey, current, data, results, parentClientHeight, parentClientWidth);
               break;
             }
             case "%~":
-              handled = this.#handleRelativePercent(animKey, current, data2, results);
+              handled = this.#handleRelativePercent(animKey, current, data, results);
               break;
             case "px":
-              handled = this.#animKeyTypes.numPx.has(key) ? this.#applyResultsValue(animKey, current, data2, results) : false;
+              handled = this.#animKeyTypes.numPx.has(key) ? this.#applyResultsValue(animKey, current, data, results) : false;
               break;
             case "rad":
             case "turn":
-              handled = this.#animKeyTypes.rotationRadTurn.has(key) ? this.#handleRotationRadTurn(animKey, current, data2, results) : false;
+              handled = this.#animKeyTypes.rotationRadTurn.has(key) ? this.#handleRotationRadTurn(animKey, current, data, results) : false;
               break;
             default:
-              handled = this.#applyResultsValue(animKey, current, data2, results);
+              handled = this.#applyResultsValue(animKey, current, data, results);
               break;
           }
         }
         if (!regexResults || !handled) {
           console.warn(`TJSPosition - ConvertStringData warning: malformed key '${key}' with value '${value}'.`);
-          data2[key] = void 0;
+          data[key] = void 0;
         }
       }
     }
-    return data2;
+    return data;
   }
   // Internal implementation ----------------------------------------------------------------------------------------
   /**
@@ -8333,20 +8339,20 @@ class ConvertStringData {
    *
    * @returns Adjustment successful.
    */
-  static #applyResultsValue(key, current, data2, results) {
+  static #applyResultsValue(key, current, data, results) {
     if (!results.operation) {
-      data2[key] = results.value;
+      data[key] = results.value;
       return true;
     }
     switch (results.operation) {
       case "-=":
-        data2[key] = current - results.value;
+        data[key] = current - results.value;
         break;
       case "+=":
-        data2[key] = current + results.value;
+        data[key] = current + results.value;
         break;
       case "*=":
-        data2[key] = current * results.value;
+        data[key] = current * results.value;
         break;
       default:
         return false;
@@ -8371,7 +8377,7 @@ class ConvertStringData {
    *
    * @returns Adjustment successful.
    */
-  static #handlePercent(key, current, data2, results, parentClientHeight, parentClientWidth) {
+  static #handlePercent(key, current, data, results, parentClientHeight, parentClientWidth) {
     switch (key) {
       case "left":
       case "maxWidth":
@@ -8396,7 +8402,7 @@ class ConvertStringData {
       default:
         return false;
     }
-    return this.#applyResultsValue(key, current, data2, results);
+    return this.#applyResultsValue(key, current, data, results);
   }
   /**
    * Handles the `%~` unit type where values are adjusted against the current value for the given key.
@@ -8411,21 +8417,21 @@ class ConvertStringData {
    *
    * @returns Adjustment successful.
    */
-  static #handleRelativePercent(key, current, data2, results) {
+  static #handleRelativePercent(key, current, data, results) {
     results.value = results.value / 100;
     if (!results.operation) {
-      data2[key] = current * results.value;
+      data[key] = current * results.value;
       return true;
     }
     switch (results.operation) {
       case "-=":
-        data2[key] = current - current * results.value;
+        data[key] = current - current * results.value;
         break;
       case "+=":
-        data2[key] = current + current * results.value;
+        data[key] = current + current * results.value;
         break;
       case "*=":
-        data2[key] = current * (current * results.value);
+        data[key] = current * (current * results.value);
         break;
       default:
         return false;
@@ -8445,7 +8451,7 @@ class ConvertStringData {
    *
    * @returns Adjustment successful.
    */
-  static #handleRotationRadTurn(key, current, data2, results) {
+  static #handleRotationRadTurn(key, current, data, results) {
     switch (results.unit) {
       case "rad":
         results.value = radToDeg(results.value);
@@ -8454,7 +8460,7 @@ class ConvertStringData {
         results.value = 360 * results.value;
         break;
     }
-    return this.#applyResultsValue(key, current, data2, results);
+    return this.#applyResultsValue(key, current, data, results);
   }
 }
 class TJSTransformData {
@@ -8932,8 +8938,8 @@ class TJSTransforms {
    *
    * @returns The CSS `matrix3d` string.
    */
-  getCSS(data2 = this.#data) {
-    return `matrix3d(${this.getMat4(data2, TJSTransforms.#mat4Result).join(",")})`;
+  getCSS(data = this.#data) {
+    return `matrix3d(${this.getMat4(data, TJSTransforms.#mat4Result).join(",")})`;
   }
   /**
    * Returns the `matrix3d` CSS transform for the given position / transform data.
@@ -8942,8 +8948,8 @@ class TJSTransforms {
    *
    * @returns The CSS `matrix3d` string.
    */
-  getCSSOrtho(data2 = this.#data) {
-    return `matrix3d(${this.getMat4Ortho(data2, TJSTransforms.#mat4Result).join(",")})`;
+  getCSSOrtho(data = this.#data) {
+    return `matrix3d(${this.getMat4Ortho(data, TJSTransforms.#mat4Result).join(",")})`;
   }
   /**
    * Collects all data including a bounding rect, transform matrix, and points array of the given
@@ -9057,7 +9063,7 @@ class TJSTransforms {
    *
    * @returns Transform matrix.
    */
-  getMat4(data2 = this.#data, output = new Mat4()) {
+  getMat4(data = this.#data, output = new Mat4()) {
     const matrix = Mat4.identity(output);
     let seenKeys = 0;
     const orderList = this.#orderList;
@@ -9066,24 +9072,24 @@ class TJSTransforms {
       switch (key) {
         case "rotateX":
           seenKeys |= TJSTransforms.#transformKeysBitwise.rotateX;
-          Mat4.multiply(matrix, matrix, Mat4.fromXRotation(TJSTransforms.#mat4Temp, degToRad(data2[key] ?? 0)));
+          Mat4.multiply(matrix, matrix, Mat4.fromXRotation(TJSTransforms.#mat4Temp, degToRad(data[key] ?? 0)));
           break;
         case "rotateY":
           seenKeys |= TJSTransforms.#transformKeysBitwise.rotateY;
-          Mat4.multiply(matrix, matrix, Mat4.fromYRotation(TJSTransforms.#mat4Temp, degToRad(data2[key] ?? 0)));
+          Mat4.multiply(matrix, matrix, Mat4.fromYRotation(TJSTransforms.#mat4Temp, degToRad(data[key] ?? 0)));
           break;
         case "rotateZ":
           seenKeys |= TJSTransforms.#transformKeysBitwise.rotateZ;
-          Mat4.multiply(matrix, matrix, Mat4.fromZRotation(TJSTransforms.#mat4Temp, degToRad(data2[key] ?? 0)));
+          Mat4.multiply(matrix, matrix, Mat4.fromZRotation(TJSTransforms.#mat4Temp, degToRad(data[key] ?? 0)));
           break;
         case "scale":
           seenKeys |= TJSTransforms.#transformKeysBitwise.scale;
-          TJSTransforms.#vectorScale[0] = TJSTransforms.#vectorScale[1] = data2[key] ?? 0;
+          TJSTransforms.#vectorScale[0] = TJSTransforms.#vectorScale[1] = data[key] ?? 0;
           Mat4.multiply(matrix, matrix, Mat4.fromScaling(TJSTransforms.#mat4Temp, TJSTransforms.#vectorScale));
           break;
         case "translateX":
           seenKeys |= TJSTransforms.#transformKeysBitwise.translateX;
-          TJSTransforms.#vectorTranslate[0] = data2.translateX ?? 0;
+          TJSTransforms.#vectorTranslate[0] = data.translateX ?? 0;
           TJSTransforms.#vectorTranslate[1] = 0;
           TJSTransforms.#vectorTranslate[2] = 0;
           Mat4.multiply(matrix, matrix, Mat4.fromTranslation(TJSTransforms.#mat4Temp, TJSTransforms.#vectorTranslate));
@@ -9091,7 +9097,7 @@ class TJSTransforms {
         case "translateY":
           seenKeys |= TJSTransforms.#transformKeysBitwise.translateY;
           TJSTransforms.#vectorTranslate[0] = 0;
-          TJSTransforms.#vectorTranslate[1] = data2.translateY ?? 0;
+          TJSTransforms.#vectorTranslate[1] = data.translateY ?? 0;
           TJSTransforms.#vectorTranslate[2] = 0;
           Mat4.multiply(matrix, matrix, Mat4.fromTranslation(TJSTransforms.#mat4Temp, TJSTransforms.#vectorTranslate));
           break;
@@ -9099,18 +9105,18 @@ class TJSTransforms {
           seenKeys |= TJSTransforms.#transformKeysBitwise.translateZ;
           TJSTransforms.#vectorTranslate[0] = 0;
           TJSTransforms.#vectorTranslate[1] = 0;
-          TJSTransforms.#vectorTranslate[2] = data2.translateZ ?? 0;
+          TJSTransforms.#vectorTranslate[2] = data.translateZ ?? 0;
           Mat4.multiply(matrix, matrix, Mat4.fromTranslation(TJSTransforms.#mat4Temp, TJSTransforms.#vectorTranslate));
           break;
       }
     }
-    if (data2 !== this.#data) {
+    if (data !== this.#data) {
       for (let cntr = 0; cntr < TJSTransforms.#transformKeys.length; cntr++) {
         const key = TJSTransforms.#transformKeys[cntr];
-        if (data2[key] === null || (seenKeys & TJSTransforms.#transformKeysBitwise[key]) > 0) {
+        if (data[key] === null || (seenKeys & TJSTransforms.#transformKeysBitwise[key]) > 0) {
           continue;
         }
-        const value = data2[key];
+        const value = data[key];
         switch (key) {
           case "rotateX":
             Mat4.multiply(matrix, matrix, Mat4.fromXRotation(TJSTransforms.#mat4Temp, degToRad(value)));
@@ -9164,17 +9170,17 @@ class TJSTransforms {
    *
    * @returns Transform matrix.
    */
-  getMat4Ortho(data2 = this.#data, output = new Mat4()) {
+  getMat4Ortho(data = this.#data, output = new Mat4()) {
     const matrix = Mat4.identity(output);
-    TJSTransforms.#vectorTranslate[0] = (data2.left ?? 0) + (data2.translateX ?? 0);
-    TJSTransforms.#vectorTranslate[1] = (data2.top ?? 0) + (data2.translateY ?? 0);
-    TJSTransforms.#vectorTranslate[2] = data2.translateZ ?? 0;
+    TJSTransforms.#vectorTranslate[0] = (data.left ?? 0) + (data.translateX ?? 0);
+    TJSTransforms.#vectorTranslate[1] = (data.top ?? 0) + (data.translateY ?? 0);
+    TJSTransforms.#vectorTranslate[2] = data.translateZ ?? 0;
     Mat4.multiply(matrix, matrix, Mat4.fromTranslation(TJSTransforms.#mat4Temp, TJSTransforms.#vectorTranslate));
-    if (data2.scale !== null && data2.scale !== void 0) {
-      TJSTransforms.#vectorScale[0] = TJSTransforms.#vectorScale[1] = data2.scale;
+    if (data.scale !== null && data.scale !== void 0) {
+      TJSTransforms.#vectorScale[0] = TJSTransforms.#vectorScale[1] = data.scale;
       Mat4.multiply(matrix, matrix, Mat4.fromScaling(TJSTransforms.#mat4Temp, TJSTransforms.#vectorScale));
     }
-    if (data2.rotateX === null && data2.rotateY === null && data2.rotateZ === null) {
+    if (data.rotateX === null && data.rotateY === null && data.rotateZ === null) {
       return matrix;
     }
     let seenKeys = 0;
@@ -9184,33 +9190,33 @@ class TJSTransforms {
       switch (key) {
         case "rotateX":
           seenKeys |= TJSTransforms.#transformKeysBitwise.rotateX;
-          Mat4.multiply(matrix, matrix, Mat4.fromXRotation(TJSTransforms.#mat4Temp, degToRad(data2[key] ?? 0)));
+          Mat4.multiply(matrix, matrix, Mat4.fromXRotation(TJSTransforms.#mat4Temp, degToRad(data[key] ?? 0)));
           break;
         case "rotateY":
           seenKeys |= TJSTransforms.#transformKeysBitwise.rotateY;
-          Mat4.multiply(matrix, matrix, Mat4.fromYRotation(TJSTransforms.#mat4Temp, degToRad(data2[key] ?? 0)));
+          Mat4.multiply(matrix, matrix, Mat4.fromYRotation(TJSTransforms.#mat4Temp, degToRad(data[key] ?? 0)));
           break;
         case "rotateZ":
           seenKeys |= TJSTransforms.#transformKeysBitwise.rotateZ;
-          Mat4.multiply(matrix, matrix, Mat4.fromZRotation(TJSTransforms.#mat4Temp, degToRad(data2[key] ?? 0)));
+          Mat4.multiply(matrix, matrix, Mat4.fromZRotation(TJSTransforms.#mat4Temp, degToRad(data[key] ?? 0)));
           break;
       }
     }
-    if (data2 !== this.#data) {
+    if (data !== this.#data) {
       for (let cntr = 0; cntr < TJSTransforms.#transformKeys.length; cntr++) {
         const key = TJSTransforms.#transformKeys[cntr];
-        if (data2[key] === null || (seenKeys & TJSTransforms.#transformKeysBitwise[key]) > 0) {
+        if (data[key] === null || (seenKeys & TJSTransforms.#transformKeysBitwise[key]) > 0) {
           continue;
         }
         switch (key) {
           case "rotateX":
-            Mat4.multiply(matrix, matrix, Mat4.fromXRotation(TJSTransforms.#mat4Temp, degToRad(data2[key] ?? 0)));
+            Mat4.multiply(matrix, matrix, Mat4.fromXRotation(TJSTransforms.#mat4Temp, degToRad(data[key] ?? 0)));
             break;
           case "rotateY":
-            Mat4.multiply(matrix, matrix, Mat4.fromYRotation(TJSTransforms.#mat4Temp, degToRad(data2[key] ?? 0)));
+            Mat4.multiply(matrix, matrix, Mat4.fromYRotation(TJSTransforms.#mat4Temp, degToRad(data[key] ?? 0)));
             break;
           case "rotateZ":
-            Mat4.multiply(matrix, matrix, Mat4.fromZRotation(TJSTransforms.#mat4Temp, degToRad(data2[key] ?? 0)));
+            Mat4.multiply(matrix, matrix, Mat4.fromZRotation(TJSTransforms.#mat4Temp, degToRad(data[key] ?? 0)));
             break;
         }
       }
@@ -9224,9 +9230,9 @@ class TJSTransforms {
    *
    * @returns Whether the given TJSPositionData has transforms.
    */
-  hasTransform(data2) {
+  hasTransform(data) {
     for (const key of TJSTransforms.#transformKeys) {
-      if (Number.isFinite(data2[key])) {
+      if (Number.isFinite(data[key])) {
         return true;
       }
     }
@@ -9237,10 +9243,10 @@ class TJSTransforms {
    *
    * @param data - An object with transform data.
    */
-  reset(data2) {
-    for (const key in data2) {
+  reset(data) {
+    for (const key in data) {
       if (TJSTransforms.#isTransformKey(key)) {
-        const value = data2[key];
+        const value = data[key];
         if (NumberGuard.isFinite(value)) {
           this.#data[key] = value;
         } else {
@@ -9642,9 +9648,9 @@ class AnimationAPIImpl {
    *
    * @param data -
    */
-  constructor(position, data2) {
+  constructor(position, data) {
     this.#position = position;
-    this.#data = data2;
+    this.#data = data;
     Object.seal(this);
   }
   /**
@@ -9737,7 +9743,7 @@ class AnimationAPIImpl {
     }
     const initial = {};
     const destination = {};
-    const data2 = this.#data;
+    const data = this.#data;
     for (const key of keys) {
       if (typeof key !== "string") {
         throw new TypeError(`AnimationAPI.quickTo error: key ('${key}') is not a string.`);
@@ -9745,7 +9751,7 @@ class AnimationAPIImpl {
       if (!TJSPositionDataUtil.isAnimationKey(key)) {
         throw new Error(`AnimationAPI.quickTo error: key ('${key}') is not animatable.`);
       }
-      const value = TJSPositionDataUtil.getDataOrDefault(data2, key);
+      const value = TJSPositionDataUtil.getDataOrDefault(data, key);
       if (value !== null) {
         destination[key] = value;
         initial[key] = value;
@@ -9783,8 +9789,8 @@ class AnimationAPIImpl {
       for (let cntr = keysArray.length; --cntr >= 0; ) {
         const key = keysArray[cntr];
         const animKey = TJSPositionDataUtil.getAnimationKey(key);
-        if (data2[animKey] !== void 0) {
-          initial[key] = data2[animKey];
+        if (data[animKey] !== void 0) {
+          initial[key] = data[animKey];
         }
       }
       if (isObject(args[0])) {
@@ -9806,7 +9812,7 @@ class AnimationAPIImpl {
       TJSPositionDataUtil.setNumericDefaults(destination);
       const targetEl = A11yHelper.isFocusTarget(parent) ? parent : parent?.elementTarget;
       animationData.el = A11yHelper.isFocusTarget(targetEl) && targetEl.isConnected ? targetEl : void 0;
-      ConvertStringData.process(destination, data2, animationData.el);
+      ConvertStringData.process(destination, data, animationData.el);
       if (animationData.finished) {
         animationData.cancelled = false;
         animationData.finished = false;
@@ -10106,7 +10112,7 @@ class AnimationGroupAPIImpl {
       throw new TypeError(`AnimationGroupAPI.from error: 'options' is not an object or function.`);
     }
     const animationControls = /* @__PURE__ */ new Set();
-    const cleanupFn = (data2) => animationControls.delete(data2.control);
+    const cleanupFn = (data) => animationControls.delete(data.control);
     let index = -1;
     let callbackOptions;
     const hasDataCallback = typeof fromData === "function";
@@ -10216,7 +10222,7 @@ class AnimationGroupAPIImpl {
       throw new TypeError(`AnimationGroupAPI.fromTo error: 'options' is not an object or function.`);
     }
     const animationControls = /* @__PURE__ */ new Set();
-    const cleanupFn = (data2) => animationControls.delete(data2.control);
+    const cleanupFn = (data) => animationControls.delete(data.control);
     let index = -1;
     let callbackOptions;
     const hasFromCallback = typeof fromData === "function";
@@ -10340,7 +10346,7 @@ class AnimationGroupAPIImpl {
       throw new TypeError(`AnimationGroupAPI.to error: 'options' is not an object or function.`);
     }
     const animationControls = /* @__PURE__ */ new Set();
-    const cleanupFn = (data2) => animationControls.delete(data2.control);
+    const cleanupFn = (data) => animationControls.delete(data.control);
     let index = -1;
     let callbackOptions;
     const hasDataCallback = typeof toData === "function";
@@ -10593,9 +10599,9 @@ class PositionStateAPI {
   /**
    */
   #transforms;
-  constructor(position, data2, transforms) {
+  constructor(position, data, transforms) {
     this.#position = position;
-    this.#data = data2;
+    this.#data = data;
     this.#transforms = transforms;
     Object.seal(this);
   }
@@ -10651,9 +10657,9 @@ class PositionStateAPI {
     if (typeof name !== "string") {
       throw new TypeError(`TJSPosition - remove: 'name' is not a string.`);
     }
-    const data2 = this.#dataSaved.get(name);
+    const data = this.#dataSaved.get(name);
     this.#dataSaved.delete(name);
-    return data2;
+    return data;
   }
   /**
    * Resets position instance to default data and invokes set.
@@ -10675,17 +10681,17 @@ class PositionStateAPI {
       this.#position.animate.cancel();
     }
     const zIndex = this.#position.zIndex;
-    const data2 = Object.assign({}, defaultData);
+    const data = Object.assign({}, defaultData);
     if (keepZIndex) {
-      data2.zIndex = zIndex;
+      data.zIndex = zIndex;
     }
-    this.#transforms.reset(data2);
+    this.#transforms.reset(data);
     const parent = this.#position.parent;
     if (parent?.reactive?.minimized) {
       parent?.maximize?.({ animate: false, duration: 0 });
     }
     if (invokeSet) {
-      setTimeout(() => this.#position.set(data2), 0);
+      setTimeout(() => this.#position.set(data), 0);
     }
     return true;
   }
@@ -10724,31 +10730,31 @@ class PositionStateAPI {
       if (remove) {
         this.#dataSaved.delete(name);
       }
-      let data2 = dataSaved;
+      let data = dataSaved;
       if (isIterable(properties)) {
-        data2 = {};
+        data = {};
         for (const property of properties) {
-          data2[property] = dataSaved[property];
+          data[property] = dataSaved[property];
         }
       }
       if (silent) {
-        for (const property in data2) {
+        for (const property in data) {
           if (property in this.#data) {
-            this.#data[property] = data2[property];
+            this.#data[property] = data[property];
           }
         }
         return dataSaved;
       } else if (animateTo) {
-        if (data2.transformOrigin !== this.#position.transformOrigin) {
-          this.#position.transformOrigin = data2.transformOrigin;
+        if (data.transformOrigin !== this.#position.transformOrigin) {
+          this.#position.transformOrigin = data.transformOrigin;
         }
         if (async) {
-          return this.#position.animate.to(data2, { duration, ease }).finished.then(() => dataSaved);
+          return this.#position.animate.to(data, { duration, ease }).finished.then(() => dataSaved);
         } else {
-          this.#position.animate.to(data2, { duration, ease });
+          this.#position.animate.to(data, { duration, ease });
         }
       } else {
-        this.#position.set(data2);
+        this.#position.set(data);
       }
     }
     return async ? Promise.resolve(dataSaved) : dataSaved;
@@ -10770,9 +10776,9 @@ class PositionStateAPI {
     if (typeof name !== "string") {
       throw new TypeError(`TJSPosition - save error: 'name' is not a string.`);
     }
-    const data2 = this.#position.get(extra, optionsGet);
-    this.#dataSaved.set(name, data2);
-    return data2;
+    const data = this.#position.get(extra, optionsGet);
+    this.#dataSaved.set(name, data);
+    return data;
   }
   /**
    * Directly sets a saved position state. Simply include extra properties in `options` to set extra data.
@@ -10781,11 +10787,11 @@ class PositionStateAPI {
    *
    * @param opts.name - name to index this saved data.
    */
-  set({ name, ...data2 }) {
+  set({ name, ...data }) {
     if (typeof name !== "string") {
       throw new TypeError(`TJSPosition - set error: 'name' is not a string.`);
     }
-    this.#dataSaved.set(name, data2);
+    this.#dataSaved.set(name, data);
   }
 }
 class SystemBase {
@@ -11092,11 +11098,11 @@ class AdapterValidators {
       if (validatorType !== "function" && validatorType !== "object" || validator === null) {
         throw new TypeError(`AdapterValidator error: 'validator' is not a function or object.`);
       }
-      let data2 = void 0;
+      let data = void 0;
       let subscribeFn = void 0;
       switch (validatorType) {
         case "function":
-          data2 = {
+          data = {
             id: void 0,
             validate: validator,
             weight: 1
@@ -11111,7 +11117,7 @@ class AdapterValidators {
             if (validator.weight !== void 0 && typeof validator.weight !== "number" || (validator?.weight < 0 || validator?.weight > 1)) {
               throw new TypeError(`AdapterValidator error: 'weight' attribute is not a number between '0 - 1' inclusive.`);
             }
-            data2 = {
+            data = {
               id: validator.id !== void 0 ? validator.id : void 0,
               validate: validator.validate.bind(validator),
               weight: validator.weight || 1
@@ -11122,21 +11128,21 @@ class AdapterValidators {
           }
           break;
       }
-      const index = this.#validatorData.findIndex((value) => data2.weight < value.weight);
+      const index = this.#validatorData.findIndex((value) => data.weight < value.weight);
       if (index >= 0) {
-        this.#validatorData.splice(index, 0, data2);
+        this.#validatorData.splice(index, 0, data);
       } else {
-        this.#validatorData.push(data2);
+        this.#validatorData.push(data);
       }
       if (typeof subscribeFn === "function") {
         const unsubscribe = subscribeFn.call(validator, this.#updateFn);
         if (typeof unsubscribe !== "function") {
           throw new TypeError("AdapterValidator error: Validator has subscribe function, but no unsubscribe function is returned.");
         }
-        if (this.#mapUnsubscribe.has(data2.validate)) {
+        if (this.#mapUnsubscribe.has(data.validate)) {
           throw new Error("AdapterValidator error: Validator added already has an unsubscribe function registered.");
         }
-        this.#mapUnsubscribe.set(data2.validate, unsubscribe);
+        this.#mapUnsubscribe.set(data.validate, unsubscribe);
         subscribeCount++;
       }
     }
@@ -11165,8 +11171,8 @@ class AdapterValidators {
     if (length === 0) {
       return;
     }
-    for (const data2 of validators) {
-      const actualValidator = typeof data2 === "function" ? data2 : isObject(data2) ? data2.validate : void 0;
+    for (const data of validators) {
+      const actualValidator = typeof data === "function" ? data : isObject(data) ? data.validate : void 0;
       if (!actualValidator) {
         continue;
       }
@@ -11199,13 +11205,13 @@ class AdapterValidators {
     if (typeof callback !== "function") {
       throw new TypeError(`AdapterValidator error: 'callback' is not a function.`);
     }
-    this.#validatorData = this.#validatorData.filter((data2) => {
-      const remove = callback.call(callback, { ...data2 });
+    this.#validatorData = this.#validatorData.filter((data) => {
+      const remove = callback.call(callback, { ...data });
       if (remove) {
         let unsubscribe;
-        if (typeof (unsubscribe = this.#mapUnsubscribe.get(data2.validate)) === "function") {
+        if (typeof (unsubscribe = this.#mapUnsubscribe.get(data.validate)) === "function") {
           unsubscribe();
-          this.#mapUnsubscribe.delete(data2.validate);
+          this.#mapUnsubscribe.delete(data.validate);
         }
       }
       return !remove;
@@ -11224,16 +11230,16 @@ class AdapterValidators {
     if (length === 0) {
       return;
     }
-    this.#validatorData = this.#validatorData.filter((data2) => {
+    this.#validatorData = this.#validatorData.filter((data) => {
       let remove = false;
       for (const id of ids) {
-        remove ||= data2.id === id;
+        remove ||= data.id === id;
       }
       if (remove) {
         let unsubscribe;
-        if (typeof (unsubscribe = this.#mapUnsubscribe.get(data2.validate)) === "function") {
+        if (typeof (unsubscribe = this.#mapUnsubscribe.get(data.validate)) === "function") {
           unsubscribe();
-          this.#mapUnsubscribe.delete(data2.validate);
+          this.#mapUnsubscribe.delete(data.validate);
         }
       }
       return !remove;
@@ -11267,25 +11273,25 @@ class TransformBounds extends SystemBase {
       const maxH = valData.maxHeight ?? (this.constrain ? boundsHeight : Number.MAX_SAFE_INTEGER);
       valData.position.height = clamp$2(valData.height, valData.minHeight, maxH);
     }
-    const data2 = valData.transforms.getData(valData.position, TransformBounds.#TRANSFORM_DATA, valData);
-    const initialX = data2.boundingRect.x;
-    const initialY = data2.boundingRect.y;
+    const data = valData.transforms.getData(valData.position, TransformBounds.#TRANSFORM_DATA, valData);
+    const initialX = data.boundingRect.x;
+    const initialY = data.boundingRect.y;
     const marginTop = valData.marginTop ?? 0;
     const marginLeft = valData.marginLeft ?? 0;
-    if (data2.boundingRect.bottom + marginTop > boundsHeight) {
-      data2.boundingRect.y += boundsHeight - data2.boundingRect.bottom - marginTop;
+    if (data.boundingRect.bottom + marginTop > boundsHeight) {
+      data.boundingRect.y += boundsHeight - data.boundingRect.bottom - marginTop;
     }
-    if (data2.boundingRect.right + marginLeft > boundsWidth) {
-      data2.boundingRect.x += boundsWidth - data2.boundingRect.right - marginLeft;
+    if (data.boundingRect.right + marginLeft > boundsWidth) {
+      data.boundingRect.x += boundsWidth - data.boundingRect.right - marginLeft;
     }
-    if (data2.boundingRect.top - marginTop < 0) {
-      data2.boundingRect.y += Math.abs(data2.boundingRect.top - marginTop);
+    if (data.boundingRect.top - marginTop < 0) {
+      data.boundingRect.y += Math.abs(data.boundingRect.top - marginTop);
     }
-    if (data2.boundingRect.left - marginLeft < 0) {
-      data2.boundingRect.x += Math.abs(data2.boundingRect.left - marginLeft);
+    if (data.boundingRect.left - marginLeft < 0) {
+      data.boundingRect.x += Math.abs(data.boundingRect.left - marginLeft);
     }
-    valData.position.left -= initialX - data2.boundingRect.x;
-    valData.position.top -= initialY - data2.boundingRect.y;
+    valData.position.left -= initialX - data.boundingRect.x;
+    valData.position.top -= initialY - data.boundingRect.y;
     return valData.position;
   }
 }
@@ -11344,9 +11350,9 @@ class UpdateElementData {
   subscribers;
   transforms;
   transformData;
-  constructor(changeSet, data2, options, styleCache, subscribers, transforms) {
+  constructor(changeSet, data, options, styleCache, subscribers, transforms) {
     this.changeSet = changeSet;
-    this.data = data2;
+    this.data = data;
     this.dataSubscribers = Object.seal(new TJSPositionData());
     this.dimensionData = Object.seal({ width: 0, height: 0 });
     this.options = options;
@@ -11453,12 +11459,12 @@ class UpdateElementManager {
    * @param updateData - Data change set.
    */
   static updateSubscribers(updateData) {
-    const data2 = updateData.data;
+    const data = updateData.data;
     const changeSet = updateData.changeSet;
     if (!changeSet.hasChange()) {
       return;
     }
-    const output = TJSPositionDataUtil.copyData(data2, updateData.dataSubscribers);
+    const output = TJSPositionDataUtil.copyData(data, updateData.dataSubscribers);
     const subscribers = updateData.subscribers;
     if (subscribers.length > 0) {
       for (let cntr = 0; cntr < subscribers.length; cntr++) {
@@ -11466,8 +11472,8 @@ class UpdateElementManager {
       }
     }
     if (changeSet.width || changeSet.height) {
-      updateData.dimensionData.width = data2.width;
-      updateData.dimensionData.height = data2.height;
+      updateData.dimensionData.width = data.width;
+      updateData.dimensionData.height = data.height;
       updateData.storeDimension.set(updateData.dimensionData);
     }
     changeSet.set(false);
@@ -11494,24 +11500,24 @@ class UpdateElementManager {
    */
   static #updateElement(el, updateData) {
     const changeSet = updateData.changeSet;
-    const data2 = updateData.data;
+    const data = updateData.data;
     if (changeSet.left) {
-      el.style.left = `${data2.left}px`;
+      el.style.left = `${data.left}px`;
     }
     if (changeSet.top) {
-      el.style.top = `${data2.top}px`;
+      el.style.top = `${data.top}px`;
     }
     if (changeSet.zIndex) {
-      el.style.zIndex = typeof data2.zIndex === "number" ? `${data2.zIndex}` : "";
+      el.style.zIndex = typeof data.zIndex === "number" ? `${data.zIndex}` : "";
     }
     if (changeSet.width) {
-      el.style.width = typeof data2.width === "number" ? `${data2.width}px` : data2.width;
+      el.style.width = typeof data.width === "number" ? `${data.width}px` : data.width;
     }
     if (changeSet.height) {
-      el.style.height = typeof data2.height === "number" ? `${data2.height}px` : data2.height;
+      el.style.height = typeof data.height === "number" ? `${data.height}px` : data.height;
     }
     if (changeSet.transformOrigin) {
-      el.style.transformOrigin = data2.transformOrigin;
+      el.style.transformOrigin = data.transformOrigin;
     }
     if (changeSet.transform) {
       el.style.transform = updateData.transforms.isActive ? updateData.transforms.getCSS() : "";
@@ -11529,21 +11535,21 @@ class UpdateElementManager {
    */
   static #updateElementOrtho(el, updateData) {
     const changeSet = updateData.changeSet;
-    const data2 = updateData.data;
+    const data = updateData.data;
     if (changeSet.zIndex) {
-      el.style.zIndex = typeof data2.zIndex === "number" ? `${data2.zIndex}` : "";
+      el.style.zIndex = typeof data.zIndex === "number" ? `${data.zIndex}` : "";
     }
     if (changeSet.width) {
-      el.style.width = typeof data2.width === "number" ? `${data2.width}px` : data2.width;
+      el.style.width = typeof data.width === "number" ? `${data.width}px` : data.width;
     }
     if (changeSet.height) {
-      el.style.height = typeof data2.height === "number" ? `${data2.height}px` : data2.height;
+      el.style.height = typeof data.height === "number" ? `${data.height}px` : data.height;
     }
     if (changeSet.transformOrigin) {
-      el.style.transformOrigin = data2.transformOrigin;
+      el.style.transformOrigin = data.transformOrigin;
     }
     if (changeSet.left || changeSet.top || changeSet.transform) {
-      el.style.transform = updateData.transforms.getCSSOrtho(data2);
+      el.style.transform = updateData.transforms.getCSSOrtho(data);
     }
   }
   /**
@@ -12144,42 +12150,42 @@ class TJSPosition {
    *
    * @returns Passed in object with current position data.
    */
-  get(data2 = {}, options = {}) {
+  get(data = {}, options = {}) {
     const keys = options?.keys;
     const excludeKeys = options?.exclude;
     const nullable = options?.nullable ?? true;
     const numeric = options?.numeric ?? false;
     if (isIterable(keys)) {
       for (const key of keys) {
-        data2[key] = numeric ? TJSPositionDataUtil.getDataOrDefault(this, key) : this[key];
-        if (!nullable && data2[key] === null) {
-          delete data2[key];
+        data[key] = numeric ? TJSPositionDataUtil.getDataOrDefault(this, key) : this[key];
+        if (!nullable && data[key] === null) {
+          delete data[key];
         }
       }
       if (isIterable(excludeKeys)) {
         for (const key of excludeKeys) {
-          delete data2[key];
+          delete data[key];
         }
       }
-      return data2;
+      return data;
     } else {
-      data2 = Object.assign(data2, this.#data);
+      data = Object.assign(data, this.#data);
       if (isIterable(excludeKeys)) {
         for (const key of excludeKeys) {
-          delete data2[key];
+          delete data[key];
         }
       }
       if (numeric) {
-        TJSPositionDataUtil.setNumericDefaults(data2);
+        TJSPositionDataUtil.setNumericDefaults(data);
       }
       if (!nullable) {
-        for (const key in data2) {
-          if (data2[key] === null) {
-            delete data2[key];
+        for (const key in data) {
+          if (data[key] === null) {
+            delete data[key];
           }
         }
       }
-      return data2;
+      return data;
     }
   }
   /**
@@ -12227,7 +12233,7 @@ class TJSPosition {
       return this;
     }
     const immediateElementUpdate = options?.immediateElementUpdate ?? false;
-    const data2 = this.#data;
+    const data = this.#data;
     const transforms = this.#transforms;
     const targetEl = A11yHelper.isFocusTarget(parent) ? parent : parent?.elementTarget;
     const el = A11yHelper.isFocusTarget(targetEl) && targetEl.isConnected ? targetEl : void 0;
@@ -12248,115 +12254,115 @@ class TJSPosition {
     }
     if (NumberGuard.isFinite(position.left)) {
       position.left = Math.round(position.left);
-      if (data2.left !== position.left) {
-        data2.left = position.left;
+      if (data.left !== position.left) {
+        data.left = position.left;
         changeSet.left = true;
       }
     }
     if (NumberGuard.isFinite(position.top)) {
       position.top = Math.round(position.top);
-      if (data2.top !== position.top) {
-        data2.top = position.top;
+      if (data.top !== position.top) {
+        data.top = position.top;
         changeSet.top = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.maxHeight)) {
       position.maxHeight = typeof position.maxHeight === "number" ? Math.round(position.maxHeight) : null;
-      if (data2.maxHeight !== position.maxHeight) {
-        data2.maxHeight = position.maxHeight;
+      if (data.maxHeight !== position.maxHeight) {
+        data.maxHeight = position.maxHeight;
         changeSet.maxHeight = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.maxWidth)) {
       position.maxWidth = typeof position.maxWidth === "number" ? Math.round(position.maxWidth) : null;
-      if (data2.maxWidth !== position.maxWidth) {
-        data2.maxWidth = position.maxWidth;
+      if (data.maxWidth !== position.maxWidth) {
+        data.maxWidth = position.maxWidth;
         changeSet.maxWidth = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.minHeight)) {
       position.minHeight = typeof position.minHeight === "number" ? Math.round(position.minHeight) : null;
-      if (data2.minHeight !== position.minHeight) {
-        data2.minHeight = position.minHeight;
+      if (data.minHeight !== position.minHeight) {
+        data.minHeight = position.minHeight;
         changeSet.minHeight = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.minWidth)) {
       position.minWidth = typeof position.minWidth === "number" ? Math.round(position.minWidth) : null;
-      if (data2.minWidth !== position.minWidth) {
-        data2.minWidth = position.minWidth;
+      if (data.minWidth !== position.minWidth) {
+        data.minWidth = position.minWidth;
         changeSet.minWidth = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.rotateX)) {
-      if (data2.rotateX !== position.rotateX) {
-        data2.rotateX = transforms.rotateX = position.rotateX;
+      if (data.rotateX !== position.rotateX) {
+        data.rotateX = transforms.rotateX = position.rotateX;
         changeSet.transform = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.rotateY)) {
-      if (data2.rotateY !== position.rotateY) {
-        data2.rotateY = transforms.rotateY = position.rotateY;
+      if (data.rotateY !== position.rotateY) {
+        data.rotateY = transforms.rotateY = position.rotateY;
         changeSet.transform = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.rotateZ)) {
-      if (data2.rotateZ !== position.rotateZ) {
-        data2.rotateZ = transforms.rotateZ = position.rotateZ;
+      if (data.rotateZ !== position.rotateZ) {
+        data.rotateZ = transforms.rotateZ = position.rotateZ;
         changeSet.transform = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.scale)) {
       position.scale = typeof position.scale === "number" ? clamp$2(position.scale, 0, 1e3) : null;
-      if (data2.scale !== position.scale) {
-        data2.scale = transforms.scale = position.scale;
+      if (data.scale !== position.scale) {
+        data.scale = transforms.scale = position.scale;
         changeSet.transform = true;
       }
     }
     if (typeof position.transformOrigin === "string" && TJSTransforms.transformOrigins.includes(position.transformOrigin) || position.transformOrigin === null) {
-      if (data2.transformOrigin !== position.transformOrigin) {
-        data2.transformOrigin = position.transformOrigin;
+      if (data.transformOrigin !== position.transformOrigin) {
+        data.transformOrigin = position.transformOrigin;
         changeSet.transformOrigin = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.translateX)) {
-      if (data2.translateX !== position.translateX) {
-        data2.translateX = transforms.translateX = position.translateX;
+      if (data.translateX !== position.translateX) {
+        data.translateX = transforms.translateX = position.translateX;
         changeSet.transform = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.translateY)) {
-      if (data2.translateY !== position.translateY) {
-        data2.translateY = transforms.translateY = position.translateY;
+      if (data.translateY !== position.translateY) {
+        data.translateY = transforms.translateY = position.translateY;
         changeSet.transform = true;
       }
     }
     if (NumberGuard.isFiniteOrNull(position.translateZ)) {
-      if (data2.translateZ !== position.translateZ) {
-        data2.translateZ = transforms.translateZ = position.translateZ;
+      if (data.translateZ !== position.translateZ) {
+        data.translateZ = transforms.translateZ = position.translateZ;
         changeSet.transform = true;
       }
     }
     if (NumberGuard.isFinite(position.zIndex)) {
       position.zIndex = Math.round(position.zIndex);
-      if (data2.zIndex !== position.zIndex) {
-        data2.zIndex = position.zIndex;
+      if (data.zIndex !== position.zIndex) {
+        data.zIndex = position.zIndex;
         changeSet.zIndex = true;
       }
     }
     const widthIsObservable = position.width === "auto" || position.width === "inherit";
     if (NumberGuard.isFiniteOrNull(position.width) || widthIsObservable) {
       position.width = typeof position.width === "number" ? Math.round(position.width) : position.width;
-      if (data2.width !== position.width) {
-        data2.width = position.width;
+      if (data.width !== position.width) {
+        data.width = position.width;
         changeSet.width = true;
       }
     }
     const heightIsObservable = position.height === "auto" || position.height === "inherit";
     if (NumberGuard.isFiniteOrNull(position.height) || heightIsObservable) {
       position.height = typeof position.height === "number" ? Math.round(position.height) : position.height;
-      if (data2.height !== position.height) {
-        data2.height = position.height;
+      if (data.height !== position.height) {
+        data.height = position.height;
         changeSet.height = true;
       }
     }
@@ -12368,7 +12374,7 @@ class TJSPosition {
     if (el) {
       const defaultData = this.#state.getDefault();
       if (!isObject(defaultData)) {
-        this.#state.save({ name: "#defaultData", ...Object.assign({}, data2) });
+        this.#state.save({ name: "#defaultData", ...Object.assign({}, data) });
       }
       if (immediateElementUpdate) {
         UpdateElementManager.immediate(el, this.#updateElementData);
@@ -12684,7 +12690,7 @@ class ResizeObserverManager {
     const paddingLeft = StyleParse.pixels(el.style.paddingLeft) ?? StyleParse.pixels(computed.paddingLeft) ?? 0;
     const paddingRight = StyleParse.pixels(el.style.paddingRight) ?? StyleParse.pixels(computed.paddingRight) ?? 0;
     const paddingTop = StyleParse.pixels(el.style.paddingTop) ?? StyleParse.pixels(computed.paddingTop) ?? 0;
-    const data2 = {
+    const data = {
       updateType,
       target,
       // Stores most recent contentRect.width and contentRect.height values from ResizeObserver.
@@ -12698,9 +12704,9 @@ class ResizeObserverManager {
     };
     if (this.#elMap.has(el)) {
       const subscribers = this.#elMap.get(el);
-      subscribers.push(data2);
+      subscribers.push(data);
     } else {
-      this.#elMap.set(el, [data2]);
+      this.#elMap.set(el, [data]);
     }
     this.#resizeObserver.observe(el);
   }
@@ -12924,10 +12930,10 @@ function applyStyles(node, properties) {
     }
   };
 }
-function dynamicAction(node, { action, data: data2 } = {}) {
+function dynamicAction(node, { action, data } = {}) {
   let actionResult;
   if (typeof action === "function") {
-    actionResult = action(node, data2);
+    actionResult = action(node, data);
   }
   return {
     /**
@@ -12937,7 +12943,7 @@ function dynamicAction(node, { action, data: data2 } = {}) {
       if (!isObject(newOptions)) {
         actionResult?.destroy?.();
         action = void 0;
-        data2 = void 0;
+        data = void 0;
         return;
       }
       const { action: newAction, data: newData } = newOptions;
@@ -12945,22 +12951,22 @@ function dynamicAction(node, { action, data: data2 } = {}) {
         console.warn(`dynamicAction.update warning: Aborting as 'action' is not a function.`);
         return;
       }
-      const hasNewData = newData !== data2;
+      const hasNewData = newData !== data;
       if (hasNewData) {
-        data2 = newData;
+        data = newData;
       }
       if (newAction !== action) {
         actionResult?.destroy?.();
         action = newAction;
-        actionResult = action(node, data2);
+        actionResult = action(node, data);
       } else if (hasNewData) {
-        actionResult?.update?.(data2);
+        actionResult?.update?.(data);
       }
     },
     destroy: () => {
       actionResult?.destroy?.();
       action = void 0;
-      data2 = void 0;
+      data = void 0;
       actionResult = void 0;
     }
   };
@@ -13016,8 +13022,8 @@ class AppShellContextInternal {
     return this.#stores;
   }
 }
-function localize(stringId, data2) {
-  const result = !isObject(data2) ? globalThis.game.i18n.localize(stringId) : globalThis.game.i18n.format(stringId, data2);
+function localize(stringId, data) {
+  const result = !isObject(data) ? globalThis.game.i18n.localize(stringId) : globalThis.game.i18n.format(stringId, data);
   return result !== void 0 ? result : "";
 }
 function create_if_block$13(ctx) {
@@ -16448,7 +16454,7 @@ function instance$1k($$self, $$props, $$invalidate) {
   let focusFirst;
   let resolveId;
   let $elementRoot;
-  let { data: data2 = void 0 } = $$props;
+  let { data = void 0 } = $$props;
   let { preventDefault: preventDefault2 = false } = $$props;
   let { stopPropagation = false } = $$props;
   let { dialogComponent = void 0 } = $$props;
@@ -16462,7 +16468,7 @@ function instance$1k($$self, $$props, $$invalidate) {
   let content = void 0;
   let dialogClass;
   let dialogProps = {};
-  let currentButtonId = data2.default;
+  let currentButtonId = data.default;
   onDestroy(() => {
     const rootEl = $elementRoot;
     if (A11yHelper.isFocusTarget(rootEl)) {
@@ -16505,7 +16511,7 @@ function instance$1k($$self, $$props, $$invalidate) {
         managedPromise.resolve(result);
       }
     } catch (err) {
-      const notifyError = typeof data2.notifyError === "boolean" ? data2.notifyError : true;
+      const notifyError = typeof data.notifyError === "boolean" ? data.notifyError : true;
       if (notifyError) {
         globalThis.ui.notifications.error(err, { console: false });
       }
@@ -16534,7 +16540,7 @@ function instance$1k($$self, $$props, $$invalidate) {
             if (A11yHelper.isFocusTarget(activeElement) && A11yHelper.isFocusTarget(buttonsEl) && buttonsEl.contains(activeElement)) {
               for (let cntr = 0; cntr < activeElement.classList.length; cntr++) {
                 const item = activeElement.classList.item(cntr);
-                if (item !== "dialog-button" && item !== "default" && typeof data2.buttons[item] !== void 0) {
+                if (item !== "dialog-button" && item !== "default" && typeof data.buttons[item] !== void 0) {
                   $$invalidate(4, currentButtonId = item);
                   break;
                 }
@@ -16629,7 +16635,7 @@ function instance$1k($$self, $$props, $$invalidate) {
     });
   }
   $$self.$$set = ($$props2) => {
-    if ("data" in $$props2) $$invalidate(10, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(10, data = $$props2.data);
     if ("preventDefault" in $$props2) $$invalidate(11, preventDefault2 = $$props2.preventDefault);
     if ("stopPropagation" in $$props2) $$invalidate(12, stopPropagation = $$props2.stopPropagation);
     if ("dialogComponent" in $$props2) $$invalidate(0, dialogComponent = $$props2.dialogComponent);
@@ -16647,18 +16653,18 @@ function instance$1k($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty & /*data*/
     1024) {
-      $$invalidate(13, autoClose = typeof data2.autoClose === "boolean" ? data2.autoClose : true);
+      $$invalidate(13, autoClose = typeof data.autoClose === "boolean" ? data.autoClose : true);
     }
     if ($$self.$$.dirty & /*data*/
     1024) {
-      $$invalidate(14, focusFirst = typeof data2.focusFirst === "boolean" ? data2.focusFirst : false);
+      $$invalidate(14, focusFirst = typeof data.focusFirst === "boolean" ? data.focusFirst : false);
     }
     if ($$self.$$.dirty & /*data*/
     1024) {
       {
-        $$invalidate(1, buttons = !isObject(data2.buttons) ? [] : Object.keys(data2.buttons).reduce(
+        $$invalidate(1, buttons = !isObject(data.buttons) ? [] : Object.keys(data.buttons).reduce(
           (array, key) => {
-            const b = data2.buttons[key];
+            const b = data.buttons[key];
             const icon = typeof b.icon !== "string" ? void 0 : s_REGEX_HTML.test(b.icon) ? b.icon : `<i class="${b.icon}"></i>`;
             const autoClose2 = typeof b.autoClose === "boolean" ? b.autoClose : true;
             const disabled = typeof b.disabled === "boolean" ? b.disabled : false;
@@ -16699,14 +16705,14 @@ function instance$1k($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty & /*data*/
     1024) {
-      resolveId = typeof data2.resolveId === "boolean" ? data2.resolveId : false;
+      resolveId = typeof data.resolveId === "boolean" ? data.resolveId : false;
     }
     if ($$self.$$.dirty & /*content, data*/
     1032) {
-      if (content !== data2.content) {
+      if (content !== data.content) {
         $$invalidate(
           3,
-          content = data2.content
+          content = data.content
         );
         try {
           if (TJSSvelte.config.isConfigEmbed(content)) {
@@ -16736,7 +16742,7 @@ function instance$1k($$self, $$props, $$invalidate) {
     dialogProps,
     elementRoot,
     onClick,
-    data2,
+    data,
     preventDefault2,
     stopPropagation,
     autoClose,
@@ -17198,7 +17204,7 @@ const s_MODAL_BACKGROUND = "#50505080";
 function instance$1j($$self, $$props, $$invalidate) {
   let { elementContent = void 0 } = $$props;
   let { elementRoot = void 0 } = $$props;
-  let { data: data2 = {} } = $$props;
+  let { data = {} } = $$props;
   let { dialogComponent = void 0 } = $$props;
   let { managedPromise = void 0 } = $$props;
   const application = getContext("#external")?.application;
@@ -17239,7 +17245,7 @@ function instance$1j($$self, $$props, $$invalidate) {
   };
   let zIndex = void 0;
   if (modal === void 0) {
-    modal = typeof data2?.modal === "boolean" ? data2.modal : false;
+    modal = typeof data?.modal === "boolean" ? data.modal : false;
   }
   const activeWindow = application.reactive.activeWindow;
   if (!modal) {
@@ -17282,7 +17288,7 @@ function instance$1j($$self, $$props, $$invalidate) {
   $$self.$$set = ($$props2) => {
     if ("elementContent" in $$props2) $$invalidate(1, elementContent = $$props2.elementContent);
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
-    if ("data" in $$props2) $$invalidate(3, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(3, data = $$props2.data);
     if ("dialogComponent" in $$props2) $$invalidate(2, dialogComponent = $$props2.dialogComponent);
     if ("managedPromise" in $$props2) $$invalidate(9, managedPromise = $$props2.managedPromise);
   };
@@ -17298,37 +17304,37 @@ function instance$1j($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty & /*data, modal, zIndex, application*/
     312) {
-      if (isObject(data2)) {
-        dialogOptions.set(data2);
-        const newZIndex = Number.isInteger(data2.zIndex) || data2.zIndex === null ? data2.zIndex : modal ? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER - 1;
+      if (isObject(data)) {
+        dialogOptions.set(data);
+        const newZIndex = Number.isInteger(data.zIndex) || data.zIndex === null ? data.zIndex : modal ? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER - 1;
         if (zIndex !== newZIndex) {
           $$invalidate(8, zIndex = newZIndex);
         }
-        const newDraggable = typeof data2.draggable === "boolean" ? data2.draggable : void 0;
+        const newDraggable = typeof data.draggable === "boolean" ? data.draggable : void 0;
         if (newDraggable !== void 0 && application.reactive.draggable !== newDraggable) {
           $$invalidate(4, application.reactive.draggable = newDraggable, application);
         }
-        const newFocusAuto = typeof data2.focusAuto === "boolean" ? data2.focusAuto : void 0;
+        const newFocusAuto = typeof data.focusAuto === "boolean" ? data.focusAuto : void 0;
         if (newFocusAuto !== void 0 && application.reactive.focusAuto !== newFocusAuto) {
           $$invalidate(4, application.reactive.focusAuto = newFocusAuto, application);
         }
-        const newFocusKeep = typeof data2.focusKeep === "boolean" ? data2.focusKeep : void 0;
+        const newFocusKeep = typeof data.focusKeep === "boolean" ? data.focusKeep : void 0;
         if (newFocusKeep !== void 0 && application.reactive.focusKeep !== newFocusKeep) {
           $$invalidate(4, application.reactive.focusKeep = newFocusKeep, application);
         }
-        const newFocusTrap = typeof data2.focusTrap === "boolean" ? data2.focusTrap : void 0;
+        const newFocusTrap = typeof data.focusTrap === "boolean" ? data.focusTrap : void 0;
         if (newFocusTrap !== void 0 && application.reactive.focusTrap !== newFocusTrap) {
           $$invalidate(4, application.reactive.focusTrap = newFocusTrap, application);
         }
-        const newMinimizable = typeof data2.minimizable === "boolean" ? data2.minimizable : void 0;
+        const newMinimizable = typeof data.minimizable === "boolean" ? data.minimizable : void 0;
         if (newMinimizable !== void 0 && application.reactive.minimizable !== newMinimizable) {
           $$invalidate(4, application.reactive.minimizable = newMinimizable, application);
         }
-        const newResizable = typeof data2.resizable === "boolean" ? data2.resizable : void 0;
+        const newResizable = typeof data.resizable === "boolean" ? data.resizable : void 0;
         if (newResizable !== void 0 && application.reactive.resizable !== newResizable) {
           $$invalidate(4, application.reactive.resizable = newResizable, application);
         }
-        const newTitle = data2.title ?? "Dialog";
+        const newTitle = data.title ?? "Dialog";
         if (newTitle !== application?.options?.title) {
           $$invalidate(4, application.reactive.title = newTitle, application);
         }
@@ -17339,8 +17345,8 @@ function instance$1j($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty & /*data, appProps*/
     72) {
-      if (isObject(data2?.transition)) {
-        const d = data2.transition;
+      if (isObject(data?.transition)) {
+        const d = data.transition;
         if (d?.transition !== appProps.transition) {
           $$invalidate(6, appProps.transition = d.transition, appProps);
         }
@@ -17364,7 +17370,7 @@ function instance$1j($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty & /*data, modalProps*/
     136) {
       {
-        const newModalBackground = typeof data2?.modalOptions?.background === "string" ? data2.modalOptions.background : s_MODAL_BACKGROUND;
+        const newModalBackground = typeof data?.modalOptions?.background === "string" ? data.modalOptions.background : s_MODAL_BACKGROUND;
         if (newModalBackground !== modalProps.background) {
           $$invalidate(7, modalProps.background = newModalBackground, modalProps);
         }
@@ -17373,7 +17379,7 @@ function instance$1j($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty & /*data, modalProps*/
     136) {
       {
-        const newModalSlotSeparate = typeof data2?.modalOptions?.slotSeparate === "boolean" ? data2.modalOptions.slotSeparate : void 0;
+        const newModalSlotSeparate = typeof data?.modalOptions?.slotSeparate === "boolean" ? data.modalOptions.slotSeparate : void 0;
         if (newModalSlotSeparate !== modalProps.slotSeparate) {
           $$invalidate(7, modalProps.slotSeparate = newModalSlotSeparate, modalProps);
         }
@@ -17382,7 +17388,7 @@ function instance$1j($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty & /*data, modalProps*/
     136) {
       {
-        const newModalStyles = isObject(data2?.modalOptions?.styles) ? data2.modalOptions.styles : void 0;
+        const newModalStyles = isObject(data?.modalOptions?.styles) ? data.modalOptions.styles : void 0;
         if (newModalStyles !== modalProps.styles) {
           $$invalidate(7, modalProps.styles = newModalStyles, modalProps);
         }
@@ -17391,7 +17397,7 @@ function instance$1j($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty & /*data, modalProps*/
     136) {
       {
-        const newModalCloseOnInput = typeof data2?.modalOptions?.closeOnInput === "boolean" ? data2.modalOptions.closeOnInput : void 0;
+        const newModalCloseOnInput = typeof data?.modalOptions?.closeOnInput === "boolean" ? data.modalOptions.closeOnInput : void 0;
         if (newModalCloseOnInput !== modalProps.closeOnInput) {
           $$invalidate(7, modalProps.closeOnInput = newModalCloseOnInput, modalProps);
         }
@@ -17399,8 +17405,8 @@ function instance$1j($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty & /*data, modalProps*/
     136) {
-      if (isObject(data2?.modalOptions?.transition)) {
-        const d = data2.modalOptions.transition;
+      if (isObject(data?.modalOptions?.transition)) {
+        const d = data.modalOptions.transition;
         if (d?.transition !== modalProps.transition) {
           $$invalidate(
             7,
@@ -17428,11 +17434,11 @@ function instance$1j($$self, $$props, $$invalidate) {
           $$invalidate(7, modalProps.outTransitionOptions = d.outTransitionOptions, modalProps);
         }
       } else {
-        const newModalTransition = typeof data2?.modalOptions?.transition?.transition === "function" ? data2.modalOptions.transition.transition : s_MODAL_TRANSITION;
+        const newModalTransition = typeof data?.modalOptions?.transition?.transition === "function" ? data.modalOptions.transition.transition : s_MODAL_TRANSITION;
         if (newModalTransition !== modalProps.transition) {
           $$invalidate(7, modalProps.transition = newModalTransition, modalProps);
         }
-        const newModalTransitionOptions = isObject(data2?.modalOptions?.transitionOptions) ? data2.modalOptions.transitionOptions : s_MODAL_TRANSITION_OPTIONS;
+        const newModalTransitionOptions = isObject(data?.modalOptions?.transitionOptions) ? data.modalOptions.transitionOptions : s_MODAL_TRANSITION_OPTIONS;
         if (newModalTransitionOptions !== modalProps.transitionOptions) {
           $$invalidate(7, modalProps.transitionOptions = newModalTransitionOptions, modalProps);
         }
@@ -17443,7 +17449,7 @@ function instance$1j($$self, $$props, $$invalidate) {
     elementRoot,
     elementContent,
     dialogComponent,
-    data2,
+    data,
     application,
     modal,
     appProps,
@@ -17488,8 +17494,8 @@ class DialogShell extends SvelteComponent {
   get data() {
     return this.$$.ctx[3];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get dialogComponent() {
@@ -17737,9 +17743,9 @@ class ApplicationState {
     if (typeof name !== "string") {
       throw new TypeError(`[SvelteApp.state.remove] error: 'name' is not a string.`);
     }
-    const data2 = this.#dataSaved.get(name);
+    const data = this.#dataSaved.get(name);
     this.#dataSaved.delete(name);
-    return data2;
+    return data;
   }
   /**
    * Restores a previously saved application state by `name` returning the data. Several optional parameters are
@@ -17800,9 +17806,9 @@ class ApplicationState {
     if (typeof name !== "string") {
       throw new TypeError(`[SvelteApp.state.save] error: 'name' is not a string.`);
     }
-    const data2 = this.current(extra);
-    this.#dataSaved.set(name, data2);
-    return data2;
+    const data = this.current(extra);
+    this.#dataSaved.set(name, data);
+    return data;
   }
   /**
    * Sets application state from the given `SvelteApp.API.State.Data` instance. Several optional parameters are
@@ -17824,8 +17830,8 @@ class ApplicationState {
    * @param {import('@typhonjs-fvtt/runtime/svelte/easing').EasingReference} [options.ease='linear'] - Easing function or easing
    *        function name.
    */
-  set(data2, options = {}) {
-    this.#setImpl(data2, { ...options, async: false });
+  set(data, options = {}) {
+    this.#setImpl(data, { ...options, async: false });
   }
   // Internal implementation ----------------------------------------------------------------------------------------
   /**
@@ -17855,12 +17861,12 @@ class ApplicationState {
    *
    * @returns {undefined | Promise<void>} When asynchronous the animation Promise.
    */
-  #setImpl(data2, { async = false, animateTo = false, duration = 0.1, ease = "linear" } = {}) {
-    if (!isObject(data2)) {
+  #setImpl(data, { async = false, animateTo = false, duration = 0.1, ease = "linear" } = {}) {
+    if (!isObject(data)) {
       throw new TypeError(`[SvelteApp.state.set] error: 'data' is not an object.`);
     }
     const application = this.#application;
-    if (!isObject(data2?.position)) {
+    if (!isObject(data?.position)) {
       console.warn(`[SvelteApp.state.set] warning: 'data.position' is not an object.`);
       return;
     }
@@ -17870,16 +17876,16 @@ class ApplicationState {
         console.warn(`[SvelteApp.state.set] warning: application is not rendered and 'animateTo' is true.`);
         return;
       }
-      if (data2.position.transformOrigin !== application.position.transformOrigin) {
-        application.position.transformOrigin = data2.position.transformOrigin;
+      if (data.position.transformOrigin !== application.position.transformOrigin) {
+        application.position.transformOrigin = data.position.transformOrigin;
       }
-      if (isObject(data2?.ui)) {
-        const minimized = typeof data2.ui?.minimized === "boolean" ? data2.ui.minimized : false;
+      if (isObject(data?.ui)) {
+        const minimized = typeof data.ui?.minimized === "boolean" ? data.ui.minimized : false;
         if (application?.reactive?.minimized && !minimized) {
           application.maximize({ animate: false, duration: 0 });
         }
       }
-      const promise2 = application.position.animate.to(data2.position, {
+      const promise2 = application.position.animate.to(data.position, {
         duration,
         ease,
         strategy: "cancelAll"
@@ -17887,17 +17893,17 @@ class ApplicationState {
         if (cancelled) {
           return;
         }
-        if (isObject(data2?.options)) {
-          application?.reactive.mergeOptions(data2.options);
+        if (isObject(data?.options)) {
+          application?.reactive.mergeOptions(data.options);
         }
-        if (isObject(data2?.ui)) {
-          const minimized = typeof data2.ui?.minimized === "boolean" ? data2.ui.minimized : false;
+        if (isObject(data?.ui)) {
+          const minimized = typeof data.ui?.minimized === "boolean" ? data.ui.minimized : false;
           if (!application?.reactive?.minimized && minimized) {
             application.minimize({ animate: false, duration: 0 });
           }
         }
-        if (isObject(data2?.beforeMinimized)) {
-          application.position.state.set({ name: "#beforeMinimized", ...data2.beforeMinimized });
+        if (isObject(data?.beforeMinimized)) {
+          application.position.state.set({ name: "#beforeMinimized", ...data.beforeMinimized });
         }
       });
       if (async) {
@@ -17905,27 +17911,27 @@ class ApplicationState {
       }
     } else {
       if (rendered) {
-        if (isObject(data2?.options)) {
-          application?.reactive.mergeOptions(data2.options);
+        if (isObject(data?.options)) {
+          application?.reactive.mergeOptions(data.options);
         }
-        if (isObject(data2?.ui)) {
-          const minimized = typeof data2.ui?.minimized === "boolean" ? data2.ui.minimized : false;
+        if (isObject(data?.ui)) {
+          const minimized = typeof data.ui?.minimized === "boolean" ? data.ui.minimized : false;
           if (application?.reactive?.minimized && !minimized) {
             application.maximize({ animate: false, duration: 0 });
           } else if (!application?.reactive?.minimized && minimized) {
             application.minimize({ animate: false, duration });
           }
         }
-        if (isObject(data2?.beforeMinimized)) {
-          application.position.state.set({ name: "#beforeMinimized", ...data2.beforeMinimized });
+        if (isObject(data?.beforeMinimized)) {
+          application.position.state.set({ name: "#beforeMinimized", ...data.beforeMinimized });
         }
-        application.position.set(data2.position);
+        application.position.set(data.position);
       } else {
-        let positionData = data2.position;
-        if (isObject(data2.beforeMinimized)) {
-          positionData = data2.beforeMinimized;
-          positionData.left = data2.position.left;
-          positionData.top = data2.position.top;
+        let positionData = data.position;
+        if (isObject(data.beforeMinimized)) {
+          positionData = data.beforeMinimized;
+          positionData.left = data.position.left;
+          positionData.top = data.position.top;
         }
         application.position.set(positionData);
       }
@@ -19729,8 +19735,8 @@ class TJSDialogData {
   /**
    * @param {import('./types').TJSDialog.OptionsData} data - Merge provided data object into Dialog data.
    */
-  merge(data2) {
-    deepMerge(this.#internal, data2);
+  merge(data) {
+    deepMerge(this.#internal, data);
     this.#updateComponent();
   }
   /**
@@ -19738,12 +19744,12 @@ class TJSDialogData {
    *
    * @param {import('./types').TJSDialog.OptionsData}   data - Dialog data.
    */
-  replace(data2) {
-    if (!isObject(data2)) {
+  replace(data) {
+    if (!isObject(data)) {
       throw new TypeError(`TJSDialogData replace error: 'data' is not an object'.`);
     }
     this.#internal = {};
-    this.merge(data2);
+    this.merge(data);
   }
   /**
    * Provides a way to safely set this dialogs data given an accessor string which describes the
@@ -19785,11 +19791,11 @@ class TJSDialog extends SvelteApp {
    *
    * @param {import('./types').SvelteApp.OptionsCore}   [options] - SvelteApp options.
    */
-  constructor(data2, options = {}) {
-    super({ popOutModuleDisable: typeof data2?.modal === "boolean" ? data2.modal : false, ...options });
+  constructor(data, options = {}) {
+    super({ popOutModuleDisable: typeof data?.modal === "boolean" ? data.modal : false, ...options });
     this.#managedPromise = new ManagedPromise();
     this.#data = new TJSDialogData(this);
-    this.#data.replace(data2);
+    this.#data.replace(data);
   }
   /**
    * Default options for TJSDialog. Provides a default width and setting `height` to `auto` to always display dialog
@@ -19937,7 +19943,7 @@ class TJSDialog extends SvelteApp {
    * // Logs 'YES result', 'NO Result', or null if the user closed the dialog without making a selection.
    * console.log(result);
    */
-  static async confirm({ onYes, onNo, ...data2 } = {}, options = {}) {
+  static async confirm({ onYes, onNo, ...data } = {}, options = {}) {
     const mergedButtons = deepMerge({
       yes: {
         icon: "fas fa-check",
@@ -19947,9 +19953,9 @@ class TJSDialog extends SvelteApp {
         icon: "fas fa-times",
         label: "No"
       }
-    }, data2.buttons ?? {});
+    }, data.buttons ?? {});
     return this.wait({
-      ...data2,
+      ...data,
       buttons: deepMerge(mergedButtons, {
         yes: {
           onPress: ({ application }) => this.#invokeFn(onYes, application, true)
@@ -19958,7 +19964,7 @@ class TJSDialog extends SvelteApp {
           onPress: ({ application }) => this.#invokeFn(onNo, application, false)
         }
       }),
-      default: data2.default ?? "yes"
+      default: data.default ?? "yes"
     }, options);
   }
   /**
@@ -20035,9 +20041,9 @@ class TJSDialog extends SvelteApp {
    * // Logs 'OK' or null if the user closed the dialog without making a selection.
    * console.log(result);
    */
-  static async prompt({ onOk, label, icon = "fas fa-check", ...data2 } = {}, options = {}) {
+  static async prompt({ onOk, label, icon = "fas fa-check", ...data } = {}, options = {}) {
     return this.wait({
-      ...data2,
+      ...data,
       buttons: {
         ok: {
           icon,
@@ -20064,11 +20070,11 @@ class TJSDialog extends SvelteApp {
    *
    * @returns {Promise<T>} A Promise that resolves to the chosen result.
    */
-  static async wait(data2, options = {}) {
-    if (!isObject(data2)) {
+  static async wait(data, options = {}) {
+    if (!isObject(data)) {
       throw new TypeError(`TJSDialog.wait error: 'data' is not an object'.`);
     }
-    return new this({ ...data2 }, options).wait();
+    return new this({ ...data }, options).wait();
   }
 }
 PopoutSupport.initialize();
@@ -21330,53 +21336,53 @@ function create_fragment$1k(ctx) {
 }
 function instance$1h($$self, $$props, $$invalidate) {
   let { key } = $$props;
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   let { disabled = false } = $$props;
   let { itemAttribute = false } = $$props;
   let { options = [] } = $$props;
   const click_handler = () => {
-    $$invalidate(0, data2.value = data2.default, data2);
+    $$invalidate(0, data.value = data.default, data);
   };
   function input_change_handler() {
-    data2.value = this.checked;
-    $$invalidate(0, data2);
+    data.value = this.checked;
+    $$invalidate(0, data);
     $$invalidate(3, options);
   }
   function select_change_handler() {
-    data2.value = select_value(this);
-    $$invalidate(0, data2);
+    data.value = select_value(this);
+    $$invalidate(0, data);
     $$invalidate(3, options);
   }
   function input_input_handler() {
-    data2.value = to_number(this.value);
-    $$invalidate(0, data2);
+    data.value = to_number(this.value);
+    $$invalidate(0, data);
     $$invalidate(3, options);
   }
   function select_change_handler_1() {
-    data2.value = select_value(this);
-    $$invalidate(0, data2);
+    data.value = select_value(this);
+    $$invalidate(0, data);
     $$invalidate(3, options);
   }
   function propertypathinput_value_binding(value) {
-    if ($$self.$$.not_equal(data2.value, value)) {
-      data2.value = value;
-      $$invalidate(0, data2);
+    if ($$self.$$.not_equal(data.value, value)) {
+      data.value = value;
+      $$invalidate(0, data);
     }
   }
   function input_input_handler_1() {
-    data2.value = this.value;
-    $$invalidate(0, data2);
+    data.value = this.value;
+    $$invalidate(0, data);
     $$invalidate(3, options);
   }
   $$self.$$set = ($$props2) => {
     if ("key" in $$props2) $$invalidate(4, key = $$props2.key);
-    if ("data" in $$props2) $$invalidate(0, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(0, data = $$props2.data);
     if ("disabled" in $$props2) $$invalidate(1, disabled = $$props2.disabled);
     if ("itemAttribute" in $$props2) $$invalidate(2, itemAttribute = $$props2.itemAttribute);
     if ("options" in $$props2) $$invalidate(3, options = $$props2.options);
   };
   return [
-    data2,
+    data,
     disabled,
     itemAttribute,
     options,
@@ -21598,7 +21604,8 @@ function instance$1g($$self, $$props, $$invalidate) {
       return;
     }
     if (!filePicker) {
-      filePicker = new FilePicker({
+      const FilePickerImpl = foundry.applications.apps.FilePicker.implementation;
+      filePicker = new FilePickerImpl({
         type,
         current: value,
         callback: (path) => {
@@ -21630,7 +21637,7 @@ function instance$1g($$self, $$props, $$invalidate) {
     input_input_handler
   ];
 }
-class FilePicker_1 extends SvelteComponent {
+class FilePicker extends SvelteComponent {
   constructor(options) {
     super();
     init(this, options, instance$1g, create_fragment$1j, safe_not_equal, {
@@ -21695,10 +21702,10 @@ function create_fragment$1i(ctx) {
               ctx[0]
             )) ctx[0].apply(this, arguments);
           }),
-          listen(div, "dragstart", prevent_default(
+          listen(div, "dragstart", self(prevent_default(
             /*dragstart_handler*/
             ctx[13]
-          )),
+          ))),
           listen(div, "drop", prevent_default(
             /*dropData*/
             ctx[1]
@@ -21776,13 +21783,13 @@ function instance$1f($$self, $$props, $$invalidate) {
   function dropData(event, ...args) {
     if (!active2) return;
     $$invalidate(10, counter = 0);
-    let data2;
+    let data;
     try {
-      data2 = JSON.parse(event.dataTransfer.getData("text/plain"));
+      data = JSON.parse(event.dataTransfer.getData("text/plain"));
     } catch (err) {
       return false;
     }
-    callback(data2, event, ...args);
+    callback(data, event, ...args);
   }
   let counter = 0;
   function enter(event) {
@@ -22213,7 +22220,7 @@ function create_each_block$E(key_1, ctx) {
     filepicker_props.value = /*item*/
     ctx[18].img;
   }
-  filepicker = new FilePicker_1({ props: filepicker_props });
+  filepicker = new FilePicker({ props: filepicker_props });
   binding_callbacks.push(() => bind(filepicker, "value", filepicker_value_binding));
   function select_block_type(ctx2, dirty) {
     if (
@@ -22698,21 +22705,21 @@ function instance$1e($$self, $$props, $$invalidate) {
   let currencies;
   let style;
   let $currenciesStore;
-  let { store: store2 } = $$props;
-  const currenciesStore = store2.currencies;
+  let { store } = $$props;
+  const currenciesStore = store.currencies;
   component_subscribe($$self, currenciesStore, (value) => $$invalidate(6, $currenciesStore = value));
   let isHovering = false;
-  async function dropData(data2) {
-    if (!data2.type) {
+  async function dropData(data) {
+    if (!data.type) {
       throw custom_error("Something went wrong when dropping this item!");
     }
-    if (data2.type !== "Item") {
-      throw custom_error("You must drop an item, not " + data2.type.toLowerCase() + "!");
+    if (data.type !== "Item") {
+      throw custom_error("You must drop an item, not " + data.type.toLowerCase() + "!");
     }
-    store2.addItem(data2);
+    store.addItem(data);
   }
-  const click_handler = () => store2.addAttribute();
-  const change_handler = (index) => store2.setPrimary(index);
+  const click_handler = () => store.addAttribute();
+  const change_handler = (index) => store.setPrimary(index);
   function input0_input_handler(each_value, index) {
     each_value[index].name = this.value;
     $$invalidate(3, currencies), $$invalidate(6, $currenciesStore);
@@ -22722,7 +22729,7 @@ function instance$1e($$self, $$props, $$invalidate) {
     $$invalidate(3, currencies), $$invalidate(6, $currenciesStore);
   }
   const change_handler_1 = () => {
-    store2.sortCurrencies();
+    store.sortCurrencies();
   };
   function input1_input_handler(each_value, index) {
     each_value[index].abbreviation = this.value;
@@ -22738,14 +22745,14 @@ function instance$1e($$self, $$props, $$invalidate) {
     each_value[index].data.path = this.value;
     $$invalidate(3, currencies), $$invalidate(6, $currenciesStore);
   }
-  const click_handler_1 = (index) => store2.editItem(index);
-  const click_handler_2 = (index) => store2.removeEntry(index);
+  const click_handler_1 = (index) => store.editItem(index);
+  const click_handler_2 = (index) => store.removeEntry(index);
   function dropzone_isHovering_binding(value) {
     isHovering = value;
     $$invalidate(1, isHovering);
   }
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*$currenciesStore*/
@@ -22755,12 +22762,12 @@ function instance$1e($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty & /*store*/
     1) {
       $$invalidate(2, style = {
-        "grid-template-columns": `${store2.secondary ? "" : "28px"} 1.25fr ${store2.secondary ? "" : "60px"} 0.5fr 60px 1fr 28px`
+        "grid-template-columns": `${store.secondary ? "" : "28px"} 1.25fr ${store.secondary ? "" : "60px"} 0.5fr 60px 1fr 28px`
       });
     }
   };
   return [
-    store2,
+    store,
     isHovering,
     style,
     currencies,
@@ -22811,7 +22818,8 @@ async function updateCache() {
   for (const currency of currencies.concat(secondaryCurrencies)) {
     if (currency.type !== "item") continue;
     if (currency.data.uuid) {
-      COMPENDIUM_CACHE[currency.data?.uuid] = (await fromUuid(currency.data.uuid)).toObject();
+      const item = await foundry.utils.fromUuid(currency.data.uuid);
+      if (item) COMPENDIUM_CACHE[currency.data.uuid] = item.toObject();
     } else if (currency.data.item) {
       const item = await findOrCreateItemInCompendium(currency.data.item);
       COMPENDIUM_CACHE[item.uuid] = item.toObject();
@@ -22844,18 +22852,16 @@ async function findOrCreateItemInCompendium(itemData) {
   if (!compendiumItem) {
     compendiumItem = (await addItemsToCompendium([itemData]))[0];
   }
-  COMPENDIUM_CACHE[compendiumItem.uuid] = itemData;
+  COMPENDIUM_CACHE[compendiumItem.uuid] = compendiumItem.toObject();
   return compendiumItem;
 }
 function findSimilarItemInCompendiumSync(itemToFind) {
-  return Object.values(COMPENDIUM_CACHE).find((compendiumItem) => {
-    return compendiumItem.name === itemToFind.name && compendiumItem.type === itemToFind.type;
-  }) ?? false;
+  return findSimilarItem(Object.values(COMPENDIUM_CACHE), itemToFind) ?? false;
 }
 class CurrencyStore {
-  constructor(data2, secondary = false) {
+  constructor(data, secondary = false) {
     this.secondary = secondary;
-    this.currencies = writable(data2.map((entry, index) => {
+    this.currencies = writable(data.map((entry, index) => {
       return {
         ...entry,
         index,
@@ -22898,15 +22904,15 @@ class CurrencyStore {
       return currencies;
     });
   }
-  async addItem(data2) {
+  async addItem(data) {
     let uuid = false;
-    if (data2.pack) {
-      uuid = "Compendium" + data2.pack + "." + data2.id;
+    if (data.pack) {
+      uuid = "Compendium" + data.pack + "." + data.id;
     }
-    let item = await Item.implementation.fromDropData(data2);
+    let item = await Item.implementation.fromDropData(data);
     let itemData = item.toObject();
     if (!itemData) {
-      console.error(data2);
+      console.error(data);
       throw custom_error("Something went wrong when dropping this item!");
     }
     if (!uuid) {
@@ -22941,12 +22947,12 @@ class CurrencyStore {
   }
   async editItem(index) {
     const currencies = get_store_value(this.currencies);
-    const data2 = currencies[index].data;
+    const data = currencies[index].data;
     let item;
-    if (data2.uuid) {
-      item = await fromUuid(data2.uuid);
+    if (data.uuid) {
+      item = await foundry.utils.fromUuid(data.uuid);
     } else {
-      let itemData = data2.item;
+      let itemData = data.item;
       if (itemData._id) delete itemData._id;
       if (itemData.ownership) delete itemData.ownership;
       const items = Array.from(game.items);
@@ -23166,13 +23172,13 @@ function create_fragment$1g(ctx) {
 }
 function instance$1d($$self, $$props, $$invalidate) {
   const { application } = getContext("#external");
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   let { secondary = false } = $$props;
   let { elementRoot } = $$props;
-  const store2 = new CurrencyStore(data2 || getSetting(SETTINGS.CURRENCIES), secondary);
+  const store = new CurrencyStore(data || getSetting(SETTINGS.CURRENCIES), secondary);
   let form;
   async function updateSettings() {
-    application.options.resolve(store2.export());
+    application.options.resolve(store.export());
     application.close();
   }
   function requestSubmit() {
@@ -23192,7 +23198,7 @@ function instance$1d($$self, $$props, $$invalidate) {
     $$invalidate(0, elementRoot);
   }
   $$self.$$set = ($$props2) => {
-    if ("data" in $$props2) $$invalidate(7, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(7, data = $$props2.data);
     if ("secondary" in $$props2) $$invalidate(1, secondary = $$props2.secondary);
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
   };
@@ -23202,9 +23208,9 @@ function instance$1d($$self, $$props, $$invalidate) {
     requestSubmit,
     form,
     application,
-    store2,
+    store,
     updateSettings,
-    data2,
+    data,
     click_handler,
     form_1_binding,
     applicationshell_elementRoot_binding
@@ -23223,8 +23229,8 @@ class Currencies_editor_shell extends SvelteComponent {
   get data() {
     return this.$$.ctx[7];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get secondary() {
@@ -23246,11 +23252,11 @@ class Currencies_editor_shell extends SvelteComponent {
   }
 }
 class Editor extends SvelteApp {
-  constructor(data2, options, dialogOptions) {
+  constructor(data, options, dialogOptions) {
     super({
       svelte: {
         props: {
-          data: data2
+          data
         }
       },
       ...options
@@ -23261,18 +23267,24 @@ class Editor extends SvelteApp {
       width: 400,
       height: "auto",
       classes: ["item-piles-app"],
-      close: () => this.options.resolve(null),
       svelte: {
         target: document.body
       }
     });
   }
-  static async show(data2, options = {}, dialogOptions = {}) {
+  async close(options = {}) {
+    this.options.resolve?.(null);
+    return super.close(options);
+  }
+  static async show(data, options = {}, dialogOptions = {}) {
     const app = options?.id ? getActiveApps(options?.id, true) : false;
-    if (app) return app.render(false, { focus: true });
+    if (app) {
+      app.render(false, { focus: true });
+      return null;
+    }
     return new Promise((resolve) => {
       options.resolve = resolve;
-      return new this(data2, options, dialogOptions).render(true, { focus: true });
+      return new this(data, options, dialogOptions).render(true, { focus: true });
     });
   }
 }
@@ -23704,10 +23716,10 @@ function create_fragment$1f(ctx) {
 function instance$1c($$self, $$props, $$invalidate) {
   let $itemFilters;
   const { application } = getContext("#external");
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   let { elementRoot } = $$props;
   let form;
-  const itemFilters = writable(data2 ? data2 : getSetting(SETTINGS.ITEM_FILTERS));
+  const itemFilters = writable(data ? data : getSetting(SETTINGS.ITEM_FILTERS));
   component_subscribe($$self, itemFilters, (value) => $$invalidate(3, $itemFilters = value));
   function add() {
     itemFilters.update((val) => {
@@ -23750,7 +23762,7 @@ function instance$1c($$self, $$props, $$invalidate) {
     $$invalidate(0, elementRoot);
   }
   $$self.$$set = ($$props2) => {
-    if ("data" in $$props2) $$invalidate(9, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(9, data = $$props2.data);
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
   };
   return [
@@ -23763,7 +23775,7 @@ function instance$1c($$self, $$props, $$invalidate) {
     add,
     remove,
     updateSettings,
-    data2,
+    data,
     propertypathinput_value_binding,
     input_input_handler,
     click_handler,
@@ -23783,8 +23795,8 @@ class Item_filters_editor extends SvelteComponent {
   get data() {
     return this.$$.ctx[9];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get elementRoot() {
@@ -24413,9 +24425,9 @@ function instance$1b($$self, $$props, $$invalidate) {
   const { application } = getContext("#external");
   let form;
   let { elementRoot } = $$props;
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   const keyValuePair = application.options?.keyValuePair ?? false;
-  const stringListStore = writable(data2);
+  const stringListStore = writable(data);
   component_subscribe($$self, stringListStore, (value) => $$invalidate(3, $stringListStore = value));
   function add() {
     stringListStore.update((val) => {
@@ -24428,10 +24440,7 @@ function instance$1b($$self, $$props, $$invalidate) {
     });
   }
   function remove(index) {
-    stringListStore.update((val) => {
-      val.splice(index, 1);
-      return val;
-    });
+    stringListStore.update((val) => val.filter((_, i) => i !== index));
   }
   async function updateSettings() {
     application.options.resolve(get_store_value(stringListStore));
@@ -24467,7 +24476,7 @@ function instance$1b($$self, $$props, $$invalidate) {
   }
   $$self.$$set = ($$props2) => {
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
-    if ("data" in $$props2) $$invalidate(10, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(10, data = $$props2.data);
   };
   return [
     elementRoot,
@@ -24480,7 +24489,7 @@ function instance$1b($$self, $$props, $$invalidate) {
     add,
     remove,
     updateSettings,
-    data2,
+    data,
     input0_input_handler,
     input1_input_handler,
     input_input_handler,
@@ -24508,8 +24517,8 @@ class String_list_editor extends SvelteComponent {
   get data() {
     return this.$$.ctx[10];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get requestSubmit() {
@@ -25329,12 +25338,12 @@ function instance$19($$self, $$props, $$invalidate) {
   let $priceModifiers;
   const { application } = getContext("#external");
   let form;
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   let { elementRoot } = $$props;
-  const priceModifiers = writable(data2.map((data3) => {
-    data3.actor = globalThis.fromUuidSync(data3.actorUuid);
-    if (!data3.actor) return false;
-    return data3;
+  const priceModifiers = writable(data.map((data2) => {
+    data2.actor = foundry.utils.fromUuidSync(data2.actorUuid);
+    if (!data2.actor) return false;
+    return data2;
   }).filter(Boolean));
   component_subscribe($$self, priceModifiers, (value) => $$invalidate(3, $priceModifiers = value));
   function remove(index) {
@@ -25345,8 +25354,8 @@ function instance$19($$self, $$props, $$invalidate) {
   }
   async function updateSettings() {
     let result = get_store_value(priceModifiers);
-    result.forEach((data3) => {
-      data3.actorUuid = getUuid(data3.actor);
+    result.forEach((data2) => {
+      data2.actorUuid = getUuid(data2.actor);
     });
     application.options.resolve?.(result);
     application.close();
@@ -25356,17 +25365,17 @@ function instance$19($$self, $$props, $$invalidate) {
   }
   async function dropData(event) {
     event.preventDefault();
-    let data3;
+    let data2;
     try {
-      data3 = JSON.parse(event.dataTransfer.getData("text/plain"));
+      data2 = JSON.parse(event.dataTransfer.getData("text/plain"));
     } catch (err) {
       return false;
     }
-    if (data3.type !== "Actor") return;
-    const actor = getSourceActorFromDropData(data3);
+    if (data2.type !== "Actor") return;
+    const actor = getSourceActorFromDropData(data2);
     if (!actor) return;
     priceModifiers.update((val) => {
-      if (val.find((data4) => data4.actor === actor)) return val;
+      if (val.find((data3) => data3.actor === actor)) return val;
       val.push({
         override: false,
         actor,
@@ -25406,7 +25415,7 @@ function instance$19($$self, $$props, $$invalidate) {
     $$invalidate(0, elementRoot);
   }
   $$self.$$set = ($$props2) => {
-    if ("data" in $$props2) $$invalidate(9, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(9, data = $$props2.data);
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
   };
   return [
@@ -25419,7 +25428,7 @@ function instance$19($$self, $$props, $$invalidate) {
     remove,
     updateSettings,
     dropData,
-    data2,
+    data,
     input_change_handler,
     sliderinput0_value_binding,
     sliderinput1_value_binding,
@@ -25440,8 +25449,8 @@ class Price_modifiers_editor_shell extends SvelteComponent {
   get data() {
     return this.$$.ctx[9];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get elementRoot() {
@@ -27765,7 +27774,7 @@ function create_each_block_1$i(key_1, ctx) {
     filepicker_props.value = /*price*/
     ctx[35].img;
   }
-  filepicker = new FilePicker_1({ props: filepicker_props });
+  filepicker = new FilePicker({ props: filepicker_props });
   binding_callbacks.push(() => bind(filepicker, "value", filepicker_value_binding));
   function select_block_type(ctx2, dirty) {
     if (
@@ -28622,21 +28631,21 @@ function instance$18($$self, $$props, $$invalidate) {
     preset.id = foundry.utils.randomID();
     $$invalidate(0, prices = [...prices, preset]);
   }
-  async function dropData(data2) {
-    if (!data2.type) {
+  async function dropData(data) {
+    if (!data.type) {
       throw custom_error("Something went wrong when dropping this item!");
     }
-    if (data2.type !== "Item") {
-      throw custom_error("You must drop an item, not " + data2.type.toLowerCase() + "!");
+    if (data.type !== "Item") {
+      throw custom_error("You must drop an item, not " + data.type.toLowerCase() + "!");
     }
     let uuid = false;
-    if (data2.pack) {
-      uuid = "Compendium" + data2.pack + "." + data2.id;
+    if (data.pack) {
+      uuid = "Compendium" + data.pack + "." + data.id;
     }
-    let item = await Item.implementation.fromDropData(data2);
+    let item = await Item.implementation.fromDropData(data);
     let itemData = item.toObject();
     if (!itemData) {
-      console.error(data2);
+      console.error(data);
       throw custom_error("Something went wrong when dropping this item!");
     }
     const itemCurrencies = prices.map((entry) => entry.data?.item ?? {});
@@ -28666,8 +28675,8 @@ function instance$18($$self, $$props, $$invalidate) {
     }
   }
   async function editItem(index) {
-    const data2 = prices[index].data;
-    let item = await fromUuid(data2.uuid);
+    const data = prices[index].data;
+    let item = await foundry.utils.fromUuid(data.uuid);
     item.sheet.render(true);
   }
   function handleConsider(e) {
@@ -28996,10 +29005,10 @@ function create_fragment$1a(ctx) {
 }
 function instance$17($$self, $$props, $$invalidate) {
   const { application } = getContext("#external");
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   let { elementRoot } = $$props;
   let form;
-  let prices = foundry.utils.deepClone(data2);
+  let prices = foundry.utils.deepClone(data);
   async function updateSettings() {
     application.options.resolve(prices);
     application.close();
@@ -29025,7 +29034,7 @@ function instance$17($$self, $$props, $$invalidate) {
     $$invalidate(0, elementRoot);
   }
   $$self.$$set = ($$props2) => {
-    if ("data" in $$props2) $$invalidate(6, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(6, data = $$props2.data);
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
   };
   return [
@@ -29035,7 +29044,7 @@ function instance$17($$self, $$props, $$invalidate) {
     prices,
     application,
     updateSettings,
-    data2,
+    data,
     pricelist_prices_binding,
     click_handler,
     form_1_binding,
@@ -29054,8 +29063,8 @@ class Price_preset_editor_shell extends SvelteComponent {
   get data() {
     return this.$$.ctx[6];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get elementRoot() {
@@ -29499,9 +29508,9 @@ function instance$16($$self, $$props, $$invalidate) {
   const { application } = getContext("#external");
   let form;
   let { elementRoot } = $$props;
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   const itemFilters = (getSetting(SETTINGS.ITEM_FILTERS).find((filter2) => filter2.path === "type")?.filters ?? "").split(",");
-  const unstackableItemTypesStore = writable(data2);
+  const unstackableItemTypesStore = writable(data);
   component_subscribe($$self, unstackableItemTypesStore, (value) => $$invalidate(2, $unstackableItemTypesStore = value));
   let systemTypes = Object.keys(game.system.documentTypes.Item).filter((type) => !itemFilters.includes(type));
   let unusedTypes = [];
@@ -29545,7 +29554,7 @@ function instance$16($$self, $$props, $$invalidate) {
   }
   $$self.$$set = ($$props2) => {
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
-    if ("data" in $$props2) $$invalidate(11, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(11, data = $$props2.data);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*$unstackableItemTypesStore*/
@@ -29567,7 +29576,7 @@ function instance$16($$self, $$props, $$invalidate) {
     add,
     remove,
     updateSettings,
-    data2,
+    data,
     select_change_handler,
     click_handler,
     form_1_binding,
@@ -29593,8 +29602,8 @@ class Unstackable_item_types_editor extends SvelteComponent {
   get data() {
     return this.$$.ctx[11];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get requestSubmit() {
@@ -30014,11 +30023,11 @@ function create_fragment$18(ctx) {
 function instance$15($$self, $$props, $$invalidate) {
   let $values;
   const { application } = getContext("#external");
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   let { elementRoot } = $$props;
   let form;
   const options = application.options;
-  const styleValues = data2?.subscribe ? data2 : writable(data2);
+  const styleValues = data?.subscribe ? data : writable(data);
   const styleStore = Object.entries(get_store_value(styleValues));
   let values = writable(styleStore.length ? styleStore : [["", ""]]);
   component_subscribe($$self, values, (value) => $$invalidate(2, $values = value));
@@ -30065,17 +30074,17 @@ function instance$15($$self, $$props, $$invalidate) {
     $$invalidate(0, elementRoot);
   }
   $$self.$$set = ($$props2) => {
-    if ("data" in $$props2) $$invalidate(10, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(10, data = $$props2.data);
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*$values*/
     4) {
       {
-        const data3 = Object.fromEntries($values.map((entry) => [entry[0].trim(), entry[1].trim()]).filter((entry) => entry[0].length && entry[1].length));
-        styleValues.set(data3);
-        if (options.onchange) {
-          options.onchange(data3);
+        const data2 = Object.fromEntries($values.map((entry) => [entry[0].trim(), entry[1].trim()]).filter((entry) => entry[0].length && entry[1].length));
+        styleValues.set(data2);
+        if (options.customOnChange) {
+          options.customOnChange(data2);
         }
       }
     }
@@ -30091,7 +30100,7 @@ function instance$15($$self, $$props, $$invalidate) {
     add,
     remove,
     updateSettings,
-    data2,
+    data,
     click_handler,
     input0_input_handler,
     input1_input_handler,
@@ -30113,8 +30122,8 @@ class Styles_editor extends SvelteComponent {
   get data() {
     return this.$$.ctx[10];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get elementRoot() {
@@ -30763,8 +30772,8 @@ function instance$13($$self, $$props, $$invalidate) {
   const { application } = getContext("#external");
   let form;
   let { elementRoot } = $$props;
-  let { data: data2 } = $$props;
-  const vaultStyleStore = writable(data2);
+  let { data } = $$props;
+  const vaultStyleStore = writable(data);
   component_subscribe($$self, vaultStyleStore, (value) => $$invalidate(4, $vaultStyleStore = value));
   loadImages();
   function add() {
@@ -30775,8 +30784,8 @@ function instance$13($$self, $$props, $$invalidate) {
   }
   let images = [];
   async function loadImages() {
-    const data3 = await FilePicker.browse("public", "icons/weapons/swords/*.webp", { wildcard: true });
-    $$invalidate(3, images = data3.files);
+    const data2 = await foundry.applications.apps.FilePicker.implementation.browse("public", "icons/weapons/swords/*.webp", { wildcard: true });
+    $$invalidate(3, images = data2.files);
   }
   function remove(index) {
     vaultStyleStore.update((arr) => {
@@ -30810,7 +30819,7 @@ function instance$13($$self, $$props, $$invalidate) {
   }
   $$self.$$set = ($$props2) => {
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
-    if ("data" in $$props2) $$invalidate(10, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(10, data = $$props2.data);
   };
   return [
     elementRoot,
@@ -30823,7 +30832,7 @@ function instance$13($$self, $$props, $$invalidate) {
     add,
     remove,
     updateSettings,
-    data2,
+    data,
     styleentry_entry_binding,
     click_handler,
     form_1_binding,
@@ -30849,8 +30858,8 @@ class Vault_styles_editor extends SvelteComponent {
   get data() {
     return this.$$.ctx[10];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get requestSubmit() {
@@ -31054,30 +31063,30 @@ function create_fragment$15(ctx) {
 function instance$12($$self, $$props, $$invalidate) {
   const { application } = getContext("#external");
   let { key } = $$props;
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   let { callback = false } = $$props;
   let editor = false;
   if (!callback) {
-    editor = editors[data2.application];
+    editor = editors[data.application];
     callback = () => {
       showEditor();
     };
   }
   function showEditor() {
     if (editor) {
-      const combinedData = data2?.mergedDefaults ? foundry.utils.mergeObject(data2.mergedDefaults, data2.value) : data2.value;
+      const combinedData = data?.mergedDefaults ? foundry.utils.mergeObject(data.mergedDefaults, data.value) : data.value;
       openEditor(key, combinedData).then((result) => {
         if (!result) return;
-        if (data2?.mergedDefaults) {
-          result = foundry.utils.diffObject(data2?.mergedDefaults, result);
+        if (data?.mergedDefaults) {
+          result = foundry.utils.diffObject(data?.mergedDefaults, result);
         }
-        $$invalidate(0, data2.value = result, data2);
+        $$invalidate(0, data.value = result, data);
       });
       application.options.zLevel = 100;
     }
   }
   function reset() {
-    $$invalidate(0, data2.value = foundry.utils.deepClone(data2.default), data2);
+    $$invalidate(0, data.value = foundry.utils.deepClone(data.default), data);
   }
   const click_handler = () => reset();
   const click_handler_1 = () => {
@@ -31085,10 +31094,10 @@ function instance$12($$self, $$props, $$invalidate) {
   };
   $$self.$$set = ($$props2) => {
     if ("key" in $$props2) $$invalidate(3, key = $$props2.key);
-    if ("data" in $$props2) $$invalidate(0, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(0, data = $$props2.data);
     if ("callback" in $$props2) $$invalidate(1, callback = $$props2.callback);
   };
-  return [data2, callback, reset, key, click_handler, click_handler_1];
+  return [data, callback, reset, key, click_handler, click_handler_1];
 }
 class SettingButton extends SvelteComponent {
   constructor(options) {
@@ -31841,23 +31850,26 @@ function create_if_block$O(ctx) {
   let setting14;
   let updating_data_18;
   let t19;
-  let settingbutton5;
+  let setting15;
   let updating_data_19;
   let t20;
-  let settingbutton6;
+  let settingbutton5;
   let updating_data_20;
   let t21;
-  let setting15;
+  let settingbutton6;
   let updating_data_21;
   let t22;
-  let settingbutton7;
+  let setting16;
   let updating_data_22;
   let t23;
-  let settingbutton8;
+  let settingbutton7;
   let updating_data_23;
   let t24;
-  let settingbutton9;
+  let settingbutton8;
   let updating_data_24;
+  let t25;
+  let settingbutton9;
+  let updating_data_25;
   let current;
   function setting0_data_binding_1(value) {
     ctx[18](value);
@@ -32127,19 +32139,35 @@ function create_if_block$O(ctx) {
     ctx[37](value);
   }
   let setting14_props = {
+    key: SETTINGS.ITEM_PRICE_ATTRIBUTE,
+    itemAttribute: true
+  };
+  if (
+    /*settings*/
+    ctx[1][SETTINGS.ITEM_PRICE_ATTRIBUTE] !== void 0
+  ) {
+    setting14_props.data = /*settings*/
+    ctx[1][SETTINGS.ITEM_PRICE_ATTRIBUTE];
+  }
+  setting14 = new Setting({ props: setting14_props });
+  binding_callbacks.push(() => bind(setting14, "data", setting14_data_binding));
+  function setting15_data_binding(value) {
+    ctx[38](value);
+  }
+  let setting15_props = {
     key: SETTINGS.ITEM_PREVIEW_PERMISSION_LEVEL
   };
   if (
     /*settings*/
     ctx[1][SETTINGS.ITEM_PREVIEW_PERMISSION_LEVEL] !== void 0
   ) {
-    setting14_props.data = /*settings*/
+    setting15_props.data = /*settings*/
     ctx[1][SETTINGS.ITEM_PREVIEW_PERMISSION_LEVEL];
   }
-  setting14 = new Setting({ props: setting14_props });
-  binding_callbacks.push(() => bind(setting14, "data", setting14_data_binding));
+  setting15 = new Setting({ props: setting15_props });
+  binding_callbacks.push(() => bind(setting15, "data", setting15_data_binding));
   function settingbutton5_data_binding(value) {
-    ctx[38](value);
+    ctx[39](value);
   }
   let settingbutton5_props = { key: SETTINGS.CURRENCIES };
   if (
@@ -32152,7 +32180,7 @@ function create_if_block$O(ctx) {
   settingbutton5 = new SettingButton({ props: settingbutton5_props });
   binding_callbacks.push(() => bind(settingbutton5, "data", settingbutton5_data_binding));
   function settingbutton6_data_binding(value) {
-    ctx[39](value);
+    ctx[40](value);
   }
   let settingbutton6_props = { key: SETTINGS.SECONDARY_CURRENCIES };
   if (
@@ -32164,10 +32192,10 @@ function create_if_block$O(ctx) {
   }
   settingbutton6 = new SettingButton({ props: settingbutton6_props });
   binding_callbacks.push(() => bind(settingbutton6, "data", settingbutton6_data_binding));
-  function setting15_data_binding(value) {
-    ctx[40](value);
+  function setting16_data_binding(value) {
+    ctx[41](value);
   }
-  let setting15_props = {
+  let setting16_props = {
     key: SETTINGS.CURRENCY_DECIMAL_DIGITS,
     disabled: (
       /*settings*/
@@ -32178,13 +32206,13 @@ function create_if_block$O(ctx) {
     /*settings*/
     ctx[1][SETTINGS.CURRENCY_DECIMAL_DIGITS] !== void 0
   ) {
-    setting15_props.data = /*settings*/
+    setting16_props.data = /*settings*/
     ctx[1][SETTINGS.CURRENCY_DECIMAL_DIGITS];
   }
-  setting15 = new Setting({ props: setting15_props });
-  binding_callbacks.push(() => bind(setting15, "data", setting15_data_binding));
+  setting16 = new Setting({ props: setting16_props });
+  binding_callbacks.push(() => bind(setting16, "data", setting16_data_binding));
   function settingbutton7_data_binding(value) {
-    ctx[41](value);
+    ctx[42](value);
   }
   let settingbutton7_props = { key: SETTINGS.ITEM_FILTERS };
   if (
@@ -32197,7 +32225,7 @@ function create_if_block$O(ctx) {
   settingbutton7 = new SettingButton({ props: settingbutton7_props });
   binding_callbacks.push(() => bind(settingbutton7, "data", settingbutton7_data_binding));
   function settingbutton8_data_binding(value) {
-    ctx[42](value);
+    ctx[43](value);
   }
   let settingbutton8_props = { key: SETTINGS.ITEM_SIMILARITIES };
   if (
@@ -32210,7 +32238,7 @@ function create_if_block$O(ctx) {
   settingbutton8 = new SettingButton({ props: settingbutton8_props });
   binding_callbacks.push(() => bind(settingbutton8, "data", settingbutton8_data_binding));
   function settingbutton9_data_binding(value) {
-    ctx[43](value);
+    ctx[44](value);
   }
   let settingbutton9_props = { key: SETTINGS.UNSTACKABLE_ITEM_TYPES };
   if (
@@ -32267,16 +32295,18 @@ function create_if_block$O(ctx) {
       t18 = space();
       create_component(setting14.$$.fragment);
       t19 = space();
-      create_component(settingbutton5.$$.fragment);
-      t20 = space();
-      create_component(settingbutton6.$$.fragment);
-      t21 = space();
       create_component(setting15.$$.fragment);
+      t20 = space();
+      create_component(settingbutton5.$$.fragment);
+      t21 = space();
+      create_component(settingbutton6.$$.fragment);
       t22 = space();
-      create_component(settingbutton7.$$.fragment);
+      create_component(setting16.$$.fragment);
       t23 = space();
-      create_component(settingbutton8.$$.fragment);
+      create_component(settingbutton7.$$.fragment);
       t24 = space();
+      create_component(settingbutton8.$$.fragment);
+      t25 = space();
       create_component(settingbutton9.$$.fragment);
       attr(div0, "class", "item-piles-tab svelte-ip-1rqs9xw");
       toggle_class(
@@ -32344,16 +32374,18 @@ function create_if_block$O(ctx) {
       append(div2, t18);
       mount_component(setting14, div2, null);
       append(div2, t19);
-      mount_component(settingbutton5, div2, null);
-      append(div2, t20);
-      mount_component(settingbutton6, div2, null);
-      append(div2, t21);
       mount_component(setting15, div2, null);
+      append(div2, t20);
+      mount_component(settingbutton5, div2, null);
+      append(div2, t21);
+      mount_component(settingbutton6, div2, null);
       append(div2, t22);
-      mount_component(settingbutton7, div2, null);
+      mount_component(setting16, div2, null);
       append(div2, t23);
-      mount_component(settingbutton8, div2, null);
+      mount_component(settingbutton7, div2, null);
       append(div2, t24);
+      mount_component(settingbutton8, div2, null);
+      append(div2, t25);
       mount_component(settingbutton9, div2, null);
       current = true;
     },
@@ -32543,65 +32575,74 @@ function create_if_block$O(ctx) {
       2) {
         updating_data_18 = true;
         setting14_changes.data = /*settings*/
-        ctx2[1][SETTINGS.ITEM_PREVIEW_PERMISSION_LEVEL];
+        ctx2[1][SETTINGS.ITEM_PRICE_ATTRIBUTE];
         add_flush_callback(() => updating_data_18 = false);
       }
       setting14.$set(setting14_changes);
-      const settingbutton5_changes = {};
+      const setting15_changes = {};
       if (!updating_data_19 && dirty[0] & /*settings*/
       2) {
         updating_data_19 = true;
-        settingbutton5_changes.data = /*settings*/
-        ctx2[1][SETTINGS.CURRENCIES];
+        setting15_changes.data = /*settings*/
+        ctx2[1][SETTINGS.ITEM_PREVIEW_PERMISSION_LEVEL];
         add_flush_callback(() => updating_data_19 = false);
       }
-      settingbutton5.$set(settingbutton5_changes);
-      const settingbutton6_changes = {};
+      setting15.$set(setting15_changes);
+      const settingbutton5_changes = {};
       if (!updating_data_20 && dirty[0] & /*settings*/
       2) {
         updating_data_20 = true;
-        settingbutton6_changes.data = /*settings*/
-        ctx2[1][SETTINGS.SECONDARY_CURRENCIES];
+        settingbutton5_changes.data = /*settings*/
+        ctx2[1][SETTINGS.CURRENCIES];
         add_flush_callback(() => updating_data_20 = false);
       }
-      settingbutton6.$set(settingbutton6_changes);
-      const setting15_changes = {};
-      if (dirty[0] & /*settings*/
-      2) setting15_changes.disabled = /*settings*/
-      ctx2[1][SETTINGS.CURRENCIES].value.length !== 1;
+      settingbutton5.$set(settingbutton5_changes);
+      const settingbutton6_changes = {};
       if (!updating_data_21 && dirty[0] & /*settings*/
       2) {
         updating_data_21 = true;
-        setting15_changes.data = /*settings*/
-        ctx2[1][SETTINGS.CURRENCY_DECIMAL_DIGITS];
+        settingbutton6_changes.data = /*settings*/
+        ctx2[1][SETTINGS.SECONDARY_CURRENCIES];
         add_flush_callback(() => updating_data_21 = false);
       }
-      setting15.$set(setting15_changes);
-      const settingbutton7_changes = {};
+      settingbutton6.$set(settingbutton6_changes);
+      const setting16_changes = {};
+      if (dirty[0] & /*settings*/
+      2) setting16_changes.disabled = /*settings*/
+      ctx2[1][SETTINGS.CURRENCIES].value.length !== 1;
       if (!updating_data_22 && dirty[0] & /*settings*/
       2) {
         updating_data_22 = true;
-        settingbutton7_changes.data = /*settings*/
-        ctx2[1][SETTINGS.ITEM_FILTERS];
+        setting16_changes.data = /*settings*/
+        ctx2[1][SETTINGS.CURRENCY_DECIMAL_DIGITS];
         add_flush_callback(() => updating_data_22 = false);
       }
-      settingbutton7.$set(settingbutton7_changes);
-      const settingbutton8_changes = {};
+      setting16.$set(setting16_changes);
+      const settingbutton7_changes = {};
       if (!updating_data_23 && dirty[0] & /*settings*/
       2) {
         updating_data_23 = true;
-        settingbutton8_changes.data = /*settings*/
-        ctx2[1][SETTINGS.ITEM_SIMILARITIES];
+        settingbutton7_changes.data = /*settings*/
+        ctx2[1][SETTINGS.ITEM_FILTERS];
         add_flush_callback(() => updating_data_23 = false);
       }
-      settingbutton8.$set(settingbutton8_changes);
-      const settingbutton9_changes = {};
+      settingbutton7.$set(settingbutton7_changes);
+      const settingbutton8_changes = {};
       if (!updating_data_24 && dirty[0] & /*settings*/
       2) {
         updating_data_24 = true;
+        settingbutton8_changes.data = /*settings*/
+        ctx2[1][SETTINGS.ITEM_SIMILARITIES];
+        add_flush_callback(() => updating_data_24 = false);
+      }
+      settingbutton8.$set(settingbutton8_changes);
+      const settingbutton9_changes = {};
+      if (!updating_data_25 && dirty[0] & /*settings*/
+      2) {
+        updating_data_25 = true;
         settingbutton9_changes.data = /*settings*/
         ctx2[1][SETTINGS.UNSTACKABLE_ITEM_TYPES];
-        add_flush_callback(() => updating_data_24 = false);
+        add_flush_callback(() => updating_data_25 = false);
       }
       settingbutton9.$set(settingbutton9_changes);
       if (!current || dirty[0] & /*activeTab*/
@@ -32636,9 +32677,10 @@ function create_if_block$O(ctx) {
       transition_in(setting12.$$.fragment, local);
       transition_in(setting13.$$.fragment, local);
       transition_in(setting14.$$.fragment, local);
+      transition_in(setting15.$$.fragment, local);
       transition_in(settingbutton5.$$.fragment, local);
       transition_in(settingbutton6.$$.fragment, local);
-      transition_in(setting15.$$.fragment, local);
+      transition_in(setting16.$$.fragment, local);
       transition_in(settingbutton7.$$.fragment, local);
       transition_in(settingbutton8.$$.fragment, local);
       transition_in(settingbutton9.$$.fragment, local);
@@ -32665,9 +32707,10 @@ function create_if_block$O(ctx) {
       transition_out(setting12.$$.fragment, local);
       transition_out(setting13.$$.fragment, local);
       transition_out(setting14.$$.fragment, local);
+      transition_out(setting15.$$.fragment, local);
       transition_out(settingbutton5.$$.fragment, local);
       transition_out(settingbutton6.$$.fragment, local);
-      transition_out(setting15.$$.fragment, local);
+      transition_out(setting16.$$.fragment, local);
       transition_out(settingbutton7.$$.fragment, local);
       transition_out(settingbutton8.$$.fragment, local);
       transition_out(settingbutton9.$$.fragment, local);
@@ -32701,9 +32744,10 @@ function create_if_block$O(ctx) {
       destroy_component(setting12);
       destroy_component(setting13);
       destroy_component(setting14);
+      destroy_component(setting15);
       destroy_component(settingbutton5);
       destroy_component(settingbutton6);
-      destroy_component(setting15);
+      destroy_component(setting16);
       destroy_component(settingbutton7);
       destroy_component(settingbutton8);
       destroy_component(settingbutton9);
@@ -32946,7 +32990,7 @@ function create_default_slot$j(ctx) {
       append(button1, i);
       append(button1, t19);
       append(button1, t20);
-      ctx[44](form_1);
+      ctx[45](form_1);
       current = true;
       if (!mounted) {
         dispose = [
@@ -33073,7 +33117,7 @@ function create_default_slot$j(ctx) {
       destroy_component(setting4);
       destroy_component(setting5);
       if (if_block1) if_block1.d();
-      ctx[44](null);
+      ctx[45](null);
       mounted = false;
       run_all(dispose);
     }
@@ -33084,7 +33128,7 @@ function create_fragment$12(ctx) {
   let updating_elementRoot;
   let current;
   function applicationshell_elementRoot_binding(value) {
-    ctx[45](value);
+    ctx[46](value);
   }
   let applicationshell_props = {
     $$slots: { default: [create_default_slot$j] },
@@ -33111,7 +33155,7 @@ function create_fragment$12(ctx) {
       const applicationshell_changes = {};
       if (dirty[0] & /*form, activeTab, settings*/
       14 | dirty[1] & /*$$scope*/
-      65536) {
+      131072) {
         applicationshell_changes.$$scope = { dirty, ctx: ctx2 };
       }
       if (!updating_elementRoot && dirty[0] & /*elementRoot*/
@@ -33176,7 +33220,7 @@ function instance$$($$self, $$props, $$invalidate) {
     const currencies = settings[SETTINGS.CURRENCIES].value.concat(settings[SETTINGS.SECONDARY_CURRENCIES].value);
     for (const currency of currencies) {
       if (!currency.data?.uuid) continue;
-      const actualItem = await fromUuid(currency.data?.uuid);
+      const actualItem = await foundry.utils.fromUuid(currency.data?.uuid);
       try {
         await actualItem.update({ name: currency.name, img: currency.img });
       } catch (err) {
@@ -33388,6 +33432,12 @@ function instance$$($$self, $$props, $$invalidate) {
     }
   }
   function setting14_data_binding(value) {
+    if ($$self.$$.not_equal(settings[SETTINGS.ITEM_PRICE_ATTRIBUTE], value)) {
+      settings[SETTINGS.ITEM_PRICE_ATTRIBUTE] = value;
+      $$invalidate(1, settings);
+    }
+  }
+  function setting15_data_binding(value) {
     if ($$self.$$.not_equal(settings[SETTINGS.ITEM_PREVIEW_PERMISSION_LEVEL], value)) {
       settings[SETTINGS.ITEM_PREVIEW_PERMISSION_LEVEL] = value;
       $$invalidate(1, settings);
@@ -33405,7 +33455,7 @@ function instance$$($$self, $$props, $$invalidate) {
       $$invalidate(1, settings);
     }
   }
-  function setting15_data_binding(value) {
+  function setting16_data_binding(value) {
     if ($$self.$$.not_equal(settings[SETTINGS.CURRENCY_DECIMAL_DIGITS], value)) {
       settings[SETTINGS.CURRENCY_DECIMAL_DIGITS] = value;
       $$invalidate(1, settings);
@@ -33482,9 +33532,10 @@ function instance$$($$self, $$props, $$invalidate) {
     setting12_data_binding,
     setting13_data_binding,
     setting14_data_binding,
+    setting15_data_binding,
     settingbutton5_data_binding,
     settingbutton6_data_binding,
-    setting15_data_binding,
+    setting16_data_binding,
     settingbutton7_data_binding,
     settingbutton8_data_binding,
     settingbutton9_data_binding,
@@ -33587,18 +33638,22 @@ class SettingsApp extends SvelteApp {
     return buttons;
   }
 }
-class SettingsShim extends FormApplication {
-  /**
-   * @inheritDoc
-   */
-  constructor() {
-    super({});
+class SettingsShim extends foundry.applications.api.ApplicationV2 {
+  static DEFAULT_OPTIONS = {
+    id: "item-piles-settings-shim",
+    window: { title: "Item Piles Settings" }
+  };
+  async _prepareContext() {
+    return {};
+  }
+  async _renderHTML() {
+    return "";
+  }
+  _replaceHTML() {
+  }
+  async render(options, _options) {
     SettingsApp.show();
-  }
-  async _updateObject(event, formData) {
-  }
-  render() {
-    this.close();
+    return this;
   }
 }
 function registerSettings() {
@@ -33610,14 +33665,14 @@ function registerSettings() {
     type: SettingsShim,
     restricted: false
   });
-  for (let [name, data2] of Object.entries(SETTINGS.GET_DEFAULT())) {
-    game.settings.register(CONSTANTS.MODULE_NAME, name, data2);
+  for (let [name, data] of Object.entries(SETTINGS.GET_DEFAULT())) {
+    game.settings.register(CONSTANTS.MODULE_NAME, name, data);
   }
 }
 async function applyDefaultSettings() {
   const settings = SETTINGS.GET_SYSTEM_DEFAULTS();
-  for (const [name, data2] of Object.entries(settings)) {
-    await setSetting(name, data2.default);
+  for (const [name, data] of Object.entries(settings)) {
+    await setSetting(name, data.default);
   }
   await setSetting(SETTINGS.SYSTEM_VERSION, SYSTEMS.DATA.VERSION ?? "");
   await patchCurrencySettings();
@@ -33635,15 +33690,15 @@ async function patchCurrencySettings() {
   const currencies = getSetting(SETTINGS.CURRENCIES);
   for (let currency of currencies) {
     if (currency.type !== "item" || !currency.data.uuid || currency.data.item) continue;
-    const item = await fromUuid(currency.data.uuid);
+    const item = await foundry.utils.fromUuid(currency.data.uuid);
     if (!item) continue;
     currency.data.item = item.toObject();
   }
   return setSetting(SETTINGS.CURRENCIES, currencies);
 }
-function applySystemSpecificStyles(data2 = false) {
+function applySystemSpecificStyles(data = false) {
   const defaultCssVariables = foundry.utils.deepClone(SETTINGS.DEFAULT_CSS_VARIABLES);
-  const cssVariables2 = data2 || getSetting(SETTINGS.CSS_VARIABLES);
+  const cssVariables2 = data || getSetting(SETTINGS.CSS_VARIABLES);
   const mergedCssVariables = foundry.utils.mergeObject(defaultCssVariables, cssVariables2);
   const root = document.documentElement;
   for (const [style, val] of Object.entries(mergedCssVariables)) {
@@ -33658,8 +33713,9 @@ async function checkSystem() {
   if (!SYSTEMS.HAS_SYSTEM_SUPPORT) {
     if (getSetting(SETTINGS.SYSTEM_NOT_FOUND_WARNING_SHOWN)) return;
     let settingsValid = true;
-    for (const [name, data2] of Object.entries(SETTINGS.GET_DEFAULT())) {
-      settingsValid = settingsValid && getSetting(name).length !== new data2.type().length;
+    for (const [name, data] of Object.entries(SETTINGS.GET_DEFAULT())) {
+      if (data.type !== Array && data.type !== String) continue;
+      settingsValid = settingsValid && getSetting(name).length !== new data.type().length;
     }
     if (settingsValid) return;
     TJSDialog.prompt({
@@ -33866,8 +33922,8 @@ const SETTINGS = {
       config: false,
       default: SYSTEMS.DATA.CSS_VARIABLES,
       mergedDefaults: SETTINGS.DEFAULT_CSS_VARIABLES,
-      onchange: (data2) => {
-        applySystemSpecificStyles(data2);
+      customOnChange: (data) => {
+        applySystemSpecificStyles(data);
       },
       type: Object
     },
@@ -34095,7 +34151,6 @@ const SETTINGS = {
     },
     [SETTINGS.HIDE_TOKEN_BORDER]: {
       name: "ITEM-PILES.Settings.HideTokenBorder.Title",
-      label: "ITEM-PILES.Settings.HideTokenBorder.Label",
       hint: "ITEM-PILES.Settings.HideTokenBorder.Hint",
       scope: "world",
       config: false,
@@ -34180,10 +34235,10 @@ class DebouncedCache extends Map {
   }
   #setDebounce(key) {
     if (!this.#debounceClear[key]) {
-      const self = this;
+      const self2 = this;
       this.#debounceClear[key] = foundry.utils.debounce(() => {
-        delete self.#debounceClear[key];
-        self.delete(key);
+        delete self2.#debounceClear[key];
+        self2.delete(key);
       }, this.#timeout);
     }
     this.#debounceClear[key]();
@@ -34199,7 +34254,7 @@ function getActor(target) {
   if (target instanceof Actor) return target;
   let targetDoc = target;
   if (stringIsUuid(target)) {
-    targetDoc = fromUuidSync(target);
+    targetDoc = foundry.utils.fromUuidSync(target);
     if (!targetDoc && deletedActorCache.has(target)) {
       return deletedActorCache.get(target);
     }
@@ -34209,13 +34264,13 @@ function getActor(target) {
   return targetDoc?.character ?? targetDoc?.actor ?? targetDoc;
 }
 function getToken(documentUuid) {
-  let doc = fromUuidSync(documentUuid);
+  let doc = foundry.utils.fromUuidSync(documentUuid);
   doc = doc?.token ?? doc;
   return doc instanceof TokenDocument ? doc?.object ?? doc : doc;
 }
 function getDocument(target) {
   if (stringIsUuid(target)) {
-    target = fromUuidSync(target);
+    target = foundry.utils.fromUuidSync(target);
   }
   return target?.document ?? target;
 }
@@ -34229,9 +34284,10 @@ function getUuid(target) {
 }
 function sanitizeNumber(quantity) {
   if (typeof quantity === "string") {
-    quantity = quantity.replaceAll(/[^\d.]+/g, "") ?? 0;
+    quantity = quantity.replaceAll(/[^\d.]+/g, "");
   }
-  return Number(quantity) ?? 0;
+  const n = Number(quantity);
+  return Number.isFinite(n) ? n : 0;
 }
 function findSimilarItem(items, findItem, {
   returnOne = true
@@ -34297,9 +34353,18 @@ function refreshItemTypesThatCanStack() {
   getItemTypesThatCanStack();
 }
 function getDocumentTemplates(templateType) {
+  const legacyModel = game.model?.[templateType] ?? {};
+  const dataModelEntries = Object.entries(CONFIG[templateType]?.dataModels ?? {}).map(([k, v]) => {
+    try {
+      return [k, v.schema.getInitialValue({})];
+    } catch (err) {
+      debug(`Item Piles | getDocumentTemplates: failed to compute initial value for ${templateType}.${k}`, err);
+      return [k, {}];
+    }
+  });
   return foundry.utils.mergeObject(
-    game.model[templateType],
-    Object.fromEntries(Object.entries(CONFIG[templateType]?.dataModels ?? {}).map(([k, v]) => [k, v.schema.getInitialValue()])),
+    legacyModel,
+    Object.fromEntries(dataModelEntries),
     { inplace: false }
   );
 }
@@ -34469,7 +34534,7 @@ async function createFoldersFromNames(folders, type = "Actor") {
 }
 function getSourceActorFromDropData(dropData) {
   if (dropData.uuid) {
-    const doc = fromUuidSync(dropData.uuid);
+    const doc = foundry.utils.fromUuidSync(dropData.uuid);
     if (doc instanceof Actor) {
       return doc;
     } else if (doc instanceof TokenDocument) {
@@ -34481,9 +34546,9 @@ function getSourceActorFromDropData(dropData) {
   } else if (dropData.tokenId) {
     if (dropData.sceneId) {
       const uuid = `Scene.${dropData.sceneId}.Token.${dropData.tokenId}`;
-      return fromUuidSync(uuid)?.actor;
+      return foundry.utils.fromUuidSync(uuid)?.actor;
     }
-    return canvas.tokens.get(dropData.tokenId).actor;
+    return canvas.tokens.get(dropData.tokenId)?.actor;
   } else if (dropData.actorId) {
     return game.actors.get(dropData.actorId);
   }
@@ -34491,7 +34556,6 @@ function getSourceActorFromDropData(dropData) {
 }
 function deleteProperty(object, key) {
   if (!key || !object) return false;
-  if (key in object) return true;
   let target = object;
   const keys = key.split(".");
   for (let index = 0; index < keys.length; index++) {
@@ -34558,12 +34622,27 @@ function ensureValidIds(actor, itemsToCreate) {
   if (handler) {
     handler({ actor, map: itemsInContainers });
   }
-  return Object.values(itemsInContainers).reduce((acc, data2) => {
-    return acc.concat([data2.item, ...data2.items]);
+  return Object.values(itemsInContainers).reduce((acc, data) => {
+    return acc.concat([data.item, ...data.items]);
   }, []);
 }
-function isRealNumber$1(inNumber) {
-  return !isNaN(inNumber) && typeof inNumber === "number" && isFinite(inNumber);
+function renderReadOnlyItemPreview(sourceItem, ownershipLevel = CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED) {
+  if (!sourceItem) return;
+  if (sourceItem.isOwner) {
+    return sourceItem.sheet.render(true);
+  }
+  const itemData = sourceItem.toObject();
+  itemData.ownership = { ...itemData.ownership ?? {}, [game.user.id]: ownershipLevel };
+  const previewItem2 = new Item.implementation(itemData);
+  const sheet = previewItem2.sheet;
+  const ApplicationV2 = foundry.applications?.api?.ApplicationV2;
+  const isV2 = !!ApplicationV2 && sheet instanceof ApplicationV2;
+  if (!isV2 && sheet?.options && Object.isExtensible(sheet.options)) {
+    sheet.options.editable = false;
+    sheet.options.submitOnChange = false;
+    sheet.options.submitOnClose = false;
+  }
+  return isV2 ? sheet.render({ force: true }) : sheet.render(true, { editable: false });
 }
 const HOTKEYS = {
   FORCE_DEFAULT_SHEET: "force-open-item-pile-inventory",
@@ -34579,18 +34658,18 @@ const hotkeyActionState = {
     return !down && !game.settings.get(CONSTANTS.MODULE_NAME, "invertSheetOpen") || down && game.settings.get(CONSTANTS.MODULE_NAME, "invertSheetOpen");
   },
   get forceDropItem() {
-    return game.keybindings.get(CONSTANTS.MODULE_NAME, HOTKEYS.DROP).some((key) => {
-      return game.keyboard.downKeys.has(key);
+    return game.keybindings.get(CONSTANTS.MODULE_NAME, HOTKEYS.DROP).some((keybind) => {
+      return game.keyboard.downKeys.has(keybind?.key);
     });
   },
   get forceDropOneItem() {
-    return game.keybindings.get(CONSTANTS.MODULE_NAME, HOTKEYS.DROP).some((key) => {
-      return game.keyboard.downKeys.has(key);
+    return game.keybindings.get(CONSTANTS.MODULE_NAME, HOTKEYS.DROP_ONE).some((keybind) => {
+      return game.keyboard.downKeys.has(keybind?.key);
     });
   },
   shouldRotateVaultItem(event) {
-    return game.keybindings.get(CONSTANTS.MODULE_NAME, HOTKEYS.ROTATE_VAULT_ITEM).some((data2) => {
-      return data2.key === event.key && (!data2.modifiers.length || data2.modifiers.some((modifier) => {
+    return game.keybindings.get(CONSTANTS.MODULE_NAME, HOTKEYS.ROTATE_VAULT_ITEM).some((data) => {
+      return data.key === event.key && (!data.modifiers.length || data.modifiers.some((modifier) => {
         return game.keyboard.downKeys.has(modifier);
       }));
     });
@@ -34674,13 +34753,23 @@ function getPileActorDefaults(itemPileFlags = {}) {
 function getFlagData(inDocument, flag, defaults, existing = false) {
   const defaultFlags = foundry.utils.deepClone(defaults);
   let flags = foundry.utils.deepClone(existing || (foundry.utils.getProperty(inDocument, flag) ?? {}));
+  flags = stripDeletionKeys(flags);
   if (flag === CONSTANTS.FLAGS.PILE) {
     flags = migrateFlagData(inDocument, flags);
   }
   return foundry.utils.mergeObject(defaultFlags, flags);
 }
-function migrateFlagData(document2, data2 = false) {
-  let flags = data2 || foundry.utils.getProperty(document2, CONSTANTS.FLAGS.PILE);
+function stripDeletionKeys(data) {
+  if (!data || typeof data !== "object") return data;
+  for (const key of Object.keys(data)) {
+    if (key.startsWith("-=")) {
+      delete data[key];
+    }
+  }
+  return data;
+}
+function migrateFlagData(document2, data = false) {
+  let flags = data || foundry.utils.getProperty(document2, CONSTANTS.FLAGS.PILE);
   if (flags.type) {
     return flags;
   }
@@ -34707,7 +34796,7 @@ function canItemStack(item, targetActor) {
   }
   if (isItemCurrency(itemData)) return true;
   if (typeof actorFlagData.canStackItems === "boolean") {
-    actorFlagData.canStackItems = "yes";
+    actorFlagData.canStackItems = actorFlagData.canStackItems ? "yes" : "no";
   }
   if (!isItemStackable(itemData)) return false;
   if (actorFlagData.canStackItems.includes("always")) {
@@ -34719,71 +34808,79 @@ function canItemStack(item, targetActor) {
     "no": false
   }[itemFlagData?.canStack ?? "default"];
 }
-function getItemFlagData(item, { data: data2 = false, useDefaults = true } = {}) {
-  return getFlagData(
+function getItemFlagData(item, { data = false, useDefaults = true } = {}) {
+  const flagData = getFlagData(
     getDocument(item),
     CONSTANTS.FLAGS.ITEM,
     { ...useDefaults ? CONSTANTS.ITEM_DEFAULTS : {} },
-    data2
+    data
   );
+  if (useDefaults) {
+    for (const key of ["prices", "sellPrices", "overheadCost"]) {
+      if (!Array.isArray(flagData[key])) {
+        flagData[key] = [];
+      }
+    }
+  }
+  return flagData;
 }
-function getActorFlagData(target, { data: data2 = false, useDefaults = true } = {}) {
+function getActorFlagData(target, { data = false, useDefaults = true } = {}) {
   const defaults = useDefaults ? getPileDefaults() : {};
   target = getActor(target);
   if (target?.token) {
     target = target.token;
   }
-  return getFlagData(target, CONSTANTS.FLAGS.PILE, defaults, data2);
+  return getFlagData(target, CONSTANTS.FLAGS.PILE, defaults, data);
 }
-function isValidItemPile(target, data2 = false) {
+function isValidItemPile(target, data = false) {
   const targetActor = getActor(target);
-  const pileData = getActorFlagData(targetActor, { data: data2 });
+  const pileData = getActorFlagData(targetActor, { data });
   return targetActor && pileData?.enabled;
 }
-function isRegularItemPile(target, data2 = false) {
+function isRegularItemPile(target, data = false) {
   const targetActor = getActor(target);
-  const pileData = getActorFlagData(targetActor, { data: data2 });
+  const pileData = getActorFlagData(targetActor, { data });
   return targetActor && pileData?.enabled && pileData?.type === CONSTANTS.PILE_TYPES.PILE;
 }
-function isItemPileContainer(target, data2 = false) {
+function isItemPileContainer(target, data = false) {
   const targetActor = getActor(target);
-  const pileData = getActorFlagData(targetActor, { data: data2 });
+  const pileData = getActorFlagData(targetActor, { data });
   return pileData?.enabled && pileData?.type === CONSTANTS.PILE_TYPES.CONTAINER;
 }
-function isItemPileLootable(target, data2 = false) {
+function isItemPileLootable(target, data = false) {
   const targetActor = getActor(target);
-  const pileData = getActorFlagData(targetActor, { data: data2 });
+  const pileData = getActorFlagData(targetActor, { data });
   return targetActor && pileData?.enabled && (pileData?.type === CONSTANTS.PILE_TYPES.PILE || pileData?.type === CONSTANTS.PILE_TYPES.CONTAINER);
 }
-function isItemPileVault(target, data2 = false) {
+function isItemPileVault(target, data = false) {
   const targetActor = getActor(target);
-  const pileData = getActorFlagData(targetActor, { data: data2 });
+  const pileData = getActorFlagData(targetActor, { data });
   return pileData?.enabled && pileData?.type === CONSTANTS.PILE_TYPES.VAULT;
 }
-function isItemPileMerchant(target, data2 = false) {
+function isItemPileMerchant(target, data = false) {
   const targetActor = getActor(target);
-  const pileData = getActorFlagData(targetActor, { data: data2 });
+  const pileData = getActorFlagData(targetActor, { data });
   return pileData?.enabled && pileData?.type === CONSTANTS.PILE_TYPES.MERCHANT;
 }
-function isItemPileAuctioneer(target, data2 = false) {
+function isItemPileAuctioneer(target, data = false) {
   const targetActor = getActor(target);
-  const pileData = getActorFlagData(targetActor, { data: data2 });
+  const pileData = getActorFlagData(targetActor, { data });
   return pileData?.enabled && pileData?.type === CONSTANTS.PILE_TYPES.AUCTIONEER;
 }
-function isItemPileBanker(target, data2 = false) {
+function isItemPileBanker(target, data = false) {
   const targetActor = getActor(target);
-  const pileData = getActorFlagData(targetActor, { data: data2 });
+  const pileData = getActorFlagData(targetActor, { data });
   return pileData?.enabled && pileData?.type === CONSTANTS.PILE_TYPES.BANKER;
 }
-function isItemPileClosed(target, data2 = false) {
+function isItemPileClosed(target, data = false) {
   const targetActor = getActor(target);
-  const pileData = getActorFlagData(targetActor, { data: data2 });
+  const pileData = getActorFlagData(targetActor, { data });
   if (!pileData?.enabled || pileData?.type !== CONSTANTS.PILE_TYPES.CONTAINER) return false;
   return pileData.closed;
 }
-function isItemPileLocked(target, data2 = false) {
+function isItemPileLocked(target, data = false) {
   const targetActor = getActor(target);
-  const pileData = getActorFlagData(targetActor, { data: data2 });
+  const pileData = getActorFlagData(targetActor, { data });
   if (!pileData?.enabled || pileData?.type !== CONSTANTS.PILE_TYPES.CONTAINER) return false;
   return pileData.locked;
 }
@@ -34827,7 +34924,7 @@ function getItemPileTokens(filter2 = false) {
   })]).filter(([_, tokens]) => tokens.length);
   const mappedValidTokens = Object.fromEntries(validTokensOnScenes);
   const invalidTokensOnScenes = allTokensOnScenes.map(([scene, tokens]) => [scene, tokens.filter((token) => {
-    if (mappedValidTokens[scene.id] && mappedValidTokens[scene.id].includes(token)) return false;
+    if (mappedValidTokens[scene] && mappedValidTokens[scene].includes(token)) return false;
     try {
       if (filter2) filter2(token);
     } catch (err) {
@@ -34850,7 +34947,7 @@ function getActorCurrencies(target, {
   secondary = true
 } = {}) {
   const actor = getActor(target);
-  const actorUuid = getUuid(actor.uuid);
+  const actorUuid = getUuid(actor);
   const actorItems = actor ? Array.from(actor.items) : [];
   const cached = cachedActorCurrencies.get(actorUuid);
   currencyList = cached ? false : currencyList || getCurrencyList(forActor || actor);
@@ -34868,10 +34965,12 @@ function getActorCurrencies(target, {
     const itemData = getItemFromCache(currency.data.uuid) || currency.data.item || false;
     if (!itemData) return false;
     const item = findSimilarItem(actorItems, itemData);
-    currency.data.item = itemData;
-    currency.data.item._id = item?.id ?? itemData._id;
+    const clonedItemData = foundry.utils.deepClone(itemData);
+    clonedItemData._id = item?.id ?? itemData._id;
+    const clonedData = { ...currency.data, item: clonedItemData };
     return {
       ...currency,
+      data: clonedData,
       quantity: 0,
       id: item?.id ?? item?._id ?? itemData._id ?? null,
       item,
@@ -34921,10 +35020,12 @@ function getCurrenciesInItem(targetItem, {
     const itemData = getItemFromCache(currency.data.uuid) || currency.data.item || false;
     if (!itemData) return false;
     const item = findSimilarItem(subItems, itemData);
-    currency.data.item = itemData;
-    currency.data.item._id = item?.id ?? itemData._id;
+    const clonedItemData = foundry.utils.deepClone(itemData);
+    clonedItemData._id = item?.id ?? itemData._id;
+    const clonedData = { ...currency.data, item: clonedItemData };
     return {
       ...currency,
+      data: clonedData,
       quantity: 0,
       id: item?.id ?? item?._id ?? itemData._id ?? null,
       item,
@@ -34958,11 +35059,11 @@ function getCurrencyList(target = false, pileData = false) {
     const targetActor = getActor(target);
     pileData = getActorFlagData(targetActor, { data: pileData });
   }
-  const primaryCurrencies = pileData?.overrideCurrencies || game.itempiles.API.CURRENCIES;
-  const secondaryCurrencies = (pileData?.overrideSecondaryCurrencies || game.itempiles.API.SECONDARY_CURRENCIES).map((currency) => {
-    currency.secondary = true;
-    return currency;
-  });
+  const primaryCurrencies = (pileData?.overrideCurrencies || game.itempiles.API.CURRENCIES).map((c) => foundry.utils.deepClone(c));
+  const secondaryCurrencies = (pileData?.overrideSecondaryCurrencies || game.itempiles.API.SECONDARY_CURRENCIES).map((currency) => ({
+    ...foundry.utils.deepClone(currency),
+    secondary: true
+  }));
   const currencies = primaryCurrencies.concat(secondaryCurrencies);
   const currencyList = currencies.map((currency) => {
     currency.name = game.i18n.localize(currency.name);
@@ -35015,7 +35116,7 @@ function doesPropertyMatch(propertyValue, filterValue) {
   if (Array.isArray(propertyValue)) {
     return propertyValue.some((value) => doesPropertyMatch(value, filterValue));
   }
-  if (isRealNumber$1(propertyValue) && isRealNumber$1(Number(filterValue))) {
+  if (isRealNumber(propertyValue) && isRealNumber(Number(filterValue))) {
     return Math.abs(propertyValue - Number(filterValue)) < Number.EPSILON;
   }
   return propertyValue === filterValue;
@@ -35083,7 +35184,7 @@ function isItemCurrency(item, { target = false, actorCurrencies = false } = {}) 
   })).filter((currency) => currency.type === "item").map((item2) => item2.data.item);
   return !!findSimilarItem(currencies, item);
 }
-function getItemCurrencyData(item, { target = false, actorCurrencies = false }) {
+function getItemCurrencyData(item, { target = false, actorCurrencies = false } = {}) {
   return (actorCurrencies || getActorCurrencies(item?.parent || false, {
     forActor: target,
     getAll: true
@@ -35092,12 +35193,12 @@ function getItemCurrencyData(item, { target = false, actorCurrencies = false }) 
   });
 }
 function getItemPileTokenImage(token, {
-  data: data2 = false,
+  data = false,
   items = false,
   currencies = false
 } = {}, overrideImage = null) {
   const pileDocument = getDocument(token);
-  const itemPileData = getActorFlagData(pileDocument, { data: data2 });
+  const itemPileData = getActorFlagData(pileDocument, { data });
   const originalImg = overrideImage ?? (pileDocument instanceof TokenDocument ? pileDocument.texture.src : pileDocument.prototypeToken.texture.src);
   if (!isValidItemPile(pileDocument, itemPileData) || !isItemPileLootable(pileDocument, itemPileData)) return originalImg;
   items = (items || getActorItems(pileDocument)).filter((itemData) => {
@@ -35127,12 +35228,12 @@ function getItemPileTokenImage(token, {
   return img || originalImg;
 }
 function getItemPileTokenScale(target, {
-  data: data2 = false,
+  data = false,
   items = false,
   currencies = false
 } = {}, overrideScale = null) {
   const pileDocument = getDocument(target);
-  let itemPileData = getActorFlagData(pileDocument, { data: data2 });
+  let itemPileData = getActorFlagData(pileDocument, { data });
   const baseScale = overrideScale ?? (pileDocument instanceof TokenDocument ? pileDocument.texture.scaleX : pileDocument.prototypeToken.texture.scaleX);
   if (!isValidItemPile(pileDocument, itemPileData) || !isItemPileLootable(pileDocument, itemPileData)) {
     return baseScale;
@@ -35149,9 +35250,18 @@ function getItemPileTokenScale(target, {
   }
   return itemPileData.singleItemScale;
 }
-function getItemPileName(target, { data: data2 = false, items = false, currencies = false } = {}, overrideName = null) {
+function getItemPileTokenScaleUpdate(target, scale) {
   const pileDocument = getDocument(target);
-  const itemPileData = getActorFlagData(pileDocument, { data: data2 });
+  const currentScale = pileDocument instanceof TokenDocument ? pileDocument.texture.scaleX : pileDocument.prototypeToken.texture.scaleX;
+  if (scale === currentScale) return {};
+  return {
+    "texture.scaleX": scale,
+    "texture.scaleY": scale
+  };
+}
+function getItemPileName(target, { data = false, items = false, currencies = false } = {}, overrideName = null) {
+  const pileDocument = getDocument(target);
+  const itemPileData = getActorFlagData(pileDocument, { data });
   let name = overrideName ?? (pileDocument instanceof TokenDocument ? pileDocument.name : pileDocument.prototypeToken.name);
   if (!isValidItemPile(pileDocument, itemPileData) || !isItemPileLootable(pileDocument, itemPileData)) {
     return name;
@@ -35199,24 +35309,23 @@ async function updateItemPileData(target, newFlags, tokenData) {
     const scale = getItemPileTokenScale(tokenDocument, pileData, overrideScale);
     const newTokenData = foundry.utils.mergeObject(tokenData, {
       "texture.src": getItemPileTokenImage(tokenDocument, pileData, overrideImage),
-      "texture.scaleX": scale,
-      "texture.scaleY": scale,
       "name": getItemPileName(tokenDocument, pileData, tokenData?.name)
     });
-    const data2 = {
+    foundry.utils.mergeObject(newTokenData, getItemPileTokenScaleUpdate(tokenDocument, scale));
+    const data = {
       "_id": tokenDocument.id,
       [CONSTANTS.FLAGS.PILE]: cleanedFlagData,
       [CONSTANTS.FLAGS.VERSION]: getModuleVersion(),
       ...newTokenData
     };
     if (!tokenDocument.actorLink) {
-      data2[CONSTANTS.ACTOR_DELTA_PROPERTY] = {
+      data[CONSTANTS.ACTOR_DELTA_PROPERTY] = {
         [CONSTANTS.FLAGS.PILE]: cleanedFlagData,
         [CONSTANTS.FLAGS.VERSION]: getModuleVersion()
       };
     }
     acc[tokenDocument.parent.id] ??= [];
-    acc[tokenDocument.parent.id].push(foundry.utils.mergeObject({}, data2));
+    acc[tokenDocument.parent.id].push(foundry.utils.mergeObject({}, data));
     return acc;
   }, {});
   if (!foundry.utils.isEmpty(sceneUpdates)) {
@@ -35311,8 +35420,14 @@ function getMerchantModifiersForActor(merchant, {
     }
     buyPriceModifier *= itemFlagData.buyPriceModifier ?? 1;
     sellPriceModifier *= itemFlagData.sellPriceModifier ?? 1;
+    const itemCustomCategory = typeof itemFlagData?.customCategory === "string" ? itemFlagData.customCategory.trim().toLowerCase() : "";
     const itemTypePriceModifier = itemTypePriceModifiers.sort((a, b) => a.type === "custom" && b.type !== "custom" ? -1 : 0).find((priceData) => {
-      return priceData.type === "custom" ? priceData.category.toLowerCase() === itemFlagData.customCategory.toLowerCase() : priceData.type === item.type;
+      if (priceData.type === "custom") {
+        if (!itemCustomCategory) return false;
+        const priceCategory = typeof priceData.category === "string" ? priceData.category.trim().toLowerCase() : "";
+        return priceCategory && priceCategory === itemCustomCategory;
+      }
+      return priceData.type === item.type;
     });
     if (itemTypePriceModifier) {
       buyPriceModifier = itemTypePriceModifier.override ? itemTypePriceModifier.buyPriceModifier ?? buyPriceModifier : buyPriceModifier * itemTypePriceModifier.buyPriceModifier;
@@ -35320,7 +35435,7 @@ function getMerchantModifiersForActor(merchant, {
     }
   }
   if (actor && actorPriceModifiers) {
-    const actorSpecificModifiers = actorPriceModifiers?.find((data2) => data2.actorUuid === getUuid(actor) || data2.actor === actor.id);
+    const actorSpecificModifiers = actorPriceModifiers?.find((data) => data.actorUuid === getUuid(actor) || data.actor === actor.id);
     if (actorSpecificModifiers) {
       buyPriceModifier = actorSpecificModifiers.override || absolute ? actorSpecificModifiers.buyPriceModifier ?? buyPriceModifier : buyPriceModifier * actorSpecificModifiers.buyPriceModifier;
       sellPriceModifier = actorSpecificModifiers.override || absolute ? actorSpecificModifiers.sellPriceModifier ?? sellPriceModifier : sellPriceModifier * actorSpecificModifiers.sellPriceModifier;
@@ -35630,24 +35745,30 @@ function getPriceData({
       itemFlagData
     }).buyPriceModifier;
   } else if (buyerFlagData) {
+    const soldItemFlagData = foundry.utils.deepClone(itemFlagData);
+    const merchantItem = buyer?.items ? findSimilarItem(buyer.items, item) : false;
+    if (merchantItem) {
+      const merchantItemFlagData = getItemFlagData(merchantItem);
+      soldItemFlagData.sellPriceModifier = merchantItemFlagData.sellPriceModifier ?? 1;
+    }
     modifier = getMerchantModifiersForActor(buyer, {
       item,
       actor: seller,
       pileFlagData: buyerFlagData,
-      itemFlagData
+      itemFlagData: soldItemFlagData
     }).sellPriceModifier;
   }
   const currencyList = getCurrencyList(merchant);
   const currencies = getActorCurrencies(merchant, { currencyList, getAll: true });
   const defaultCurrencies = currencies.filter((currency) => !currency.secondary);
   let overheadCost = [];
-  if (sellerFlagData.overheadCost?.length) {
+  if (sellerFlagData?.overheadCost?.length) {
     overheadCost = overheadCost.concat(getItemFlagPriceData(sellerFlagData.overheadCost, quantity, modifier, defaultCurrencies, currencyList));
   }
   if (itemFlagData.overheadCost?.length) {
     overheadCost = overheadCost.concat(getItemFlagPriceData(itemFlagData.overheadCost, quantity, modifier, defaultCurrencies, currencyList));
   }
-  const disableNormalCost = itemFlagData.disableNormalCost && (merchant === seller || itemFlagData.purchaseOptionsAsSellOption && !buyerFlagData.onlyAcceptBasePrice);
+  const disableNormalCost = itemFlagData.disableNormalCost && (merchant === seller || itemFlagData.purchaseOptionsAsSellOption && !buyerFlagData?.onlyAcceptBasePrice);
   const hasOtherPrices = secondaryPrices?.length > 0 || itemFlagData.prices.filter((priceGroup) => priceGroup.length).length > 0 || itemFlagData.sellPrices.filter((priceGroup) => priceGroup.length).length > 0 || overheadCost.length > 0;
   const smallestExchangeRate = getSmallestExchangeRate(defaultCurrencies);
   const decimals = getDecimalDifferenceBetweenExchangeRates(defaultCurrencies);
@@ -35731,10 +35852,10 @@ function getPriceData({
       priceData[0].priceString = priceData[0].prices.filter((price) => price.cost).map((price) => price.string).join(" ");
     }
   }
-  if (itemFlagData.prices.length && (merchant === seller || itemFlagData.purchaseOptionsAsSellOption && !buyerFlagData.onlyAcceptBasePrice)) {
+  if (itemFlagData.prices.length && (merchant === seller || itemFlagData.purchaseOptionsAsSellOption && !buyerFlagData?.onlyAcceptBasePrice)) {
     priceData = priceData.concat(getItemFlagPriceData(itemFlagData.prices, quantity, modifier, defaultCurrencies, currencyList));
   }
-  if (itemFlagData.sellPrices.length && merchant === buyer && !buyerFlagData.onlyAcceptBasePrice) {
+  if (itemFlagData.sellPrices.length && merchant === buyer && !buyerFlagData?.onlyAcceptBasePrice) {
     priceData = priceData.concat(getItemFlagPriceData(itemFlagData.sellPrices, quantity, modifier, defaultCurrencies, currencyList));
   }
   const overheadCostPrices = overheadCost.filter((price) => price?.prices?.length).map((price) => price.prices.filter((subPrice) => subPrice.secondary)).flat().reduce((acc, price) => {
@@ -35805,12 +35926,12 @@ function getPriceData({
         if (price.percent) {
           const percent = Math.min(1, price.baseCost / 100);
           const percentQuantity = Math.max(0, Math.floor(attributeQuantity * percent));
-          price.maxQuantity = Math.floor(attributeQuantity / percentQuantity);
+          price.maxQuantity = percentQuantity > 0 ? Math.floor(attributeQuantity / percentQuantity) : 0;
           price.baseCost = !buyer ? price.baseCost : percentQuantity;
           price.cost = !buyer ? price.cost : percentQuantity * quantity;
           price.quantity = !buyer ? price.quantity : percentQuantity;
         } else {
-          price.maxQuantity = Math.floor(attributeQuantity / price.baseCost);
+          price.maxQuantity = price.baseCost > 0 ? Math.floor(attributeQuantity / price.baseCost) : Infinity;
         }
         priceGroup.maxQuantity = Math.min(priceGroup.maxQuantity, price.maxQuantity);
       } else {
@@ -35826,12 +35947,12 @@ function getPriceData({
         if (price.percent) {
           const percent = Math.min(1, price.baseCost / 100);
           const percentQuantity = Math.max(0, Math.floor(itemQuantity * percent));
-          price.maxQuantity = Math.floor(itemQuantity / percentQuantity);
+          price.maxQuantity = percentQuantity > 0 ? Math.floor(itemQuantity / percentQuantity) : 0;
           price.baseCost = !buyer ? price.baseCost : percentQuantity;
           price.cost = !buyer ? price.cost : percentQuantity * quantity;
           price.quantity = !buyer ? price.quantity : percentQuantity;
         } else {
-          price.maxQuantity = Math.floor(itemQuantity / price.baseCost);
+          price.maxQuantity = price.baseCost > 0 ? Math.floor(itemQuantity / price.baseCost) : Infinity;
         }
         priceGroup.maxQuantity = Math.min(priceGroup.maxQuantity, price.maxQuantity);
       }
@@ -35860,28 +35981,27 @@ function getPaymentData({
   const decimals = getDecimalDifferenceBetweenExchangeRates(currencies);
   const recipientCurrencies = getActorCurrencies(buyer, { currencyList, getAll: true });
   const buyerInfiniteCurrencies = buyerFlagData?.infiniteCurrencies;
-  const paymentData = purchaseData.map((data2) => {
+  const paymentData = purchaseData.map((data) => {
     const prices = getPriceData({
-      cost: data2.cost,
-      item: data2.item,
-      secondaryPrices: data2.secondaryPrices,
+      cost: data.cost,
+      item: data.item,
+      secondaryPrices: data.secondaryPrices,
       seller,
       buyer,
       sellerFlagData,
       buyerFlagData,
-      itemFlagData: data2.itemFlagData,
-      quantity: data2.quantity || 1
-    })[data2.paymentIndex || 0];
+      itemFlagData: data.itemFlagData,
+      quantity: data.quantity || 1
+    })[data.paymentIndex || 0];
     return {
       ...prices,
-      item: data2.item
+      item: data.item
     };
   }).reduce((priceData, priceGroup) => {
-    priceData.reasons = [];
     if (!priceGroup.maxQuantity && (buyer || seller) && priceData.canBuy) {
       priceData.canBuy = false;
       const reason = buyer === merchant ? "TheyCantAfford" : "YouCantAfford";
-      priceData.reason.push([`ITEM-PILES.Applications.TradeMerchantItem.${reason}`]);
+      priceData.reasons.push([`ITEM-PILES.Applications.TradeMerchantItem.${reason}`]);
     }
     const primaryPrices = priceGroup.prices.filter((price) => !price.secondary && price.cost);
     const secondaryPrices = priceGroup.prices.filter((price) => price.secondary && price.cost);
@@ -35947,10 +36067,11 @@ function getPaymentData({
     primary: false,
     finalPrices: [],
     otherPrices: [],
-    reason: [],
+    reasons: [],
     buyerReceive: [],
     buyerChange: [],
-    sellerReceive: []
+    sellerReceive: [],
+    sellerChangeGiven: []
   });
   if (!paymentData.canBuy) {
     paymentData.finalPrices = getPriceArray(paymentData.totalCurrencyCost).filter((currency) => !currency.secondary).concat(paymentData.otherPrices);
@@ -36041,7 +36162,7 @@ function getPaymentData({
       const currency = currencies.find((currency2) => {
         return change.id === currency2.id || change.name === currency2.name && change.img === currency2.img && change.type === currency2.type;
       });
-      return acc + currency.quantity >= change.quantity ? 0 : (change.quantity - currency.quantity) * change.exchangeRate;
+      return acc + (currency.quantity >= change.quantity ? 0 : (change.quantity - currency.quantity) * change.exchangeRate);
     }, 0);
     if (changeNeeded) {
       const primaryCurrency = paymentData.sellerReceive.find((price) => price.primary && price.quantity * price.exchangeRate > changeNeeded);
@@ -36050,8 +36171,12 @@ function getPaymentData({
         changeNeeded -= 1 * primaryCurrency.exchangeRate;
       } else {
         const biggestCurrency = paymentData.sellerReceive.find((price) => price.quantity && price.quantity * price.exchangeRate > changeNeeded);
-        biggestCurrency.quantity--;
-        changeNeeded -= 1 * biggestCurrency.exchangeRate;
+        if (biggestCurrency) {
+          biggestCurrency.quantity--;
+          changeNeeded -= 1 * biggestCurrency.exchangeRate;
+        } else {
+          console.warn("ItemPiles | getPaymentData: unable to make change, no currency in sellerReceive covers the required amount");
+        }
       }
       changeNeeded = Math.abs(changeNeeded);
       for (const currency of paymentData.sellerReceive) {
@@ -36061,6 +36186,15 @@ function getPaymentData({
         currency.quantity += numCurrency;
       }
     }
+    paymentData.sellerChangeGiven = paymentData.buyerChange.map((change) => {
+      const currency = currencies.find((currency2) => {
+        return change.id === currency2.id || change.name === currency2.name && change.img === currency2.img && change.type === currency2.type;
+      });
+      return {
+        ...change,
+        quantity: Math.min(change.quantity, currency?.quantity ?? 0)
+      };
+    });
   }
   paymentData.finalPrices = paymentData.finalPrices.concat(paymentData.otherPrices);
   paymentData.sellerReceive = paymentData.sellerReceive.concat(paymentData.otherPrices);
@@ -36079,9 +36213,9 @@ function isMerchantClosed(merchant, { pileData = false } = {}) {
   const timestamp = window.SimpleCalendar.api.timestampToDate(window.SimpleCalendar.api.timestamp());
   const openTimes = pileData.openTimes.open;
   const closeTimes = pileData.openTimes.close;
-  const openingTime = Number(openTimes.hour.toString() + "." + openTimes.minute.toString());
-  const closingTime = Number(closeTimes.hour.toString() + "." + closeTimes.minute.toString());
-  const currentTime = Number(timestamp.hour.toString() + "." + timestamp.minute.toString());
+  const openingTime = openTimes.hour * 60 + openTimes.minute;
+  const closingTime = closeTimes.hour * 60 + closeTimes.minute;
+  const currentTime = timestamp.hour * 60 + timestamp.minute;
   let isClosed = openingTime > closingTime ? !(currentTime >= openingTime || currentTime <= closingTime) : !(currentTime >= openingTime && currentTime <= closingTime);
   const currentWeekday = window.SimpleCalendar.api.getCurrentWeekday();
   isClosed = isClosed || (pileData.closedDays ?? []).includes(currentWeekday.name);
@@ -36239,7 +36373,7 @@ function canItemFitInVault(item, vaultActor, {
       }
     }
   }
-  const vaultGridData = gridData ?? getVaultGridData(vaultActor);
+  const vaultGridData = gridData ?? getVaultGridData(vaultActor, { items });
   return getNewItemsVaultPosition(item, vaultGridData, { position });
 }
 function getNewItemsVaultPosition(item, gridData, { position = null } = {}) {
@@ -36292,7 +36426,7 @@ function getNewItemsVaultPosition(item, gridData, { position = null } = {}) {
 function getVaultAccess(vaultActor, { flagData = false, hasRecipient = false } = {}) {
   const vaultFlags = getActorFlagData(vaultActor, { data: flagData });
   const vaultAccess = vaultFlags.vaultAccess.filter((access) => {
-    return fromUuidSync(access.uuid)?.isOwner;
+    return foundry.utils.fromUuidSync(access.uuid)?.isOwner;
   });
   return vaultAccess.reduce((acc, access) => {
     acc.canView = acc.canView || (access.view ?? true);
@@ -36366,9 +36500,9 @@ async function updateVaultLog(itemPile, {
 function getActorLog(actor) {
   return foundry.utils.getProperty(getActor(actor), CONSTANTS.FLAGS.LOG) || [];
 }
-function getActorLogText(actor, data2 = false) {
-  if (!data2) data2 = getActorLog(actor);
-  return data2.sort((a, b) => {
+function getActorLogText(actor, data = false) {
+  if (!data) data = getActorLog(actor);
+  return data.sort((a, b) => {
     return b.date > a.date ? 1 : -1;
   }).map((log) => {
     const date = new Date(log.date);
@@ -36389,9 +36523,10 @@ async function rollTable({
   rollData = {},
   customCategory = false
 } = {}) {
+  customCategory = typeof customCategory === "string" && customCategory.trim() ? customCategory.trim() : false;
   const rolledItems = [];
   let currencies = [];
-  const table = await fromUuid(tableUuid);
+  const table = await foundry.utils.fromUuid(tableUuid);
   if (!tableUuid.startsWith("Compendium")) {
     if (resetTable) {
       await table.reset();
@@ -36420,7 +36555,7 @@ async function rollTable({
       recursive: true
     };
     results = (await game.modules.get("better-rolltables").api.roll(table, brtOptions)).itemsData.map((result) => {
-      const data2 = {
+      const data = {
         documentId: result.documentId,
         text: result.description ?? (result.text || result.name),
         img: result.img,
@@ -36430,17 +36565,17 @@ async function rollTable({
         }
       };
       if (result.documentUuid) {
-        data2["documentUuid"] = result.documentUuid;
+        data["documentUuid"] = result.documentUuid;
       } else {
-        data2["documentCollection"] = result.documentCollection;
+        data["documentCollection"] = result.documentCollection;
       }
-      return data2;
+      return data;
     });
   } else {
     results = (await table.drawMany(roll.total, { displayChat, recursive: true })).results;
   }
-  for (const data2 of results) {
-    const rollData2 = data2.toObject();
+  for (const data of results) {
+    const rollData2 = data.toObject();
     let rolledQuantity = rollData2?.quantity ?? 1;
     let item = await getItem(rollData2);
     if (item instanceof RollTable) {
@@ -36499,19 +36634,20 @@ async function rollMerchantTables({ tableData = false, actor = false } = {}) {
   }
   let items = [];
   for (const table of tableData) {
-    const rollableTable = await fromUuid(table.uuid);
+    const rollableTable = await foundry.utils.fromUuid(table.uuid);
     if (!rollableTable) continue;
     if (!table.uuid.startsWith("Compendium")) {
       await rollableTable.reset();
     }
     let tableItems = [];
-    const customCategory = table?.customCategory ?? false;
+    const rawCustomCategory = table?.customCategory;
+    const customCategory = typeof rawCustomCategory === "string" && rawCustomCategory.trim() ? rawCustomCategory.trim() : false;
     if (table.addAll) {
       for (const [itemId, formula] of Object.entries(table.items)) {
         const roll = await new Roll(formula).evaluate({ allowInteractive: false });
         if (roll.total <= 0) continue;
         const rollResult = rollableTable.results.get(itemId).toObject();
-        const potentialPack = rollResult.documentUuid ? await fromUuid(rollResult.documentUuid) : game.packs.get(rollResult.documentCollection);
+        const potentialPack = rollResult.documentUuid ? await foundry.utils.fromUuid(rollResult.documentUuid) : game.packs.get(rollResult.documentCollection);
         const typeIsRollTable = (rollResult.documentUuid ?? rollResult.documentCollection).includes("RollTable");
         if (potentialPack?.documentName === "RollTable" || typeIsRollTable) {
           const subTable = await getTable(rollResult);
@@ -36529,11 +36665,11 @@ async function rollMerchantTables({ tableData = false, actor = false } = {}) {
         const item = await getItem(rollResult);
         if (!item) continue;
         const quantity = roll.total * Math.max(getItemQuantity(item), 1);
-        const data2 = typeof rollResult !== "string" ? rollResult : {};
+        const data = typeof rollResult !== "string" ? rollResult : {};
         tableItems.push({
-          ...data2,
-          description: (data2.description ?? data2.text) || item.name,
-          documentUuid: data2.documentUuid ?? data2.documentId,
+          ...data,
+          description: (data.description ?? data.text) || item.name,
+          documentUuid: data.documentUuid ?? data.documentId,
           customCategory,
           item,
           quantity
@@ -36550,9 +36686,9 @@ async function rollMerchantTables({ tableData = false, actor = false } = {}) {
         customCategory
       });
       tableItems = result.items;
-      if (table?.customCategory) {
+      if (customCategory) {
         tableItems = tableItems.map((item) => {
-          foundry.utils.setProperty(item, "customCategory", table?.customCategory);
+          foundry.utils.setProperty(item, "customCategory", customCategory);
           return item;
         });
       }
@@ -36593,7 +36729,7 @@ async function rollMerchantTables({ tableData = false, actor = false } = {}) {
 async function getTable(tableToGet) {
   let table;
   if (tableToGet.documentUuid) {
-    table = await fromUuid(tableToGet.documentUuid);
+    table = await foundry.utils.fromUuid(tableToGet.documentUuid);
   } else if (tableToGet.documentCollection === "RollTable") {
     table = game.tables.get(tableToGet.documentId);
   } else {
@@ -36619,7 +36755,7 @@ async function getItem(rollData) {
     });
     const [uuid, name] = random_array_element(uuidNameMap);
     const itemName = rollDataText.replace(rollDataText.slice(firstIndex, lastIndex), name);
-    item = await fromUuid(uuid);
+    item = await foundry.utils.fromUuid(uuid);
     const itemObj = item.toObject();
     itemObj.name = itemName;
     item = new Item.implementation(itemObj);
@@ -36630,17 +36766,8 @@ async function getItem(rollData) {
     rollData.documentUuid = uuid;
     return item;
   }
-  if (CONSTANTS.IS_V13 && rollData.documentUuid) {
-    return await fromUuid(rollData.documentUuid);
-  } else if (!CONSTANTS.IS_V13) {
-    if (rollData.documentCollection === "Item") {
-      return game.items.get(rollData.documentId);
-    } else {
-      const compendium = game.packs.get(rollData.documentCollection);
-      if (compendium) {
-        return await compendium.getDocument(rollData.documentId);
-      }
-    }
+  if (rollData.documentUuid) {
+    return await foundry.utils.fromUuid(rollData.documentUuid);
   }
   return false;
 }
@@ -36764,8 +36891,8 @@ function addToItemPileSharingData(itemPile, actorUuid, {
 } = {}) {
   const pileData = getActorFlagData(itemPile);
   const pileCurrencies = getActorCurrencies(itemPile, { getAll: true });
-  const filteredItems = items.filter((item) => !pileCurrencies.some((currency) => item.id !== currency.id));
-  const currencies = items.filter((item) => !pileCurrencies.some((currency) => item.id === currency.id));
+  const filteredItems = items.filter((item) => !pileCurrencies.some((currency) => currency.id === item.id));
+  const currencies = items.filter((item) => pileCurrencies.some((currency) => currency.id === item.id));
   let pileSharingData = {};
   if (!sharingData && (pileData.shareItemsEnabled && filteredItems.length || pileData.shareCurrenciesEnabled && (attributes.length || currencies.length))) {
     pileSharingData = getItemPileSharingData(itemPile);
@@ -36785,7 +36912,7 @@ function addToItemPileSharingData(itemPile, actorUuid, {
         existingItem.actors = [];
         existingItem._id = item.id;
       }
-      let actorData = existingItem.actors.find((data2) => data2.uuid === actorUuid);
+      let actorData = existingItem.actors.find((data) => data.uuid === actorUuid);
       const itemQuantity = getItemQuantity(item);
       if (!actorData) {
         if (itemQuantity > 0) {
@@ -36819,7 +36946,7 @@ function addToItemPileSharingData(itemPile, actorUuid, {
           existingCurrency.actors = [];
         }
       }
-      let actorData = existingCurrency.actors.find((data2) => data2.uuid === actorUuid);
+      let actorData = existingCurrency.actors.find((data) => data.uuid === actorUuid);
       if (!actorData) {
         if (attribute.quantity > 0) {
           existingCurrency.actors.push({ uuid: actorUuid, quantity: attribute.quantity });
@@ -36838,15 +36965,16 @@ function addToItemPileSharingData(itemPile, actorUuid, {
   return pileSharingData;
 }
 function removeFromItemPileSharingData(itemPile, actorUuid, { items = [], attributes = [] } = {}) {
-  items = items.map((item) => {
-    setItemQuantity(item, getItemQuantity(item) * -1);
-    return item;
+  const negatedItems = items.map((item) => {
+    const clone = foundry.utils.deepClone(item);
+    setItemQuantity(clone, getItemQuantity(item) * -1);
+    return clone;
   });
-  attributes = attributes.map((attribute) => {
-    attribute.quantity = attribute.quantity * -1;
-    return attribute;
-  });
-  return addToItemPileSharingData(itemPile, actorUuid, { items, attributes });
+  const negatedAttributes = attributes.map((attribute) => ({
+    ...attribute,
+    quantity: attribute.quantity * -1
+  }));
+  return addToItemPileSharingData(itemPile, actorUuid, { items: negatedItems, attributes: negatedAttributes });
 }
 function getItemSharesLeftForActor(pile, item, recipient, {
   currentQuantity = null,
@@ -36854,7 +36982,7 @@ function getItemSharesLeftForActor(pile, item, recipient, {
   players = null,
   shareData = null
 } = {}) {
-  if (item instanceof String) {
+  if (typeof item === "string") {
     item = pile.items.get(item);
   }
   let previouslyTaken = 0;
@@ -37599,7 +37727,7 @@ class DropItemDialog extends SvelteApp {
       for (let app of apps) {
         app.render(false, { focus: true });
       }
-      return;
+      return null;
     }
     return new Promise((resolve) => {
       options.resolve = resolve;
@@ -38240,7 +38368,7 @@ function instance$Z($$self, $$props, $$invalidate) {
   let $rarityColor;
   let $name;
   let $currentQuantity;
-  let { store: store2 } = $$props;
+  let { store } = $$props;
   let { entry } = $$props;
   let { currency = false } = $$props;
   const name = entry.name;
@@ -38257,15 +38385,15 @@ function instance$Z($$self, $$props, $$invalidate) {
   component_subscribe($$self, quantity, (value) => $$invalidate(8, $quantity = value));
   const currentQuantity = entry.currentQuantity;
   component_subscribe($$self, currentQuantity, (value) => $$invalidate(12, $currentQuantity = value));
-  const pileData = store2.pileData;
+  const pileData = store.pileData;
   component_subscribe($$self, pileData, (value) => $$invalidate(4, $pileData = value));
   let element2 = false;
-  const editQuantities = store2.editQuantities;
+  const editQuantities = store.editQuantities;
   component_subscribe($$self, editQuantities, (value) => $$invalidate(6, $editQuantities = value));
   function dragStart(event) {
-    const data2 = { type: "Item", uuid: entry.item.uuid };
-    Hooks.callAll(CONSTANTS.HOOKS.DRAG_DOCUMENT, data2);
-    event.dataTransfer.setData("text/plain", JSON.stringify(data2));
+    const data = { type: "Item", uuid: entry.item.uuid };
+    Hooks.callAll(CONSTANTS.HOOKS.DRAG_DOCUMENT, data);
+    event.dataTransfer.setData("text/plain", JSON.stringify(data));
   }
   onMount(() => {
     entry.rendered(element2);
@@ -38306,14 +38434,14 @@ function instance$Z($$self, $$props, $$invalidate) {
     dragStart(event);
   };
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
     if ("entry" in $$props2) $$invalidate(1, entry = $$props2.entry);
     if ("currency" in $$props2) $$invalidate(2, currency = $$props2.currency);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*entry, $pileData, store*/
     19) {
-      $$invalidate(5, canInspectItems = entry.item && ($pileData.canInspectItems || store2.actor.isOwner));
+      $$invalidate(5, canInspectItems = entry.item && ($pileData.canInspectItems || store.actor.isOwner));
     }
     if ($$self.$$.dirty[0] & /*$doc, entry, element*/
     8388618) {
@@ -38323,7 +38451,7 @@ function instance$Z($$self, $$props, $$invalidate) {
     }
   };
   return [
-    store2,
+    store,
     entry,
     currency,
     element2,
@@ -38665,7 +38793,7 @@ function instance$Y($$self, $$props, $$invalidate) {
   let visibleSubItems;
   let $subItems;
   let { item } = $$props;
-  let { store: store2 } = $$props;
+  let { store } = $$props;
   let { index } = $$props;
   const subItems = item.subItems;
   component_subscribe($$self, subItems, (value) => $$invalidate(5, $subItems = value));
@@ -38679,7 +38807,7 @@ function instance$Y($$self, $$props, $$invalidate) {
   }
   $$self.$$set = ($$props2) => {
     if ("item" in $$props2) $$invalidate(0, item = $$props2.item);
-    if ("store" in $$props2) $$invalidate(1, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(1, store = $$props2.store);
     if ("index" in $$props2) $$invalidate(2, index = $$props2.index);
   };
   $$self.$$.update = () => {
@@ -38690,7 +38818,7 @@ function instance$Y($$self, $$props, $$invalidate) {
   };
   return [
     item,
-    store2,
+    store,
     index,
     visibleSubItems,
     subItems,
@@ -38926,15 +39054,15 @@ function create_fragment$_(ctx) {
 function instance$X($$self, $$props, $$invalidate) {
   let $numItems;
   let $items;
-  let { store: store2 } = $$props;
-  const items = store2.items;
+  let { store } = $$props;
+  const items = store.items;
   component_subscribe($$self, items, (value) => $$invalidate(2, $items = value));
-  const numItems = store2.numItems;
+  const numItems = store.numItems;
   component_subscribe($$self, numItems, (value) => $$invalidate(1, $numItems = value));
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
   };
-  return [store2, $numItems, $items, items, numItems];
+  return [store, $numItems, $items, items, numItems];
 }
 class ItemList extends SvelteComponent {
   constructor(options) {
@@ -39230,23 +39358,23 @@ function create_fragment$Z(ctx) {
 function instance$W($$self, $$props, $$invalidate) {
   let $numCurrencies;
   let $currencies;
-  let { store: store2 } = $$props;
-  const currencies = store2.currencies;
+  let { store } = $$props;
+  const currencies = store.currencies;
   component_subscribe($$self, currencies, (value) => $$invalidate(2, $currencies = value));
-  store2.numItems;
-  const numCurrencies = store2.numCurrencies;
+  store.numItems;
+  const numCurrencies = store.numCurrencies;
   component_subscribe($$self, numCurrencies, (value) => $$invalidate(1, $numCurrencies = value));
-  store2.editQuantities;
-  const click_handler = () => store2.addCurrency(store2.recipient);
+  store.editQuantities;
+  const click_handler = () => store.addCurrency(store.recipient);
   function listentry_entry_binding(value, currency, each_value, index) {
     each_value[index] = value;
     currencies.set($currencies);
   }
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
   };
   return [
-    store2,
+    store,
     $numCurrencies,
     $currencies,
     currencies,
@@ -39672,32 +39800,32 @@ function create_fragment$Y(ctx) {
 function instance$V($$self, $$props, $$invalidate) {
   let $recipientDoc;
   let $editQuantities;
-  let { store: store2 } = $$props;
+  let { store } = $$props;
   let { localization = "ITEM-PILES.Inspect.AsActor" } = $$props;
   let { style = "text-align: center; flex: 0 1 auto; height: 27px;" } = $$props;
-  let editQuantities = store2.editQuantities;
+  let editQuantities = store.editQuantities;
   component_subscribe($$self, editQuantities, (value) => $$invalidate(5, $editQuantities = value));
   let changingActor = false;
-  let playerActors = game.actors.filter((actor) => actor.isOwner && actor !== store2.actor && actor.prototypeToken.actorLink);
-  let recipientUuid = getUuid(store2.recipient);
-  const recipientDoc = store2.recipientDocument;
+  let playerActors = game.actors.filter((actor) => actor.isOwner && actor !== store.actor && actor.prototypeToken.actorLink);
+  let recipientUuid = getUuid(store.recipient);
+  const recipientDoc = store.recipientDocument;
   component_subscribe($$self, recipientDoc, (value) => $$invalidate(3, $recipientDoc = value));
   function changeRecipientActor() {
     const newRecipient = playerActors.find((actor) => getUuid(actor) === recipientUuid);
     $$invalidate(2, changingActor = false);
-    if (recipientUuid === store2.recipient.uuid) return;
-    store2.updateRecipient(newRecipient);
+    if (recipientUuid === store.recipient.uuid) return;
+    store.updateRecipient(newRecipient);
   }
   const click_handler = () => {
     $$invalidate(2, changingActor = true);
   };
   function select_change_handler() {
     recipientUuid = select_value(this);
-    $$invalidate(4, recipientUuid), $$invalidate(3, $recipientDoc), $$invalidate(2, changingActor), $$invalidate(10, store2);
+    $$invalidate(4, recipientUuid), $$invalidate(3, $recipientDoc), $$invalidate(2, changingActor), $$invalidate(10, store);
     $$invalidate(7, playerActors);
   }
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(10, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(10, store = $$props2.store);
     if ("localization" in $$props2) $$invalidate(0, localization = $$props2.localization);
     if ("style" in $$props2) $$invalidate(1, style = $$props2.style);
   };
@@ -39706,7 +39834,7 @@ function instance$V($$self, $$props, $$invalidate) {
     1036) {
       {
         if (!changingActor) {
-          $$invalidate(4, recipientUuid = store2.recipient ? getUuid(store2.recipient) : false);
+          $$invalidate(4, recipientUuid = store.recipient ? getUuid(store.recipient) : false);
         }
       }
     }
@@ -39722,7 +39850,7 @@ function instance$V($$self, $$props, $$invalidate) {
     playerActors,
     recipientDoc,
     changeRecipientActor,
-    store2,
+    store,
     click_handler,
     select_change_handler
   ];
@@ -39910,8 +40038,8 @@ class DynReducerUtils {
    *
    * @returns Is data iterable.
    */
-  static isIterable(data2) {
-    return data2 !== null && data2 !== void 0 && typeof data2 === "object" && typeof data2[Symbol.iterator] === "function";
+  static isIterable(data) {
+    return data !== null && data !== void 0 && typeof data === "object" && typeof data[Symbol.iterator] === "function";
   }
 }
 class AdapterDerived {
@@ -40076,10 +40204,10 @@ class AdapterFilters {
       if (filterType !== "function" && (filterType !== "object" || filter2 === null)) {
         throw new TypeError(`AdapterFilters error: 'filter' is not a function or object.`);
       }
-      let data2;
+      let data;
       let subscribeFn;
       if (filterType === "function") {
-        data2 = {
+        data = {
           id: void 0,
           filter: filter2,
           weight: 1
@@ -40093,7 +40221,7 @@ class AdapterFilters {
           if (filter2.weight !== void 0 && (typeof filter2.weight !== "number" || filter2.weight < 0 || filter2.weight > 1)) {
             throw new TypeError(`AdapterFilters error: 'weight' attribute is not a number between '0 - 1' inclusive.`);
           }
-          data2 = {
+          data = {
             id: filter2.id !== void 0 ? filter2.id : void 0,
             filter: filter2.filter,
             weight: filter2.weight || 1
@@ -40106,22 +40234,22 @@ class AdapterFilters {
         throw new TypeError(`AdapterFilters error: 'filter' is not defined.`);
       }
       const index = this.#filtersData.filters.findIndex((value) => {
-        return data2.weight < value.weight;
+        return data.weight < value.weight;
       });
       if (index >= 0) {
-        this.#filtersData.filters.splice(index, 0, data2);
+        this.#filtersData.filters.splice(index, 0, data);
       } else {
-        this.#filtersData.filters.push(data2);
+        this.#filtersData.filters.push(data);
       }
       if (typeof subscribeFn === "function") {
         const unsubscribe = subscribeFn(this.#indexUpdate);
         if (typeof unsubscribe !== "function") {
           throw new TypeError("AdapterFilters error: Filter has subscribe function, but no unsubscribe function is returned.");
         }
-        if (this.#mapUnsubscribe.has(data2.filter)) {
+        if (this.#mapUnsubscribe.has(data.filter)) {
           throw new Error("AdapterFilters error: Filter added already has an unsubscribe function registered.");
         }
-        this.#mapUnsubscribe.set(data2.filter, unsubscribe);
+        this.#mapUnsubscribe.set(data.filter, unsubscribe);
         subscribeCount++;
       }
     }
@@ -40142,8 +40270,8 @@ class AdapterFilters {
     if (length === 0) {
       return;
     }
-    for (const data2 of filters) {
-      const actualFilter = typeof data2 === "function" ? data2 : data2 !== null && typeof data2 === "object" ? data2.filter : void 0;
+    for (const data of filters) {
+      const actualFilter = typeof data === "function" ? data : data !== null && typeof data === "object" ? data.filter : void 0;
       if (!actualFilter) {
         continue;
       }
@@ -40170,13 +40298,13 @@ class AdapterFilters {
     if (typeof callback !== "function") {
       throw new TypeError(`AdapterFilters error: 'callback' is not a function.`);
     }
-    this.#filtersData.filters = this.#filtersData.filters.filter((data2) => {
-      const remove = callback.call(callback, { ...data2 });
+    this.#filtersData.filters = this.#filtersData.filters.filter((data) => {
+      const remove = callback.call(callback, { ...data });
       if (remove) {
         let unsubscribe;
-        if (typeof (unsubscribe = this.#mapUnsubscribe.get(data2.filter)) === "function") {
+        if (typeof (unsubscribe = this.#mapUnsubscribe.get(data.filter)) === "function") {
           unsubscribe();
-          this.#mapUnsubscribe.delete(data2.filter);
+          this.#mapUnsubscribe.delete(data.filter);
         }
       }
       return !remove;
@@ -40190,16 +40318,16 @@ class AdapterFilters {
     if (length === 0) {
       return;
     }
-    this.#filtersData.filters = this.#filtersData.filters.filter((data2) => {
+    this.#filtersData.filters = this.#filtersData.filters.filter((data) => {
       let remove = 0;
       for (const id of ids) {
-        remove |= data2.id === id ? 1 : 0;
+        remove |= data.id === id ? 1 : 0;
       }
       if (!!remove) {
         let unsubscribe;
-        if (typeof (unsubscribe = this.#mapUnsubscribe.get(data2.filter)) === "function") {
+        if (typeof (unsubscribe = this.#mapUnsubscribe.get(data.filter)) === "function") {
           unsubscribe();
-          this.#mapUnsubscribe.delete(data2.filter);
+          this.#mapUnsubscribe.delete(data.filter);
         }
       }
       return !remove;
@@ -40420,9 +40548,9 @@ class MapIndexer extends AdapterIndexer {
    */
   createSortFn() {
     return (a, b) => {
-      const data2 = this.hostData?.[0];
-      const dataA = data2?.get(a);
-      const dataB = data2?.get(b);
+      const data = this.hostData?.[0];
+      const dataA = data?.get(a);
+      const dataB = data?.get(b);
       return dataA && dataB ? this.sortData.compareFn(dataA, dataB) : 0;
     };
   }
@@ -40435,10 +40563,10 @@ class MapIndexer extends AdapterIndexer {
    * @returns New filtered index array.
    */
   reduceImpl() {
-    const data2 = [];
+    const data = [];
     const map = this.hostData?.[0];
     if (!map) {
-      return data2;
+      return data;
     }
     const filters = this.filtersData.filters;
     let include = true;
@@ -40457,7 +40585,7 @@ class MapIndexer extends AdapterIndexer {
           }
         }
         if (include) {
-          data2.push(key);
+          data.push(key);
         }
       }
     } else {
@@ -40474,11 +40602,11 @@ class MapIndexer extends AdapterIndexer {
           }
         }
         if (include) {
-          data2.push(key);
+          data.push(key);
         }
       }
     }
-    return data2;
+    return data;
   }
   /**
    * Update the reducer indexes. If there are changes subscribers are notified. If data order is changed externally
@@ -40733,37 +40861,37 @@ class DynMapReducer {
    *
    * @typeParam T `unknown` - Type of data.
    */
-  constructor(data2) {
+  constructor(data) {
     let dataMap;
     let filters;
     let sort;
-    if (data2 === null) {
+    if (data === null) {
       throw new TypeError(`DynMapReducer error: 'data' is not an object or Map.`);
     }
-    if (data2 !== void 0 && typeof data2 !== "object" && !(data2 instanceof Map)) {
+    if (data !== void 0 && typeof data !== "object" && !(data instanceof Map)) {
       throw new TypeError(`DynMapReducer error: 'data' is not an object or Map.`);
     }
-    if (data2 !== void 0 && data2 instanceof Map) {
-      dataMap = data2;
-    } else if (data2 !== void 0 && ("data" in data2 || "filters" in data2 || "sort" in data2)) {
-      if (data2.data !== void 0 && !(data2.data instanceof Map)) {
+    if (data !== void 0 && data instanceof Map) {
+      dataMap = data;
+    } else if (data !== void 0 && ("data" in data || "filters" in data || "sort" in data)) {
+      if (data.data !== void 0 && !(data.data instanceof Map)) {
         throw new TypeError(`DynMapReducer error (DataDynMap): 'data' attribute is not a Map.`);
       }
-      if (data2.data instanceof Map) {
-        dataMap = data2.data;
+      if (data.data instanceof Map) {
+        dataMap = data.data;
       }
-      if (data2.filters !== void 0) {
-        if (DynReducerUtils.isIterable(data2.filters)) {
-          filters = data2.filters;
+      if (data.filters !== void 0) {
+        if (DynReducerUtils.isIterable(data.filters)) {
+          filters = data.filters;
         } else {
           throw new TypeError(`DynMapReducer error (DataDynMap): 'filters' attribute is not iterable.`);
         }
       }
-      if (data2.sort !== void 0) {
-        if (typeof data2.sort === "function") {
-          sort = data2.sort;
-        } else if (typeof data2.sort === "object" && data2.sort !== null) {
-          sort = data2.sort;
+      if (data.sort !== void 0) {
+        if (typeof data.sort === "function") {
+          sort = data.sort;
+        } else if (typeof data.sort === "object" && data.sort !== null) {
+          sort = data.sort;
         } else {
           throw new TypeError(`DynMapReducer error (DataDynMap): 'sort' attribute is not a function or object.`);
         }
@@ -40888,8 +41016,8 @@ class DynMapReducer {
    *
    * @param [replace=false] - New data to set to internal data.
    */
-  setData(data2, replace = false) {
-    if (data2 !== null && !(data2 instanceof Map)) {
+  setData(data, replace = false) {
+    if (data !== null && !(data instanceof Map)) {
       throw new TypeError(`DynMapReducer.setData error: 'data' is not iterable.`);
     }
     if (typeof replace !== "boolean") {
@@ -40897,11 +41025,11 @@ class DynMapReducer {
     }
     const map = this.#map[0];
     if (!(map instanceof Map) || replace) {
-      this.#map[0] = data2 instanceof Map ? data2 : null;
-    } else if (data2 instanceof Map && map instanceof Map) {
+      this.#map[0] = data instanceof Map ? data : null;
+    } else if (data instanceof Map && map instanceof Map) {
       const removeKeySet = new Set(map.keys());
-      for (const key of data2.keys()) {
-        map.set(key, data2.get(key));
+      for (const key of data.keys()) {
+        map.set(key, data.get(key));
         if (removeKeySet.has(key)) {
           removeKeySet.delete(key);
         }
@@ -40909,7 +41037,7 @@ class DynMapReducer {
       for (const key of removeKeySet) {
         map.delete(key);
       }
-    } else if (data2 === null) {
+    } else if (data === null) {
       this.#map[0] = null;
     }
     this.#index.indexData.index = null;
@@ -41084,8 +41212,8 @@ class EmbeddedStoreManager {
     if (FoundryDoc === void 0) {
       for (const embeddedData of this.#name.values()) {
         embeddedData.collection = null;
-        for (const store2 of embeddedData.stores.values()) {
-          store2.destroy();
+        for (const store of embeddedData.stores.values()) {
+          store.destroy();
           count++;
         }
       }
@@ -41099,8 +41227,8 @@ class EmbeddedStoreManager {
         const embeddedData = this.#name.get(docName);
         if (embeddedData) {
           embeddedData.collection = null;
-          for (const store2 of embeddedData.stores.values()) {
-            store2.destroy();
+          for (const store of embeddedData.stores.values()) {
+            store.destroy();
             count++;
           }
         }
@@ -41108,9 +41236,9 @@ class EmbeddedStoreManager {
       } else if (reducerName === "string") {
         const embeddedData = this.#name.get(docName);
         if (embeddedData) {
-          const store2 = embeddedData.stores.get(reducerName);
-          if (store2) {
-            store2.destroy();
+          const store = embeddedData.stores.get(reducerName);
+          if (store) {
+            store.destroy();
             count++;
           }
         }
@@ -41172,8 +41300,8 @@ class EmbeddedStoreManager {
         const embeddedData = this.#name.get(docName);
         if (embeddedData) {
           embeddedData.collection = collection;
-          for (const store2 of embeddedData.stores.values()) {
-            store2.setData(embeddedData.collection, true);
+          for (const store of embeddedData.stores.values()) {
+            store.setData(embeddedData.collection, true);
           }
         }
       }
@@ -41181,8 +41309,8 @@ class EmbeddedStoreManager {
         const embeddedData = this.#name.get(embeddedName);
         if (embeddedData) {
           embeddedData.collection = null;
-          for (const store2 of embeddedData.stores.values()) {
-            store2.setData(null, true);
+          for (const store of embeddedData.stores.values()) {
+            store.setData(null, true);
           }
         }
       }
@@ -41191,8 +41319,8 @@ class EmbeddedStoreManager {
       this.#embeddedNames.clear();
       for (const embeddedData of this.#name.values()) {
         embeddedData.collection = null;
-        for (const store2 of embeddedData.stores.values()) {
-          store2.setData(null, true);
+        for (const store of embeddedData.stores.values()) {
+          store.setData(null, true);
         }
       }
     }
@@ -41214,8 +41342,8 @@ class EmbeddedStoreManager {
       const embeddedName = this.#collectionToDocName.get(docOrCollectionName);
       const embeddedData = this.#name.get(embeddedName);
       if (embeddedData) {
-        for (const store2 of embeddedData.stores.values()) {
-          store2.index.update(true);
+        for (const store of embeddedData.stores.values()) {
+          store.index.update(true);
         }
       }
     }
@@ -41372,20 +41500,20 @@ class TJSDocument {
    *
    * @returns Foundry UUID for drop data.
    */
-  static getUUIDFromDataTransfer(data2, { compendium = true, world = true, types = void 0 } = {}) {
-    if (!isObject(data2)) {
+  static getUUIDFromDataTransfer(data, { compendium = true, world = true, types = void 0 } = {}) {
+    if (!isObject(data)) {
       return void 0;
     }
-    if (Array.isArray(types) && !types.includes(data2.type)) {
+    if (Array.isArray(types) && !types.includes(data.type)) {
       return void 0;
     }
     let uuid = void 0;
-    if (typeof data2.uuid === "string") {
-      const isCompendium = data2.uuid.startsWith("Compendium");
+    if (typeof data.uuid === "string") {
+      const isCompendium = data.uuid.startsWith("Compendium");
       if (isCompendium && compendium) {
-        uuid = data2.uuid;
+        uuid = data.uuid;
       } else if (world) {
-        uuid = data2.uuid;
+        uuid = data.uuid;
       }
     }
     return uuid;
@@ -41441,8 +41569,8 @@ class TJSDocument {
    *
    * @returns Returns true if new document set from data transfer blob.
    */
-  async setFromDataTransfer(data2, options) {
-    return this.setFromUUID(TJSDocument.getUUIDFromDataTransfer(data2, options));
+  async setFromDataTransfer(data, options) {
+    return this.setFromUUID(TJSDocument.getUUIDFromDataTransfer(data, options));
   }
   /**
    * Sets the document by Foundry UUID performing a lookup and setting the document if found.
@@ -41598,15 +41726,15 @@ class Transaction {
     type = "item",
     keepIfZero = false
   } = {}) {
-    for (let data2 of items) {
-      let item = data2.item ?? data2;
+    for (let data of items) {
+      let item = data.item ?? data;
       type = isItemCurrency(item) ? "currency" : type;
-      let flags = data2.flags ?? false;
+      let flags = data.flags ?? false;
       let itemData = item instanceof Item ? item.toObject() : foundry.utils.deepClone(item);
       if (SYSTEMS.DATA.ITEM_TRANSFORMER && !remove) {
         itemData = await SYSTEMS.DATA.ITEM_TRANSFORMER(itemData);
       }
-      const incomingQuantity = set2 ? Math.abs(data2.quantity ?? getItemQuantity(itemData)) : Math.abs(data2.quantity ?? getItemQuantity(itemData)) * (remove ? -1 : 1);
+      const incomingQuantity = set2 ? Math.abs(data.quantity ?? getItemQuantity(itemData)) : Math.abs(data.quantity ?? getItemQuantity(itemData)) * (remove ? -1 : 1);
       let itemId = itemData._id ?? itemData.id;
       let documentHasItem = false;
       let documentExistingItem = false;
@@ -41684,7 +41812,7 @@ class Transaction {
       attributes = Object.entries(attributes).map((entry) => ({ path: entry[0], quantity: entry[1] }));
     }
     this.documentChanges = attributes.reduce((acc, attribute) => {
-      const incomingQuantity = Math.abs(attribute.quantity) * (remove ? -1 : 1);
+      const incomingQuantity = set2 ? attribute.quantity : Math.abs(attribute.quantity) * (remove ? -1 : 1);
       acc[attribute.path] = acc[attribute.path] ?? Number(foundry.utils.getProperty(this.document, attribute.path) ?? 0);
       if (set2) {
         if (!onlyDelta) {
@@ -41711,8 +41839,9 @@ class Transaction {
       attributes = Object.entries(attributes).map((entry) => ({ path: entry[0], quantity: entry[1] }));
     }
     this.itemUpdates = attributes.reduce((acc, attribute) => {
-      const incomingQuantity = Math.abs(attribute.quantity) * (remove ? -1 : 1);
+      const incomingQuantity = set2 ? attribute.quantity : Math.abs(attribute.quantity) * (remove ? -1 : 1);
       acc[item.id] = {
+        ...acc[item.id] ?? {},
         [attribute.path]: acc[item.id]?.[attribute.path] ?? Number(foundry.utils.getProperty(item, attribute.path) ?? 0)
       };
       if (set2) {
@@ -41827,7 +41956,7 @@ class Transaction {
       itemDeltas: this.itemDeltas.concat(itemsCreated.map((item) => {
         return {
           item,
-          quantity: canItemStack(item) ? getItemQuantity(item) : 1
+          quantity: canItemStack(item, this.document) ? getItemQuantity(item) : 1
         };
       }))
     };
@@ -41843,7 +41972,7 @@ class SimpleCalendarPlugin extends BasePlugin {
       weekday: window.SimpleCalendar.api.getCurrentWeekday(),
       timestamp: window.SimpleCalendar.api.dateToTimestamp({})
     };
-    previousState.time = Number(previousState.dateTime.hour.toString() + "." + previousState.dateTime.minute.toString());
+    previousState.time = previousState.dateTime.hour * 60 + previousState.dateTime.minute;
     Hooks.on("updateWorldTime", async () => {
       ItemPileStore.notifyAllOfChanges("updateOpenCloseStatus");
       if (!isResponsibleGM()) return;
@@ -41875,7 +42004,7 @@ class SimpleCalendarPlugin extends BasePlugin {
       weekday: window.SimpleCalendar.api.getCurrentWeekday(),
       timestamp: window.SimpleCalendar.api.dateToTimestamp({})
     };
-    newState.time = Number(newState.dateTime.hour.toString() + "." + newState.dateTime.minute.toString());
+    newState.time = newState.dateTime.hour * 60 + newState.dateTime.minute;
     const prevMinute = Math.floor(previousState.timestamp / 60);
     const newMinute = Math.floor(newState.timestamp / 60);
     if (prevMinute === newMinute) {
@@ -41906,8 +42035,9 @@ class SimpleCalendarPlugin extends BasePlugin {
           timestampData.year = newState.dateTime.year;
           timestampData.month = newState.dateTime.month;
           timestampData.day = newState.dateTime.day;
-          const weekInSeconds = SimpleCalendar.api.timestampPlusInterval(0, { day: 1 }) * weekdayCountDifference;
-          const timestamp = window.SimpleCalendar.api.dateToTimestamp(timestampData) - weekInSeconds;
+          const secondsPerDay = SimpleCalendar.api.timestampPlusInterval(0, { day: 1 });
+          const offsetInSeconds = secondsPerDay * weekdayCountDifference;
+          const timestamp = window.SimpleCalendar.api.dateToTimestamp(timestampData) - offsetInSeconds;
           timestampData.day = window.SimpleCalendar.api.timestampToDate(timestamp).day;
           break;
         case window.SimpleCalendar.api.NoteRepeat.Monthly:
@@ -41944,17 +42074,18 @@ class SimpleCalendarPlugin extends BasePlugin {
       acc[sceneId].push(tokenDocument);
       return acc;
     }, {});
-    this.validTokensOnScenes.filter((token) => {
-      const pileData = getActorFlagData(token);
-      return pileData.hideTokenWhenClosed;
-    }).forEach(([sceneId, token]) => {
-      if (validTokensOnScenes[sceneId].length) {
-        if (!validTokensOnScenes[sceneId].find((t) => t === token)) return;
+    for (const [sceneId, tokens] of this.validTokensOnScenes) {
+      for (const token of tokens) {
+        const pileData = getActorFlagData(token);
+        if (!pileData.hideTokenWhenClosed) continue;
+        if (!validTokensOnScenes[sceneId]) {
+          validTokensOnScenes[sceneId] = [token];
+          continue;
+        }
+        if (validTokensOnScenes[sceneId].includes(token)) continue;
         validTokensOnScenes[sceneId].push(token);
-      } else {
-        validTokensOnScenes[sceneId] = [token];
       }
-    });
+    }
     for (const [sceneId, tokens] of Object.entries(validTokensOnScenes)) {
       const scene = game.scenes.get(sceneId);
       const updates = Object.values(tokens.reduce((acc, token) => {
@@ -42026,8 +42157,8 @@ function merchantRefreshFilter(flags, newState, previousState2, categories) {
   const openMinute = openTimesEnabled ? openTimes.minute : 0;
   const closeHour = openTimesEnabled ? closeTimes.hour : 0;
   const closeMinute = openTimesEnabled ? closeTimes.minute : 0;
-  const openingTime = Number(openHour.toString() + "." + openMinute.toString());
-  const closingTime = Number(closeHour.toString() + "." + closeMinute.toString());
+  const openingTime = openHour * 60 + openMinute;
+  const closingTime = closeHour * 60 + closeMinute;
   const wasOpen = openingTime > closingTime ? previousState2.time >= openingTime || previousState2.time <= closingTime : previousState2.time >= openingTime && previousState2.time <= closingTime;
   const isOpen = openingTime > closingTime ? newState.time >= openingTime || newState.time <= closingTime : newState.time >= openingTime && newState.time <= closingTime;
   const dayLength = SimpleCalendar.api.timestampPlusInterval(0, { day: 1 });
@@ -42040,9 +42171,9 @@ function merchantRefreshFilter(flags, newState, previousState2, categories) {
 class Levels3dPreview extends BasePlugin {
   registerHooks() {
     Hooks.on("3DCanvasConfig", (config) => {
-      config.INTERACTIONS.dropFunctions.Item = async function(event, data2) {
+      config.INTERACTIONS.dropFunctions.Item = async function(event, data) {
         canvas.tokens.activate();
-        return PrivateAPI._dropData(canvas, data2);
+        return PrivateAPI._dropData(canvas, data);
       };
     });
   }
@@ -42065,7 +42196,7 @@ const Plugins = {
     data: null,
     class: SimpleCalendarPlugin,
     minVersion: "2.0.0",
-    invalidVersion: "v1.3.75"
+    invalidVersion: "1.3.75"
   },
   "levels-3d-preview": {
     on: "init",
@@ -42089,14 +42220,18 @@ function setupPlugins(hook) {
   }
 }
 class PileBaseItem {
-  constructor(store2, data2, isCurrency = false, isSecondaryCurrency = false, parent = false) {
-    this.store = store2;
-    this.parent = parent?.item || store2.actor;
-    this.parentDoc = parent?.itemDocument || store2.document;
+  constructor(store, data, isCurrency = false, isSecondaryCurrency = false, parent = false) {
+    this.store = store;
+    this.parent = parent?.item || store.actor;
+    this.parentDoc = parent?.itemDocument || store.document;
     this.subscriptions = [];
     this.isCurrency = isCurrency;
     this.isSecondaryCurrency = isSecondaryCurrency;
-    this.setup(data2);
+    this.setup(data);
+  }
+  /** The pile's actor that owns this entry. */
+  get actor() {
+    return this.store.actor;
   }
   setupStores() {
     this.category = writable({ service: false, type: "", label: "" });
@@ -42111,10 +42246,10 @@ class PileBaseItem {
   }
   setupSubscriptions() {
   }
-  setup(data2) {
+  setup(data) {
     this.unsubscribe();
-    this.setupStores(data2);
-    this.setupSubscriptions(data2);
+    this.setupStores(data);
+    this.setupSubscriptions(data);
   }
   subscribeTo(target, callback) {
     this.subscriptions.push(target.subscribe(callback));
@@ -42224,9 +42359,10 @@ class PileItem extends PileBaseItem {
     const itemFlagData = get_store_value(this.itemFlagData);
     this.category.update((cat) => {
       cat.service = itemFlagData?.isService;
-      if (itemFlagData.customCategory) {
-        cat.type = itemFlagData.customCategory.toLowerCase();
-        cat.label = itemFlagData.customCategory;
+      const customCategory = typeof itemFlagData?.customCategory === "string" ? itemFlagData.customCategory.trim() : "";
+      if (customCategory) {
+        cat.type = customCategory.toLowerCase();
+        cat.label = customCategory;
       } else if (cat.service && pileData.enabled && pileData.type === CONSTANTS.PILE_TYPES.MERCHANT) {
         cat.type = "item-piles-service";
         cat.label = "ITEM-PILES.Merchant.Service";
@@ -42281,21 +42417,9 @@ class PileItem extends PileBaseItem {
   preview() {
     const pileData = get_store_value(this.store.pileData);
     if (!pileData.canInspectItems && !game.user.isGM) return;
-    if (SYSTEMS.DATA?.PREVIEW_ITEM_TRANSFORMER) {
-      if (!SYSTEMS.DATA?.PREVIEW_ITEM_TRANSFORMER(this.item)) {
-        return;
-      }
-    }
-    if (game.user.isGM || this.item.ownership[game.user.id] === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER) {
-      return this.item.sheet.render(true);
-    }
-    const itemData = this.item.toObject();
-    itemData.ownership[game.user.id] = getSetting(SETTINGS.ITEM_PREVIEW_PERMISSION_LEVEL);
-    const newItem = new Item.implementation(itemData);
-    newItem.document = newItem;
-    const cls = newItem._getSheetClass();
-    const sheet = new cls(newItem, { editable: false });
-    return sheet?._render ? sheet._render(true) : sheet.render(true);
+    if (SYSTEMS.DATA?.PREVIEW_ITEM_TRANSFORMER && !SYSTEMS.DATA.PREVIEW_ITEM_TRANSFORMER(this.item)) return;
+    const ownership = getSetting(SETTINGS.ITEM_PREVIEW_PERMISSION_LEVEL);
+    return renderReadOnlyItemPreview(this.item, ownership);
   }
   rendered(element2) {
     if (!element2) return;
@@ -42369,13 +42493,15 @@ class PileAttribute extends PileBaseItem {
     const quantity = get_store_value(this.quantity);
     if (quantity === 0 && !presentFromTheStart) {
       this.filtered.set(true);
-    } else if (search) {
-      const nameIsInSearchQuery = name.toLowerCase().includes(search.toLowerCase());
-      const subItemNamesMatchQuery = get_store_value(this.subItems).some((item) => get_store_value(item.filtered));
-      this.filtered.set(!(nameIsInSearchQuery || subItemNamesMatchQuery));
-    } else {
-      this.filtered.set(!presentFromTheStart && quantity === 0);
+      return;
     }
+    if (!search) {
+      this.filtered.set(!presentFromTheStart && quantity === 0);
+      return;
+    }
+    const nameMatches = name.toLowerCase().includes(search.toLowerCase());
+    const hasVisibleSubItem = get_store_value(this.subItems).some((item) => get_store_value(item.filtered) === false);
+    this.filtered.set(!nameMatches && !hasVisibleSubItem);
   }
   take() {
     const quantity = Math.min(get_store_value(this.currentQuantity), get_store_value(this.quantityLeft));
@@ -42628,9 +42754,9 @@ function create_else_block_3(ctx) {
       ctx[35]
     );
   }
-  function click_handler() {
+  function change_handler() {
     return (
-      /*click_handler*/
+      /*change_handler*/
       ctx[14](
         /*attribute*/
         ctx[36],
@@ -42686,7 +42812,7 @@ function create_else_block_3(ctx) {
           listen(input0, "change", input0_change_input_handler),
           listen(input0, "input", input0_change_input_handler),
           listen(input1, "input", input1_input_handler),
-          listen(input1, "click", click_handler)
+          listen(input1, "change", change_handler)
         ];
         mounted = true;
       }
@@ -42905,9 +43031,9 @@ function create_else_block_2$3(ctx) {
       ctx[35]
     );
   }
-  function click_handler_1() {
+  function change_handler_1() {
     return (
-      /*click_handler_1*/
+      /*change_handler_1*/
       ctx[18](
         /*item*/
         ctx[33],
@@ -42963,7 +43089,7 @@ function create_else_block_2$3(ctx) {
           listen(input0, "change", input0_change_input_handler_1),
           listen(input0, "input", input0_change_input_handler_1),
           listen(input1, "input", input1_input_handler_1),
-          listen(input1, "click", click_handler_1)
+          listen(input1, "change", change_handler_1)
         ];
         mounted = true;
       }
@@ -43281,9 +43407,9 @@ function create_else_block_1$6(ctx) {
       ctx[35]
     );
   }
-  function click_handler_2() {
+  function change_handler_2() {
     return (
-      /*click_handler_2*/
+      /*change_handler_2*/
       ctx[22](
         /*attribute*/
         ctx[36],
@@ -43339,7 +43465,7 @@ function create_else_block_1$6(ctx) {
           listen(input0, "change", input0_change_input_handler_2),
           listen(input0, "input", input0_change_input_handler_2),
           listen(input1, "input", input1_input_handler_2),
-          listen(input1, "click", click_handler_2)
+          listen(input1, "change", change_handler_2)
         ];
         mounted = true;
       }
@@ -43558,9 +43684,9 @@ function create_else_block$h(ctx) {
       ctx[35]
     );
   }
-  function click_handler_32() {
+  function change_handler_3() {
     return (
-      /*click_handler_3*/
+      /*change_handler_3*/
       ctx[26](
         /*item*/
         ctx[33],
@@ -43616,7 +43742,7 @@ function create_else_block$h(ctx) {
           listen(input0, "change", input0_change_input_handler_3),
           listen(input0, "input", input0_change_input_handler_3),
           listen(input1, "input", input1_input_handler_3),
-          listen(input1, "click", click_handler_32)
+          listen(input1, "change", change_handler_3)
         ];
         mounted = true;
       }
@@ -43923,7 +44049,7 @@ function create_default_slot$h(ctx) {
           listen(
             button,
             "click",
-            /*click_handler_4*/
+            /*click_handler*/
             ctx[27],
             { once: true }
           ),
@@ -44116,7 +44242,7 @@ function instance$U($$self, $$props, $$invalidate) {
     each_value_3[index].currentQuantity = to_number(this.value);
     $$invalidate(4, attributes);
   }
-  const click_handler = (attribute, each_value_3, index) => {
+  const change_handler = (attribute, each_value_3, index) => {
     $$invalidate(4, each_value_3[index].currentQuantity = Math.max(0, Math.min(attribute.quantity, attribute.currentQuantity)), attributes);
   };
   function input_input_handler_1(each_value_2, index) {
@@ -44131,7 +44257,7 @@ function instance$U($$self, $$props, $$invalidate) {
     each_value_2[index].currentQuantity = to_number(this.value);
     $$invalidate(5, items);
   }
-  const click_handler_1 = (item, each_value_2, index) => {
+  const change_handler_1 = (item, each_value_2, index) => {
     $$invalidate(5, each_value_2[index].currentQuantity = Math.max(0, Math.min(item.quantity, item.currentQuantity)), items);
   };
   function input_input_handler_2(each_value_1, index) {
@@ -44146,7 +44272,7 @@ function instance$U($$self, $$props, $$invalidate) {
     each_value_1[index].currentQuantity = to_number(this.value);
     $$invalidate(4, attributes);
   }
-  const click_handler_2 = (attribute, each_value_1, index) => {
+  const change_handler_2 = (attribute, each_value_1, index) => {
     $$invalidate(4, each_value_1[index].currentQuantity = Math.max(0, Math.min(attribute.quantity, attribute.currentQuantity)), attributes);
   };
   function input_input_handler_3(each_value, index) {
@@ -44161,10 +44287,10 @@ function instance$U($$self, $$props, $$invalidate) {
     each_value[index].currentQuantity = to_number(this.value);
     $$invalidate(5, items);
   }
-  const click_handler_32 = (item, each_value, index) => {
+  const change_handler_3 = (item, each_value, index) => {
     $$invalidate(5, each_value[index].currentQuantity = Math.max(0, Math.min(item.quantity, item.currentQuantity)), items);
   };
-  const click_handler_4 = () => {
+  const click_handler = () => {
     application.close();
   };
   function form_1_binding($$value) {
@@ -44199,20 +44325,20 @@ function instance$U($$self, $$props, $$invalidate) {
     input_input_handler,
     input0_change_input_handler,
     input1_input_handler,
-    click_handler,
+    change_handler,
     input_input_handler_1,
     input0_change_input_handler_1,
     input1_input_handler_1,
-    click_handler_1,
+    change_handler_1,
     input_input_handler_2,
     input0_change_input_handler_2,
     input1_input_handler_2,
-    click_handler_2,
+    change_handler_2,
     input_input_handler_3,
     input0_change_input_handler_3,
     input1_input_handler_3,
-    click_handler_32,
-    click_handler_4,
+    change_handler_3,
+    click_handler,
     form_1_binding,
     applicationshell_elementRoot_binding
   ];
@@ -44319,7 +44445,7 @@ class DropCurrencyDialog extends SvelteApp {
         for (let app of apps) {
           app.render(false, { focus: true });
         }
-        return;
+        return null;
       }
     }
     return new Promise((resolve) => {
@@ -44329,6 +44455,24 @@ class DropCurrencyDialog extends SvelteApp {
   }
 }
 const __STORES__ = /* @__PURE__ */ new Map();
+function resolveContainer(containerID, itemById) {
+  if (!containerID) return null;
+  return itemById.get(containerID) ?? null;
+}
+function pushSubItem(subItemsByContainer, container, item) {
+  const existing = subItemsByContainer.get(container);
+  if (existing) {
+    existing.push(item);
+    return;
+  }
+  subItemsByContainer.set(container, [item]);
+}
+function compareSubItems(a, b) {
+  if (a?.attribute?.exchangeRate && b?.attribute?.exchangeRate) {
+    return b.attribute.exchangeRate - a.attribute.exchangeRate;
+  }
+  return get_store_value(a.name).localeCompare(get_store_value(b.name));
+}
 class ItemPileStore {
   constructor(application, source, recipient = false, { recipientPileData = false } = {}) {
     this.subscriptions = [];
@@ -44339,10 +44483,9 @@ class ItemPileStore {
     this.document = new TJSDocument(this.actor);
     this.recipient = recipient ? getActor(recipient) : false;
     this.recipientDocument = recipient ? new TJSDocument(this.recipient) : new TJSDocument();
-    this.recipientPileData = writable(recipientPileData);
     this.pileData = writable({});
     this.shareData = writable({});
-    this.recipientPileData = writable({});
+    this.recipientPileData = writable(recipientPileData || {});
     this.recipientShareData = writable({});
     this.deleted = writable(false);
     this.search = writable("");
@@ -44374,30 +44517,30 @@ class ItemPileStore {
     return 200;
   }
   static make(...args) {
-    const store2 = new this(...args);
-    store2.setupStores();
-    store2.setupSubscriptions();
-    return store2;
+    const store = new this(...args);
+    store.setupStores();
+    store.setupSubscriptions();
+    return store;
   }
   static getStore(actor) {
     const uuid = getUuid(actor);
     return __STORES__.get(uuid);
   }
   static notifyChanges(event, actor, ...args) {
-    const store2 = this.getStore(actor);
-    if (store2) {
-      store2[event](...args);
+    const store = this.getStore(actor);
+    if (store && store[event]) {
+      store[event](...args);
     }
   }
   static notifyAllOfChanges(event, ...args) {
-    for (const store2 of __STORES__.values()) {
-      if (store2[event]) {
-        store2[event](...args);
+    for (const store of __STORES__.values()) {
+      if (store[event]) {
+        store[event](...args);
       }
     }
   }
-  async onDropFolder(data2) {
-    let droppedFolder = await fromUuid(data2.uuid);
+  async onDropFolder(data) {
+    let droppedFolder = await foundry.utils.fromUuid(data.uuid);
     if (!droppedFolder) return;
     let itemsToAdd = [];
     let currenciesToAdd = [];
@@ -44407,7 +44550,7 @@ class ItemPileStore {
         case "Item":
           let itemResults = [];
           for (let item of folder.contents) {
-            let result = await fromUuid(item.uuid);
+            let result = await foundry.utils.fromUuid(item.uuid);
             itemResults.push(result);
           }
           itemsToAdd = itemResults.deepFlatten();
@@ -44441,12 +44584,12 @@ class ItemPileStore {
     }
     return rollTableResults;
   }
-  async onDrop(data2) {
-    if (data2.type === "Folder" && game.user.isGM) {
-      return this.onDropFolder(data2);
+  async onDrop(data) {
+    if (data.type === "Folder" && game.user.isGM) {
+      return this.onDropFolder(data);
     }
-    if (data2.type === "RollTable" && game.user.isGM) {
-      let results = await this.onDropRollTables([data2]);
+    if (data.type === "RollTable" && game.user.isGM) {
+      let results = await this.onDropRollTables([data]);
       if (results.items.length > 0) {
         await game.itempiles.API.addItems(this.actor, results.items);
       }
@@ -44455,26 +44598,28 @@ class ItemPileStore {
       }
       return;
     }
-    if (data2.type === "Actor" && game.user.isGM) {
-      const newRecipient = data2.uuid ? await fromUuid(data2.uuid) : game.actors.get(data2.id);
-      return store.updateRecipient(newRecipient);
+    if (data.type === "Actor" && game.user.isGM) {
+      const newRecipient = data.uuid ? await foundry.utils.fromUuid(data.uuid) : game.actors.get(data.id);
+      if (!newRecipient) return;
+      return this.updateRecipient(newRecipient);
     }
-    if (data2.type !== "Item") {
-      custom_warning(game.i18n.format("ITEM-PILES.Warnings.DroppedIsNotItem", { type: data2.type }), true);
+    if (data.type !== "Item") {
+      custom_warning(game.i18n.format("ITEM-PILES.Warnings.DroppedIsNotItem", { type: data.type }), true);
       return false;
     }
-    const item = await Item.implementation.fromDropData(data2);
+    const item = await Item.implementation.fromDropData(data);
     const itemData = item.toObject();
     if (!itemData) {
-      console.error(data2);
+      console.error(data);
       throw custom_error("Something went wrong when dropping this item!");
     }
     if (!isItemValidBasedOnProperties(this.actor, itemData) && !game.user.isGM) {
       custom_warning(game.i18n.localize("ITEM-PILES.Warnings.ItemPileInvalidItemDropped"), true);
       return false;
     }
-    const source = getSourceActorFromDropData(data2);
+    const source = getSourceActorFromDropData(data);
     if (isItemPileMerchant(this.actor) && !(game.user.isGM || this.actor.isOwner)) {
+      custom_warning(game.i18n.localize("ITEM-PILES.Warnings.NoMerchantOwnership"), true);
       return;
     }
     return PrivateAPI._dropItem({
@@ -44483,7 +44628,7 @@ class ItemPileStore {
       itemData: {
         item: itemData,
         quantity: 1,
-        uuid: data2.uuid
+        uuid: data.uuid
       }
     });
   }
@@ -44602,14 +44747,18 @@ class ItemPileStore {
   updateUnlinkedToken() {
     this.pileData.set(getActorFlagData(this.actor));
     this.shareData.set(getItemPileSharingData(this.actor));
+    this.allItems.set([]);
+    this.attributes.set([]);
+    this.populateItems();
     this.refreshItems();
   }
   updateSource(newSource) {
+    this.unsubscribe();
+    __STORES__.delete(this.uuid);
     this.uuid = getUuid(newSource);
     this.actor = getActor(newSource);
     this.document.set(this.actor);
     __STORES__.set(this.uuid, this);
-    this.unsubscribe();
     this.setupStores();
     this.setupSubscriptions();
   }
@@ -44633,87 +44782,87 @@ class ItemPileStore {
     const pileData = get_store_value(this.pileData);
     const recipientPileData = this.recipient ? getActorFlagData(this.recipient) : {};
     const actorIsMerchant = isItemPileMerchant(this.actor, pileData);
-    const groupedItems = allItems.map((item) => {
-      item.subItems.set([]);
-      return item;
-    }).reduce((acc, item) => {
-      const containerID = get_store_value(item.containerID);
-      if (containerID) {
-        const container = allItems.find((pileItem) => containerID.includes(pileItem.id));
-        if (container) {
-          container.subItems.update((subItems) => {
-            subItems.push(item);
-            return subItems;
-          });
-          return acc;
-        }
+    const itemById = /* @__PURE__ */ new Map();
+    for (const item of allItems) {
+      if (item.id) itemById.set(item.id, item);
+    }
+    const subItemsByContainer = /* @__PURE__ */ new Map();
+    const groupedItems = [];
+    for (const item of allItems) {
+      const container = resolveContainer(get_store_value(item.containerID), itemById);
+      if (container) {
+        pushSubItem(subItemsByContainer, container, item);
+        continue;
       }
-      acc.push(item);
-      return acc;
-    }, []);
-    const groupedAttributes = allAttributes.reduce((acc, item) => {
-      const containerID = get_store_value(item.containerID);
-      if (containerID) {
-        const container = allItems.find((pileItem) => pileItem.id === containerID);
-        if (container) {
-          container.subItems.update((subItems) => {
-            subItems.push(item);
-            subItems.sort((a, b) => {
-              if (a?.attribute?.exchangeRate && b?.attribute?.exchangeRate) {
-                return (b?.attribute?.exchangeRate ?? 0) - (a?.attribute?.exchangeRate ?? 0);
-              }
-              return get_store_value(b.name) > get_store_value(a.name) ? -1 : 1;
-            });
-            return subItems;
-          });
-          return acc;
-        }
+      groupedItems.push(item);
+    }
+    const groupedAttributes = [];
+    for (const attribute of allAttributes) {
+      const container = resolveContainer(get_store_value(attribute.containerID), itemById);
+      if (container) {
+        pushSubItem(subItemsByContainer, container, attribute);
+        continue;
       }
-      acc.push(item);
-      return acc;
-    }, []);
+      groupedAttributes.push(attribute);
+    }
+    for (const item of allItems) {
+      const subItems = subItemsByContainer.get(item);
+      if (subItems) {
+        subItems.sort(compareSubItems);
+        item.subItems.set(subItems);
+      } else {
+        item.subItems.set([]);
+      }
+    }
+    if (get_store_value(this.search)) {
+      for (const entry of allItems) entry.filter();
+      for (const entry of allAttributes) entry.filter();
+    }
     const visibleItems = groupedItems.filter((entry) => this.visibleItemFilterFunction(entry, actorIsMerchant, pileData, recipientPileData)).filter((entry) => !get_store_value(entry.filtered)).sort((a, b) => this.itemSortFunction(a, b));
     const itemCurrencies = groupedItems.filter((entry) => entry.isCurrency && !entry.isSecondaryCurrency);
     const secondaryItemCurrencies = groupedItems.filter((entry) => entry.isSecondaryCurrency);
     this.numItems.set(visibleItems.filter((entry) => get_store_value(entry.quantity) > 0).length);
     this.visibleItems.set(visibleItems);
     this.items.set(visibleItems);
-    const currencies = groupedAttributes.filter((entry) => !entry.isSecondaryCurrency).concat(itemCurrencies);
-    const secondaryCurrencies = groupedAttributes.filter((entry) => entry.isSecondaryCurrency).concat(secondaryItemCurrencies);
-    this.numCurrencies.set(currencies.concat(secondaryCurrencies).filter((entry) => get_store_value(entry.quantity) > 0).length);
-    this.currencies.set(currencies.concat(secondaryCurrencies).filter((entry) => !get_store_value(entry.filtered)));
-    this.allCurrencies.set(currencies.concat(secondaryCurrencies));
-    this.itemCategories.set(Object.values(allItems.reduce((acc, item) => {
+    const allCurrencies = [
+      ...groupedAttributes.filter((entry) => !entry.isSecondaryCurrency),
+      ...itemCurrencies,
+      ...groupedAttributes.filter((entry) => entry.isSecondaryCurrency),
+      ...secondaryItemCurrencies
+    ];
+    this.numCurrencies.set(allCurrencies.filter((entry) => get_store_value(entry.quantity) > 0).length);
+    this.currencies.set(allCurrencies.filter((entry) => !get_store_value(entry.filtered)));
+    this.allCurrencies.set(allCurrencies);
+    const categoryIndex = {};
+    for (const item of allItems) {
       const category = get_store_value(item.category);
-      if (!acc[category.type]) {
-        acc[category.type] = { ...category };
+      if (!categoryIndex[category.type]) {
+        categoryIndex[category.type] = { ...category };
       }
-      return acc;
-    }, {})).sort((a, b) => a.label < b.label ? -1 : 1));
-    const itemsPerCategory = visibleItems.reduce((acc, item) => {
+    }
+    this.itemCategories.set(Object.values(categoryIndex).sort((a, b) => a.label.localeCompare(b.label)));
+    const itemsPerCategory = {};
+    for (const item of visibleItems) {
       const category = get_store_value(item.category);
-      if (!acc[category.type]) {
-        acc[category.type] = {
+      if (!itemsPerCategory[category.type]) {
+        itemsPerCategory[category.type] = {
           service: category.service,
           type: category.type,
           label: category.label,
           items: []
         };
       }
-      acc[category.type].items.push(item);
-      return acc;
-    }, {});
-    Object.values(itemsPerCategory).forEach((category) => category.items.sort((a, b) => {
-      return a.item.name < b.item.name ? -1 : 1;
-    }));
+      itemsPerCategory[category.type].items.push(item);
+    }
+    for (const category of Object.values(itemsPerCategory)) {
+      category.items.sort((a, b) => a.item.name.localeCompare(b.item.name));
+    }
     this.itemsPerCategory.set(itemsPerCategory);
-    this.categories.set(Object.values(itemsPerCategory).map((category) => {
-      return {
-        service: category.service,
-        label: category.label,
-        type: category.type
-      };
-    }).sort((a, b) => a.label < b.label ? -1 : 1));
+    this.categories.set(Object.values(itemsPerCategory).map((category) => ({
+      service: category.service,
+      label: category.label,
+      type: category.type
+    })).sort((a, b) => a.label.localeCompare(b.label)));
   }
   createItem(item) {
     if (isItemInvalid(this.actor, item)) return;
@@ -44788,7 +44937,7 @@ class ItemPileStore {
     await this.actor.deleteEmbeddedDocuments("Item", itemsToDelete);
     if (pileSharingData?.items) {
       pileSharingData.items = pileSharingData.items.map((item) => {
-        const sharingItem = itemsToUpdate.find((item2) => item2._id === item2.id);
+        const sharingItem = itemsToUpdate.find((update2) => update2._id === item.id);
         if (sharingItem) {
           item.actors = item.actors.map((actor) => {
             actor.quantity = Math.max(0, Math.min(actor.quantity, sharingItem.quantity));
@@ -44816,7 +44965,7 @@ class ItemPileStore {
     const result = await DropCurrencyDialog.show(source, target, {
       localization: !target ? "EditCurrencies" : false,
       unlimitedCurrencies: !target && game.user.isGM,
-      existingCurrencies: getActorCurrencies(source, {}),
+      existingCurrencies: getActorCurrencies(source),
       getUpdates: !target
     });
     return this._addCurrency(result, source, target);
@@ -45193,18 +45342,18 @@ function instance$T($$self, $$props, $$invalidate) {
   let $numItems;
   let $categories;
   let $itemsPerCategory;
-  let { store: store2 } = $$props;
-  const numItems = store2.numItems;
+  let { store } = $$props;
+  const numItems = store.numItems;
   component_subscribe($$self, numItems, (value) => $$invalidate(1, $numItems = value));
-  const categories = store2.categories;
+  const categories = store.categories;
   component_subscribe($$self, categories, (value) => $$invalidate(2, $categories = value));
-  const itemsPerCategory = store2.itemsPerCategory;
+  const itemsPerCategory = store.itemsPerCategory;
   component_subscribe($$self, itemsPerCategory, (value) => $$invalidate(3, $itemsPerCategory = value));
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
   };
   return [
-    store2,
+    store,
     $numItems,
     $categories,
     $itemsPerCategory,
@@ -46339,25 +46488,25 @@ function instance$S($$self, $$props, $$invalidate) {
   let { elementRoot } = $$props;
   let { actor } = $$props;
   let { recipient } = $$props;
-  let { store: store2 = ItemPileStore.make(application, actor, recipient) } = $$props;
+  let { store = ItemPileStore.make(application, actor, recipient) } = $$props;
   let canBeSplit = false;
   let num_players = 0;
-  let searchStore = store2.search;
+  let searchStore = store.search;
   component_subscribe($$self, searchStore, (value) => $$invalidate(12, $searchStore = value));
-  let editQuantities = store2.editQuantities;
-  let pileData = store2.pileData;
+  let editQuantities = store.editQuantities;
+  let pileData = store.pileData;
   component_subscribe($$self, pileData, (value) => $$invalidate(2, $pileData = value));
-  let deleted = store2.deleted;
+  let deleted = store.deleted;
   component_subscribe($$self, deleted, (value) => $$invalidate(11, $deleted = value));
-  const items = store2.allItems;
+  const items = store.allItems;
   component_subscribe($$self, items, (value) => $$invalidate(27, $items = value));
-  const currencies = store2.currencies;
+  const currencies = store.currencies;
   component_subscribe($$self, currencies, (value) => $$invalidate(26, $currencies = value));
-  const numItems = store2.numItems;
+  const numItems = store.numItems;
   component_subscribe($$self, numItems, (value) => $$invalidate(29, $numItems = value));
-  const shareData = store2.shareData;
+  const shareData = store.shareData;
   component_subscribe($$self, shareData, (value) => $$invalidate(28, $shareData = value));
-  const numCurrencies = store2.numCurrencies;
+  const numCurrencies = store.numCurrencies;
   component_subscribe($$self, numCurrencies, (value) => $$invalidate(30, $numCurrencies = value));
   let itemListElement;
   let scrolled = false;
@@ -46365,7 +46514,7 @@ function instance$S($$self, $$props, $$invalidate) {
     $$invalidate(6, scrolled = itemListElement.scrollTop > 20);
   }
   onDestroy(() => {
-    store2.onDestroy();
+    store.onDestroy();
   });
   function input_input_handler() {
     $searchStore = this.value;
@@ -46378,16 +46527,16 @@ function instance$S($$self, $$props, $$invalidate) {
     });
   }
   const click_handler = () => {
-    store2.update();
+    store.update();
   };
   const click_handler_1 = () => {
-    store2.splitAll();
+    store.splitAll();
   };
   const click_handler_2 = () => {
-    store2.takeAll();
+    store.takeAll();
   };
   const click_handler_32 = () => {
-    store2.closeContainer();
+    store.closeContainer();
     application.close();
   };
   const click_handler_4 = () => {
@@ -46401,7 +46550,7 @@ function instance$S($$self, $$props, $$invalidate) {
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
     if ("actor" in $$props2) $$invalidate(24, actor = $$props2.actor);
     if ("recipient" in $$props2) $$invalidate(25, recipient = $$props2.recipient);
-    if ("store" in $$props2) $$invalidate(1, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(1, store = $$props2.store);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*$numItems, $numCurrencies*/
@@ -46430,7 +46579,7 @@ function instance$S($$self, $$props, $$invalidate) {
   };
   return [
     elementRoot,
-    store2,
+    store,
     $pileData,
     canBeSplit,
     num_players,
@@ -46513,8 +46662,8 @@ class Item_pile_inventory_shell extends SvelteComponent {
   get store() {
     return this.$$.ctx[1];
   }
-  set store(store2) {
-    this.$$set({ store: store2 });
+  set store(store) {
+    this.$$set({ store });
     flush();
   }
 }
@@ -46598,14 +46747,14 @@ class FoundryStyles {
       this.#initialize();
     }
     if (this.#sheetMap.has(selector)) {
-      const data2 = this.#sheetMap.get(selector);
-      return isObject(data2) && property in data2 ? data2[property] : void 0;
+      const data = this.#sheetMap.get(selector);
+      return isObject(data) && property in data ? data[property] : void 0;
     }
     for (const key of this.#sheetMap.keys()) {
       if (key.includes(selector)) {
-        const data2 = this.#sheetMap.get(key);
-        if (isObject(data2) && property in data2) {
-          return data2[property];
+        const data = this.#sheetMap.get(key);
+        if (isObject(data) && property in data) {
+          return data[property];
         }
       }
     }
@@ -50266,7 +50415,7 @@ function create_fragment$R(ctx) {
 }
 function instance$O($$self, $$props, $$invalidate) {
   let titleCurrent;
-  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store2, ($$value) => $$invalidate(23, $store = $$value)), store2);
+  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(23, $store = $$value)), store);
   $$self.$$.on_destroy.push(() => $$unsubscribe_store());
   let { $$slots: slots = {}, $$scope } = $$props;
   let { label = void 0 } = $$props;
@@ -50275,7 +50424,7 @@ function instance$O($$self, $$props, $$invalidate) {
   let { comp = void 0 } = $$props;
   let { title = void 0 } = $$props;
   let { titleSelected = void 0 } = $$props;
-  let { store: store2 = void 0 } = $$props;
+  let { store = void 0 } = $$props;
   $$subscribe_store();
   let { styles = void 0 } = $$props;
   let { efx = void 0 } = $$props;
@@ -50294,8 +50443,8 @@ function instance$O($$self, $$props, $$invalidate) {
       return;
     }
     $$invalidate(6, selected = !selected);
-    if (store2) {
-      store2.set(selected);
+    if (store) {
+      store.set(selected);
     }
     if (typeof onPress === "function") {
       onPress({ event, selected });
@@ -50317,8 +50466,8 @@ function instance$O($$self, $$props, $$invalidate) {
   }
   function onClosePopup(event) {
     $$invalidate(6, selected = false);
-    if (store2) {
-      store2.set(false);
+    if (store) {
+      store.set(false);
     }
     if (typeof onClose === "function") {
       onClose({ event, selected });
@@ -50356,8 +50505,8 @@ function instance$O($$self, $$props, $$invalidate) {
     }
     if (event.code === keyCode) {
       $$invalidate(6, selected = !selected);
-      if (store2) {
-        store2.set(selected);
+      if (store) {
+        store.set(selected);
       }
       if (typeof onPress === "function") {
         onPress({ event, selected });
@@ -50389,7 +50538,7 @@ function instance$O($$self, $$props, $$invalidate) {
     if ("comp" in $$props2) $$invalidate(2, comp = $$props2.comp);
     if ("title" in $$props2) $$invalidate(15, title = $$props2.title);
     if ("titleSelected" in $$props2) $$invalidate(16, titleSelected = $$props2.titleSelected);
-    if ("store" in $$props2) $$subscribe_store($$invalidate(3, store2 = $$props2.store));
+    if ("store" in $$props2) $$subscribe_store($$invalidate(3, store = $$props2.store));
     if ("styles" in $$props2) $$invalidate(4, styles = $$props2.styles);
     if ("efx" in $$props2) $$invalidate(5, efx = $$props2.efx);
     if ("keyCode" in $$props2) $$invalidate(17, keyCode = $$props2.keyCode);
@@ -50422,7 +50571,7 @@ function instance$O($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*label, store*/
     4194312) {
-      $$subscribe_store($$invalidate(3, store2 = isObject(label) && isMinimalWritableStore(label.store) ? label.store : isMinimalWritableStore(store2) ? store2 : void 0));
+      $$subscribe_store($$invalidate(3, store = isObject(label) && isMinimalWritableStore(label.store) ? label.store : isMinimalWritableStore(store) ? store : void 0));
     }
     if ($$self.$$.dirty[0] & /*label, styles*/
     4194320) {
@@ -50454,13 +50603,13 @@ function instance$O($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*store, enabled*/
     9) {
-      if (store2 && !enabled) {
-        set_store_value(store2, $store = false, $store);
+      if (store && !enabled) {
+        set_store_value(store, $store = false, $store);
       }
     }
     if ($$self.$$.dirty[0] & /*store, $store*/
     8388616) {
-      if (store2) {
+      if (store) {
         $$invalidate(6, selected = $store);
       }
     }
@@ -50473,7 +50622,7 @@ function instance$O($$self, $$props, $$invalidate) {
     enabled,
     text2,
     comp,
-    store2,
+    store,
     styles,
     efx,
     selected,
@@ -51149,7 +51298,7 @@ function create_else_block_1$4(ctx) {
   let small;
   let each_value_3 = ensure_array_like(
     /*paymentData*/
-    ctx[6].reason ?? []
+    ctx[6].reasons ?? []
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_3.length; i += 1) {
@@ -51175,7 +51324,7 @@ function create_else_block_1$4(ctx) {
       64) {
         each_value_3 = ensure_array_like(
           /*paymentData*/
-          ctx2[6].reason ?? []
+          ctx2[6].reasons ?? []
         );
         let i;
         for (i = 0; i < each_value_3.length; i += 1) {
@@ -52274,7 +52423,7 @@ function instance$M($$self, $$props, $$invalidate) {
   let { buyer } = $$props;
   let { settings } = $$props;
   let { elementRoot } = $$props;
-  let { store: store2 = item.store } = $$props;
+  let { store = item.store } = $$props;
   const itemNameStore = item.name;
   component_subscribe($$self, itemNameStore, (value) => $$invalidate(29, $itemNameStore = value));
   const itemImg = item.img;
@@ -52292,9 +52441,9 @@ function instance$M($$self, $$props, $$invalidate) {
   component_subscribe($$self, itemQuantityForPriceStore, (value) => $$invalidate(28, $itemQuantityForPriceStore = value));
   const prices = item.prices;
   component_subscribe($$self, prices, (value) => $$invalidate(31, $prices = value));
-  const sellerPileData = store2.pileData;
+  const sellerPileData = store.pileData;
   component_subscribe($$self, sellerPileData, (value) => $$invalidate(35, $sellerPileData = value));
-  const buyerPileData = store2.recipientPileData;
+  const buyerPileData = store.recipientPileData;
   component_subscribe($$self, buyerPileData, (value) => $$invalidate(34, $buyerPileData = value));
   let maxItemPurchaseQuantity;
   let currentQuantityToBuy;
@@ -52315,7 +52464,7 @@ function instance$M($$self, $$props, $$invalidate) {
           quantity: get_store_value(quantityToBuy)
         }
       ],
-      { interactionId: store2.interactionId }
+      { interactionId: store.interactionId }
     );
     if (!result) {
       submitted = false;
@@ -52348,7 +52497,7 @@ function instance$M($$self, $$props, $$invalidate) {
     if ("buyer" in $$props2) $$invalidate(24, buyer = $$props2.buyer);
     if ("settings" in $$props2) $$invalidate(2, settings = $$props2.settings);
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
-    if ("store" in $$props2) $$invalidate(25, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(25, store = $$props2.store);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*$selectedPriceGroup*/
@@ -52422,7 +52571,7 @@ function instance$M($$self, $$props, $$invalidate) {
     submit,
     seller,
     buyer,
-    store2,
+    store,
     maxSellerItemQuantity,
     maxItemQuantity,
     $itemQuantityForPriceStore,
@@ -52499,8 +52648,8 @@ class Trade_merchant_item_dialog_shell extends SvelteComponent {
   get store() {
     return this.$$.ctx[25];
   }
-  set store(store2) {
-    this.$$set({ store: store2 });
+  set store(store) {
+    this.$$set({ store });
     flush();
   }
 }
@@ -52547,7 +52696,7 @@ class TradeMerchantItemDialog extends SvelteApp {
       for (let app of apps) {
         app.render(false, { focus: true });
       }
-      return;
+      return null;
     }
     return new Promise((resolve) => {
       options.resolve = resolve;
@@ -52602,7 +52751,7 @@ function create_fragment$O(ctx) {
 function instance$L($$self, $$props, $$invalidate) {
   let $doc;
   let { item } = $$props;
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   const doc = item.itemDocument;
   component_subscribe($$self, doc, (value2) => $$invalidate(6, $doc = value2));
   let text2 = "";
@@ -52610,33 +52759,33 @@ function instance$L($$self, $$props, $$invalidate) {
   let title = "";
   $$self.$$set = ($$props2) => {
     if ("item" in $$props2) $$invalidate(3, item = $$props2.item);
-    if ("data" in $$props2) $$invalidate(4, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(4, data = $$props2.data);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*data, $doc, value, text*/
     113) {
       {
-        if (data2.condition && foundry.utils.getProperty($doc, data2.condition.path) === data2.condition.value) {
-          $$invalidate(5, value = data2.condition.placeholder ?? "");
-          $$invalidate(0, text2 = data2.condition.placeholder ? localize(value) : "");
+        if (data.condition && foundry.utils.getProperty($doc, data.condition.path) === data.condition.value) {
+          $$invalidate(5, value = data.condition.placeholder ?? "");
+          $$invalidate(0, text2 = data.condition.placeholder ? localize(value) : "");
           if (game.user.isGM) {
-            let hidden_value = data2.path ? foundry.utils.getProperty($doc, data2.path) ?? "" : "";
-            let localized = localize(`${data2.mapping?.[hidden_value] ?? hidden_value}`);
-            $$invalidate(1, title = data2.formatting ? data2.formatting.replace("{#}", localized) : localized);
+            let hidden_value = data.path ? foundry.utils.getProperty($doc, data.path) ?? "" : "";
+            let localized = localize(`${data.mapping?.[hidden_value] ?? hidden_value}`);
+            $$invalidate(1, title = data.formatting ? data.formatting.replace("{#}", localized) : localized);
             if (hidden_value) {
               $$invalidate(0, text2 += "*");
             }
           }
         } else {
-          $$invalidate(5, value = data2.path ? foundry.utils.getProperty($doc, data2.path) ?? "" : "");
-          let localized = localize(`${data2.mapping?.[value] ?? value}`);
-          $$invalidate(0, text2 = data2.formatting ? data2.formatting.replace("{#}", localized) : localized);
+          $$invalidate(5, value = data.path ? foundry.utils.getProperty($doc, data.path) ?? "" : "");
+          let localized = localize(`${data.mapping?.[value] ?? value}`);
+          $$invalidate(0, text2 = data.formatting ? data.formatting.replace("{#}", localized) : localized);
           $$invalidate(1, title = "");
         }
       }
     }
   };
-  return [text2, title, doc, item, data2, value, $doc];
+  return [text2, title, doc, item, data, value, $doc];
 }
 class CustomColumn extends SvelteComponent {
   constructor(options) {
@@ -53291,8 +53440,8 @@ function instance$J($$self, $$props, $$invalidate) {
   component_subscribe($$self, itemRarityColor, (value) => $$invalidate(6, $itemRarityColor = value));
   const itemQuantityForPrice = item.quantityForPrice;
   component_subscribe($$self, itemQuantityForPrice, (value) => $$invalidate(16, $itemQuantityForPrice = value));
-  const store2 = item.store;
-  const pileData = store2.pileData;
+  const store = item.store;
+  const pileData = store.pileData;
   component_subscribe($$self, pileData, (value) => $$invalidate(7, $pileData = value));
   const quantityStore = item.quantity;
   component_subscribe($$self, quantityStore, (value) => $$invalidate(4, $quantityStore = value));
@@ -53325,7 +53474,7 @@ function instance$J($$self, $$props, $$invalidate) {
     itemImage,
     itemRarityColor,
     itemQuantityForPrice,
-    store2,
+    store,
     pileData,
     quantityStore,
     itemFlagDataStore,
@@ -53342,7 +53491,6 @@ class ItemEntry extends SvelteComponent {
     init(this, options, instance$J, create_fragment$M, safe_not_equal, { item: 0, showQuantity: 1 });
   }
 }
-const existingStores = /* @__PURE__ */ new Map();
 class ItemPriceStore {
   constructor(item) {
     this.item = item;
@@ -53350,89 +53498,90 @@ class ItemPriceStore {
     const quantityForPriceProp = game.itempiles.API.QUANTITY_FOR_PRICE_ATTRIBUTE;
     this.price = writable(0);
     this.quantityForPrice = writable(foundry.utils.getProperty(item, quantityForPriceProp) ?? 1);
-    const data2 = getItemFlagData(this.item);
-    data2.prices.forEach((group) => {
+    const data = getItemFlagData(this.item);
+    data.prices.forEach((group) => {
       group.forEach((price) => {
         if (!price.id) {
           price.id = foundry.utils.randomID();
         }
       });
     });
-    data2.sellPrices.forEach((group) => {
+    data.sellPrices.forEach((group) => {
       group.forEach((price) => {
         if (!price.id) {
           price.id = foundry.utils.randomID();
         }
       });
     });
-    this.data = writable(data2);
-    this.itemDoc.subscribe((item2, changes) => {
-      const { data: data3 } = changes;
-      if (foundry.utils.hasProperty(data3, CONSTANTS.FLAGS.ITEM)) {
-        const newData = foundry.utils.getProperty(data3, CONSTANTS.FLAGS.ITEM);
+    this.data = writable(data);
+    this._docUnsubscribe = this.itemDoc.subscribe((item2, changes) => {
+      const { data: data2 } = changes;
+      if (foundry.utils.hasProperty(data2, CONSTANTS.FLAGS.ITEM)) {
+        const newData = foundry.utils.getProperty(data2, CONSTANTS.FLAGS.ITEM);
         const oldData = get_store_value(this.data);
         this.data.set(foundry.utils.mergeObject(oldData, newData));
       }
       this.price.set(getItemCost(this.item));
       const quantityForPriceProp2 = game.itempiles.API.QUANTITY_FOR_PRICE_ATTRIBUTE;
-      if (quantityForPriceProp2 && foundry.utils.hasProperty(data3, quantityForPriceProp2)) {
+      if (quantityForPriceProp2 && foundry.utils.hasProperty(data2, quantityForPriceProp2)) {
         this.quantityForPrice.set(foundry.utils.getProperty(item2, quantityForPriceProp2));
       }
     });
   }
   static make(item) {
-    if (existingStores.has(item.id)) {
-      return existingStores.get(item.id);
-    }
     return new this(item);
   }
+  destroy() {
+    this._docUnsubscribe?.();
+    this._docUnsubscribe = null;
+  }
   addPurchaseGroup() {
-    this.data.update((data2) => {
-      data2.prices.push([]);
-      return data2;
+    this.data.update((data) => {
+      data.prices.push([]);
+      return data;
     });
   }
   removePurchaseGroup(groupIndex) {
-    this.data.update((data2) => {
-      data2.prices.splice(groupIndex, 1);
-      return data2;
+    this.data.update((data) => {
+      data.prices.splice(groupIndex, 1);
+      return data;
     });
   }
   addSellGroup() {
-    this.data.update((data2) => {
-      data2.sellPrices.push([]);
-      return data2;
+    this.data.update((data) => {
+      data.sellPrices.push([]);
+      return data;
     });
   }
   removeSellGroup(groupIndex) {
-    this.data.update((data2) => {
-      data2.sellPrices.splice(groupIndex, 1);
-      return data2;
+    this.data.update((data) => {
+      data.sellPrices.splice(groupIndex, 1);
+      return data;
     });
   }
   addOverheadCostGroup() {
-    this.data.update((data2) => {
-      data2.overheadCost.push([]);
-      return data2;
+    this.data.update((data) => {
+      data.overheadCost.push([]);
+      return data;
     });
   }
   removeOverheadCostGroup(groupIndex) {
-    this.data.update((data2) => {
-      data2.overheadCost.splice(groupIndex, 1);
-      return data2;
+    this.data.update((data) => {
+      data.overheadCost.splice(groupIndex, 1);
+      return data;
     });
   }
   export() {
-    const data2 = {
+    const data = {
       data: {
         [game.itempiles.API.ITEM_PRICE_ATTRIBUTE]: get_store_value(this.price)
       },
       flags: get_store_value(this.data)
     };
     if (game.itempiles.API.QUANTITY_FOR_PRICE_ATTRIBUTE) {
-      data2["data"][game.itempiles.API.QUANTITY_FOR_PRICE_ATTRIBUTE] = get_store_value(this.quantityForPrice);
+      data["data"][game.itempiles.API.QUANTITY_FOR_PRICE_ATTRIBUTE] = get_store_value(this.quantityForPrice);
     }
-    return data2;
+    return data;
   }
 }
 function get_each_context$k(ctx, list, i) {
@@ -53927,6 +54076,7 @@ function instance$H($$self, $$props, $$invalidate) {
   let { placeholder = "" } = $$props;
   async function showCustomItemCategoryEditor() {
     openEditor(SETTINGS.CUSTOM_ITEM_CATEGORIES).then((result) => {
+      if (!Array.isArray(result)) return;
       setSetting(SETTINGS.CUSTOM_ITEM_CATEGORIES, Array.from(new Set(result)));
       currentCustomCategories.set(getSetting(SETTINGS.CUSTOM_ITEM_CATEGORIES));
     });
@@ -55926,7 +56076,7 @@ function create_if_block$w(ctx) {
     filepicker0_props.value = /*itemFlagData*/
     ctx[6].vaultImage;
   }
-  filepicker0 = new FilePicker_1({ props: filepicker0_props });
+  filepicker0 = new FilePicker({ props: filepicker0_props });
   binding_callbacks.push(() => bind(filepicker0, "value", filepicker0_value_binding));
   function filepicker1_value_binding(value) {
     ctx[49](value);
@@ -55942,7 +56092,7 @@ function create_if_block$w(ctx) {
     filepicker1_props.value = /*itemFlagData*/
     ctx[6].vaultImageFlipped;
   }
-  filepicker1 = new FilePicker_1({ props: filepicker1_props });
+  filepicker1 = new FilePicker({ props: filepicker1_props });
   binding_callbacks.push(() => bind(filepicker1, "value", filepicker1_value_binding));
   return {
     c() {
@@ -56613,19 +56763,20 @@ function instance$G($$self, $$props, $$invalidate) {
   const { application } = getContext("#external");
   let { item } = $$props;
   let { elementRoot } = $$props;
-  let store2 = ItemPriceStore.make(item);
+  let store = ItemPriceStore.make(item);
+  onDestroy(() => store.destroy());
   let currentCustomCategories = writable(Array.from(new Set(getSetting(SETTINGS.CUSTOM_ITEM_CATEGORIES))));
   let parentFlags = item.parent ? getActorFlagData(item.parent) : {};
-  const flagDataStore = store2.data;
+  const flagDataStore = store.data;
   component_subscribe($$self, flagDataStore, (value) => $$invalidate(16, $flagDataStore = value));
-  let price = store2.price;
+  let price = store.price;
   component_subscribe($$self, price, (value) => $$invalidate(7, $price = value));
-  let quantityForPrice = store2.quantityForPrice;
+  let quantityForPrice = store.quantityForPrice;
   component_subscribe($$self, quantityForPrice, (value) => $$invalidate(8, $quantityForPrice = value));
   let oldPrice = get_store_value(price);
   let form;
   async function updateSettings() {
-    const flagData = store2.export();
+    const flagData = store.export();
     if (flagData.flags.customCategory) {
       let customCategories = get_store_value(currentCustomCategories);
       customCategories.push(flagData.flags.customCategory);
@@ -56734,30 +56885,30 @@ function instance$G($$self, $$props, $$invalidate) {
     $$invalidate(6, itemFlagData), $$invalidate(16, $flagDataStore);
   }
   const click_handler = () => {
-    store2.addPurchaseGroup();
+    store.addPurchaseGroup();
   };
   const func2 = (groupIndex) => {
-    store2.removePurchaseGroup(groupIndex);
+    store.removePurchaseGroup(groupIndex);
   };
   function pricelist_prices_binding(value, prices, each_value_2, groupIndex) {
     each_value_2[groupIndex] = value;
     $$invalidate(6, itemFlagData), $$invalidate(16, $flagDataStore);
   }
   const click_handler_1 = () => {
-    store2.addSellGroup();
+    store.addSellGroup();
   };
   const func_12 = (groupIndex) => {
-    store2.removeSellGroup(groupIndex);
+    store.removeSellGroup(groupIndex);
   };
   function pricelist_prices_binding_1(value, prices, each_value_1, groupIndex) {
     each_value_1[groupIndex] = value;
     $$invalidate(6, itemFlagData), $$invalidate(16, $flagDataStore);
   }
   const click_handler_2 = () => {
-    store2.addOverheadCostGroup();
+    store.addOverheadCostGroup();
   };
   const func_22 = (groupIndex) => {
-    store2.removeOverheadCostGroup(groupIndex);
+    store.removeOverheadCostGroup(groupIndex);
   };
   function pricelist_prices_binding_2(value, prices, each_value, groupIndex) {
     each_value[groupIndex] = value;
@@ -56829,7 +56980,7 @@ function instance$G($$self, $$props, $$invalidate) {
     $price,
     $quantityForPrice,
     application,
-    store2,
+    store,
     parentFlags,
     flagDataStore,
     price,
@@ -57419,8 +57570,8 @@ function instance$F($$self, $$props, $$invalidate) {
   let { item } = $$props;
   const quantity = item.quantity;
   component_subscribe($$self, quantity, (value) => $$invalidate(2, $quantity = value));
-  const store2 = item.store;
-  const isMerchant = store2.isMerchant;
+  const store = item.store;
+  const isMerchant = store.isMerchant;
   const itemFlagDataStore = item.itemFlagData;
   component_subscribe($$self, itemFlagDataStore, (value) => $$invalidate(1, $itemFlagDataStore = value));
   const hasRecipient = !!item.store.recipient;
@@ -57437,12 +57588,12 @@ function instance$F($$self, $$props, $$invalidate) {
     item.take();
   };
   const click_handler_4 = () => {
-    if ($quantity <= 0 || $itemFlagDataStore.notForSale && !store2.userHasAuthority) return;
-    store2.tradeItem(item);
+    if ($quantity <= 0 || $itemFlagDataStore.notForSale && !store.userHasAuthority) return;
+    store.tradeItem(item);
   };
   const click_handler_5 = () => {
     if ($quantity <= 0 || $itemFlagDataStore.cantBeSoldToMerchants) return;
-    store2.tradeItem(item, true);
+    store.tradeItem(item, true);
   };
   $$self.$$set = ($$props2) => {
     if ("item" in $$props2) $$invalidate(0, item = $$props2.item);
@@ -57452,7 +57603,7 @@ function instance$F($$self, $$props, $$invalidate) {
     $itemFlagDataStore,
     $quantity,
     quantity,
-    store2,
+    store,
     isMerchant,
     itemFlagDataStore,
     hasRecipient,
@@ -57674,9 +57825,9 @@ class MerchantStore extends ItemPileStore {
   updatePriceModifiers() {
     let pileData = get_store_value(this.pileData);
     let change = false;
-    if (pileData.itemTypePriceModifiers && typeof pileData.itemTypePriceModifiers === "object") {
+    if (Array.isArray(pileData.itemTypePriceModifiers)) {
       change = true;
-      this.priceModifiersPerType.set((pileData.itemTypePriceModifiers ?? {}).reduce((acc, priceData) => {
+      this.priceModifiersPerType.set(pileData.itemTypePriceModifiers.reduce((acc, priceData) => {
         acc[priceData.category.toLowerCase() || priceData.type] = priceData;
         return acc;
       }, {}));
@@ -57684,7 +57835,7 @@ class MerchantStore extends ItemPileStore {
     if (this.recipient && pileData.actorPriceModifiers && Array.isArray(pileData.actorPriceModifiers)) {
       change = true;
       const recipientUuid = getUuid(this.recipient);
-      const actorSpecificModifiers = pileData.actorPriceModifiers?.find((data2) => data2.actorUuid === recipientUuid);
+      const actorSpecificModifiers = pileData.actorPriceModifiers?.find((data) => data.actorUuid === recipientUuid);
       if (actorSpecificModifiers) {
         this.priceModifiersForActor.set(actorSpecificModifiers);
       }
@@ -57709,7 +57860,9 @@ class MerchantStore extends ItemPileStore {
     const pileData = get_store_value(this.pileData);
     const priceMods = pileData.itemTypePriceModifiers;
     const typeEntry = priceMods.find((entry) => entry.type === type);
-    priceMods.splice(priceMods.indexOf(typeEntry), 1);
+    if (typeEntry) {
+      priceMods.splice(priceMods.indexOf(typeEntry), 1);
+    }
     this.pileData.set(pileData);
   }
   async update() {
@@ -57906,9 +58059,9 @@ class PileMerchantItem extends PileItem {
     this.filtered.set(searchFiltered || typeFiltered);
   }
   async toggleProperty(property) {
-    this.itemFlagData.update((data2) => {
-      data2[property] = !data2[property];
-      return data2;
+    this.itemFlagData.update((data) => {
+      data[property] = !data[property];
+      return data;
     });
     const itemFlagData = get_store_value(this.itemFlagData);
     await updateItemData(this.item, { flags: itemFlagData });
@@ -58637,13 +58790,13 @@ function instance$D($$self, $$props, $$invalidate) {
   function saveEditor({ remove = true } = {}) {
     if (editor) {
       if (editor.isDirty()) {
-        let data2 = ProseMirror.dom.serializeString(editor.view.state.doc);
+        let data = ProseMirror.dom.serializeString(editor.view.state.doc);
         if ($doc && typeof options?.fieldName === "string") {
-          $doc.update({ [options.fieldName]: data2 });
+          $doc.update({ [options.fieldName]: data });
         } else {
-          $$invalidate(15, content = data2);
+          $$invalidate(15, content = data);
         }
-        dispatch2("editor:save", { content: data2 });
+        dispatch2("editor:save", { content: data });
       }
       if (remove) {
         destroyEditor(false);
@@ -59068,7 +59221,7 @@ class TextEditorDialog extends SvelteApp {
       for (let app of apps) {
         app.render(false, { focus: true });
       }
-      return;
+      return null;
     }
     return new Promise((resolve) => {
       options.resolve = resolve;
@@ -59688,30 +59841,30 @@ function instance$B($$self, $$props, $$invalidate) {
   let $pileDataStore;
   let $merchantImg;
   let $editPrices;
-  let { store: store2 } = $$props;
-  const merchantImg = store2.img;
+  let { store } = $$props;
+  const merchantImg = store.img;
   component_subscribe($$self, merchantImg, (value) => $$invalidate(5, $merchantImg = value));
-  const pileDataStore = store2.pileData;
+  const pileDataStore = store.pileData;
   component_subscribe($$self, pileDataStore, (value) => $$invalidate(4, $pileDataStore = value));
-  const editPrices = store2.editPrices;
+  const editPrices = store.editPrices;
   component_subscribe($$self, editPrices, (value) => $$invalidate(6, $editPrices = value));
   let tabs = [];
   let description;
   let activeSidebarTab = false;
   function showDescriptionEditor() {
     return TextEditorDialog.show(description, {
-      id: "item-pile-text-editor-" + store2.actor.id
+      id: "item-pile-text-editor-" + store.actor.id
     }).then((result) => {
-      store2.pileData.update((pileData) => {
+      store.pileData.update((pileData) => {
         pileData.description = result || "";
         return pileData;
       });
-      store2.update();
+      store.update();
     });
   }
   function tabs_1_activeTab_binding(value) {
     activeSidebarTab = value;
-    $$invalidate(3, activeSidebarTab), $$invalidate(0, store2), $$invalidate(2, description), $$invalidate(1, tabs), $$invalidate(4, $pileDataStore);
+    $$invalidate(3, activeSidebarTab), $$invalidate(0, store), $$invalidate(2, description), $$invalidate(1, tabs), $$invalidate(4, $pileDataStore);
   }
   const click_handler = () => {
     showDescriptionEditor();
@@ -59741,10 +59894,10 @@ function instance$B($$self, $$props, $$invalidate) {
     }
   }
   const click_handler_1 = () => {
-    store2.update();
+    store.update();
   };
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*$pileDataStore*/
@@ -59760,12 +59913,12 @@ function instance$B($$self, $$props, $$invalidate) {
           {
             value: "description",
             label: `ITEM-PILES.Merchant.Description`,
-            hidden: !store2.userHasAuthority && !description
+            hidden: !store.userHasAuthority && !description
           },
           {
             value: "settings",
             label: `ITEM-PILES.Merchant.Settings`,
-            hidden: !store2.userHasAuthority
+            hidden: !store.userHasAuthority
           }
         ]);
         $$invalidate(3, activeSidebarTab = activeSidebarTab || tabs.find((tab) => !tab.hidden)?.value);
@@ -59773,7 +59926,7 @@ function instance$B($$self, $$props, $$invalidate) {
     }
   };
   return [
-    store2,
+    store,
     tabs,
     description,
     activeSidebarTab,
@@ -60606,20 +60759,20 @@ function instance$z($$self, $$props, $$invalidate) {
   let $columns;
   let $editPrices;
   let $priceModifiersPerType;
-  let { store: store2 } = $$props;
+  let { store } = $$props;
   let { category } = $$props;
-  store2.pileData;
-  store2.search;
-  store2.visibleItems;
-  store2.itemsPerCategory;
-  store2.categories;
-  const priceModifiersPerType = store2.priceModifiersPerType;
+  store.pileData;
+  store.search;
+  store.visibleItems;
+  store.itemsPerCategory;
+  store.categories;
+  const priceModifiersPerType = store.priceModifiersPerType;
   component_subscribe($$self, priceModifiersPerType, (value) => $$invalidate(5, $priceModifiersPerType = value));
-  store2.itemCategories;
-  store2.typeFilter;
-  const editPrices = store2.editPrices;
+  store.itemCategories;
+  store.typeFilter;
+  const editPrices = store.editPrices;
   component_subscribe($$self, editPrices, (value) => $$invalidate(2, $editPrices = value));
-  const columns = store2.itemColumns;
+  const columns = store.itemColumns;
   component_subscribe($$self, columns, (value) => $$invalidate(9, $columns = value));
   function input_change_handler() {
     $priceModifiersPerType[type].override = this.checked;
@@ -60632,13 +60785,13 @@ function instance$z($$self, $$props, $$invalidate) {
     }
   }
   const click_handler = () => {
-    store2.removeOverrideTypePrice(type);
+    store.removeOverrideTypePrice(type);
   };
   const click_handler_1 = () => {
-    store2.addOverrideTypePrice(type);
+    store.addOverrideTypePrice(type);
   };
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
     if ("category" in $$props2) $$invalidate(1, category = $$props2.category);
   };
   $$self.$$.update = () => {
@@ -60648,11 +60801,11 @@ function instance$z($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty & /*category*/
     2) {
-      $$invalidate(3, type = category.type === "custom" ? category.label.toLowerCase() : category.type);
+      $$invalidate(3, type = category.type === "custom" && typeof category.label === "string" ? category.label.toLowerCase() : category.type);
     }
   };
   return [
-    store2,
+    store,
     category,
     $editPrices,
     type,
@@ -62094,30 +62247,30 @@ function instance$y($$self, $$props, $$invalidate) {
   let $editPrices;
   let $inverseSortStore;
   let $itemsPerCategoryStore;
-  let { store: store2 } = $$props;
+  let { store } = $$props;
   let { noItemsLabel = "ITEM-PILES.Merchant.NoItemsForSale" } = $$props;
   let { services = false } = $$props;
-  const searchStore = store2.search;
+  const searchStore = store.search;
   component_subscribe($$self, searchStore, (value) => $$invalidate(9, $searchStore = value));
-  const visibleItemsStore = store2.visibleItems;
+  const visibleItemsStore = store.visibleItems;
   component_subscribe($$self, visibleItemsStore, (value) => $$invalidate(28, $visibleItemsStore = value));
-  const itemsPerCategoryStore = store2.itemsPerCategory;
+  const itemsPerCategoryStore = store.itemsPerCategory;
   component_subscribe($$self, itemsPerCategoryStore, (value) => $$invalidate(15, $itemsPerCategoryStore = value));
-  const categoryStore = store2.categories;
+  const categoryStore = store.categories;
   component_subscribe($$self, categoryStore, (value) => $$invalidate(3, $categoryStore = value));
-  const itemCategoriesStore = store2.itemCategories;
+  const itemCategoriesStore = store.itemCategories;
   component_subscribe($$self, itemCategoriesStore, (value) => $$invalidate(29, $itemCategoriesStore = value));
-  const typeFilterStore = store2.typeFilter;
+  const typeFilterStore = store.typeFilter;
   component_subscribe($$self, typeFilterStore, (value) => $$invalidate(10, $typeFilterStore = value));
-  const sortTypesStore = store2.sortTypes;
+  const sortTypesStore = store.sortTypes;
   component_subscribe($$self, sortTypesStore, (value) => $$invalidate(12, $sortTypesStore = value));
-  const sortTypeStore = store2.sortType;
+  const sortTypeStore = store.sortType;
   component_subscribe($$self, sortTypeStore, (value) => $$invalidate(11, $sortTypeStore = value));
-  const inverseSortStore = store2.inverseSort;
+  const inverseSortStore = store.inverseSort;
   component_subscribe($$self, inverseSortStore, (value) => $$invalidate(14, $inverseSortStore = value));
-  const editPrices = store2.editPrices;
+  const editPrices = store.editPrices;
   component_subscribe($$self, editPrices, (value) => $$invalidate(13, $editPrices = value));
-  const itemColumns = store2.itemColumns;
+  const itemColumns = store.itemColumns;
   component_subscribe($$self, itemColumns, (value) => $$invalidate(2, $itemColumns = value));
   let columns = [];
   function input_input_handler() {
@@ -62150,7 +62303,7 @@ function instance$y($$self, $$props, $$invalidate) {
     set_store_value(sortTypeStore, $sortTypeStore = columnIndex + 1, $sortTypeStore);
   };
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
     if ("noItemsLabel" in $$props2) $$invalidate(1, noItemsLabel = $$props2.noItemsLabel);
     if ("services" in $$props2) $$invalidate(27, services = $$props2.services);
   };
@@ -62179,7 +62332,7 @@ function instance$y($$self, $$props, $$invalidate) {
     }
   };
   return [
-    store2,
+    store,
     noItemsLabel,
     $itemColumns,
     $categoryStore,
@@ -64254,10 +64407,10 @@ function instance$x($$self, $$props, $$invalidate) {
   let $populationTables;
   let $tables;
   let $itemStore;
-  let { store: store2 } = $$props;
+  let { store } = $$props;
   let tables = writable(getTables());
   component_subscribe($$self, tables, (value) => $$invalidate(3, $tables = value));
-  let populationTables = writable((get_store_value(store2.pileData).tablesForPopulate ?? []).map((t) => {
+  let populationTables = writable((get_store_value(store.pileData).tablesForPopulate ?? []).map((t) => {
     if (t.id) {
       t.uuid = game.tables.get(t.id).uuid;
     }
@@ -64267,25 +64420,25 @@ function instance$x($$self, $$props, $$invalidate) {
       open: false,
       timesToRoll: t.timesToRoll ?? "1d4",
       items: t.items ?? {},
-      customCategory: t.customCategory ?? ""
+      customCategory: typeof t.customCategory === "string" ? t.customCategory : ""
     };
   }));
   component_subscribe($$self, populationTables, (value) => $$invalidate(2, $populationTables = value));
   let timesRolled = "";
   let keepRolled = false;
-  let itemStore = store2.items;
+  let itemStore = store.items;
   component_subscribe($$self, itemStore, (value) => $$invalidate(23, $itemStore = value));
   const debounceSave = foundry.utils.debounce(
     (popTables, actualTables) => {
-      const pileData = foundry.utils.deepClone(get_store_value(store2.pileData));
+      const pileData = foundry.utils.deepClone(get_store_value(store.pileData));
       pileData.tablesForPopulate = popTables.filter((t) => actualTables[t.uuid]).map((t) => ({
         uuid: t.uuid,
         addAll: t.addAll,
         items: t.items,
         timesToRoll: t.timesToRoll,
-        customCategory: t.customCategory
+        customCategory: typeof t.customCategory === "string" ? t.customCategory : ""
       }));
-      updateItemPileData(store2.actor, pileData);
+      updateItemPileData(store.actor, pileData);
     },
     200
   );
@@ -64325,14 +64478,14 @@ function instance$x($$self, $$props, $$invalidate) {
     ));
   }
   async function evaluateTable(table, keepRolledItems) {
-    const rollableTable = await fromUuid(table.uuid);
+    const rollableTable = await foundry.utils.fromUuid(table.uuid);
     if (!rollableTable) return;
     if (!keepRolledItems) {
       itemsRolled.set([]);
     }
     const newItems = await rollMerchantTables({ tableData: [table] });
     const processedItems = newItems.map((itemData) => {
-      const prices = game.itempiles.API.getPricesForItem(itemData.item, { seller: store2.actor });
+      const prices = game.itempiles.API.getPricesForItem(itemData.item, { seller: store.actor });
       itemData.price = prices[0]?.free ? localize("ITEM-PILES.Merchant.ItemFree") : prices[0]?.priceString;
       return itemData;
     });
@@ -64352,7 +64505,7 @@ function instance$x($$self, $$props, $$invalidate) {
     });
   }
   async function addItem(itemToAdd) {
-    await game.itempiles.API.addItems(store2.actor, [itemToAdd].map((entry) => ({
+    await game.itempiles.API.addItems(store.actor, [itemToAdd].map((entry) => ({
       item: entry.item,
       quantity: entry.quantity,
       flags: entry.flags
@@ -64372,7 +64525,7 @@ function instance$x($$self, $$props, $$invalidate) {
       quantity: entry.quantity,
       flags: entry.flags
     }));
-    await game.itempiles.API.addItems(store2.actor, itemsToAdd);
+    await game.itempiles.API.addItems(store.actor, itemsToAdd);
     itemsRolled.set([]);
   }
   async function clearAllItems(services = false) {
@@ -64394,13 +64547,13 @@ function instance$x($$self, $$props, $$invalidate) {
       }
     });
     if (!doContinue) return false;
-    await game.itempiles.API.removeItems(store2.actor, game.itempiles.API.getActorItems(store2.actor).filter((item) => {
+    await game.itempiles.API.removeItems(store.actor, game.itempiles.API.getActorItems(store.actor).filter((item) => {
       const itemFlags = getItemFlagData(item);
       return services === itemFlags.isService && !itemFlags.keepOnMerchant && !itemFlags.keepIfZero;
     }));
   }
   async function removeAddedItem(itemToRemove) {
-    store2.actor.deleteEmbeddedDocuments("Item", [itemToRemove.item.id]);
+    store.actor.deleteEmbeddedDocuments("Item", [itemToRemove.item.id]);
   }
   function addTable() {
     populationTables.update((tabs) => {
@@ -64515,7 +64668,7 @@ function instance$x($$self, $$props, $$invalidate) {
   }
   const click_handler_14 = (item) => removeItem(item);
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(22, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(22, store = $$props2.store);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*$itemStore*/
@@ -64568,7 +64721,7 @@ function instance$x($$self, $$props, $$invalidate) {
     removeAddedItem,
     addTable,
     removeTable,
-    store2,
+    store,
     $itemStore,
     click_handler,
     click_handler_1,
@@ -65291,7 +65444,7 @@ function create_if_block_1$f(ctx) {
       attr(i, "class", "fas fa-plus");
       attr(a, "class", "item-piles-clickable item-piles-text-right item-piles-small-text item-piles-middle");
       set_style(div0, "flex", "0 1 auto");
-      attr(div1, "class", "item-piles-flexrow merchant-bottom-row svelte-ip-1rngao0");
+      attr(div1, "class", "item-piles-flexrow merchant-bottom-row svelte-ip-kaokvg");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -65389,7 +65542,7 @@ function create_if_block$m(ctx) {
       t1 = space();
       create_component(currencylist.$$.fragment);
       set_style(div0, "flex", "0 1 auto");
-      attr(div1, "class", "item-piles-flexrow merchant-bottom-row svelte-ip-1rngao0");
+      attr(div1, "class", "item-piles-flexrow merchant-bottom-row svelte-ip-kaokvg");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -65529,19 +65682,19 @@ function instance$u($$self, $$props, $$invalidate) {
   let $merchantCurrencies;
   $$self.$$.on_destroy.push(() => $$unsubscribe_recipientDocument());
   $$self.$$.on_destroy.push(() => $$unsubscribe_currencies());
-  let { store: store2 } = $$props;
+  let { store } = $$props;
   let { recipientStore } = $$props;
   let recipientDocument = writable({});
   $$subscribe_recipientDocument();
   let currencies = writable([]);
   $$subscribe_currencies();
-  const merchantCurrencies = store2?.allCurrencies;
+  const merchantCurrencies = store?.allCurrencies;
   component_subscribe($$self, merchantCurrencies, (value) => $$invalidate(7, $merchantCurrencies = value));
-  const merchantPileData = store2.pileData;
+  const merchantPileData = store.pileData;
   component_subscribe($$self, merchantPileData, (value) => $$invalidate(6, $merchantPileData = value));
-  const click_handler = () => store2.addCurrency();
+  const click_handler = () => store.addCurrency();
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
     if ("recipientStore" in $$props2) $$invalidate(1, recipientStore = $$props2.recipientStore);
   };
   $$self.$$.update = () => {
@@ -65554,7 +65707,7 @@ function instance$u($$self, $$props, $$invalidate) {
     }
   };
   return [
-    store2,
+    store,
     recipientStore,
     recipientDocument,
     currencies,
@@ -65919,31 +66072,31 @@ function instance$t($$self, $$props, $$invalidate) {
   let $logStore;
   let $logSearchStore;
   let $visibleLogItems;
-  let { store: store2 } = $$props;
+  let { store } = $$props;
   const { application } = getContext("#external");
-  const actor = store2.actor;
-  const logStore = store2.log;
+  const actor = store.actor;
+  const logStore = store.log;
   component_subscribe($$self, logStore, (value) => $$invalidate(0, $logStore = value));
-  const logSearchStore = store2.logSearch;
+  const logSearchStore = store.logSearch;
   component_subscribe($$self, logSearchStore, (value) => $$invalidate(2, $logSearchStore = value));
-  const visibleLogItems = store2.visibleLogItems;
+  const visibleLogItems = store.visibleLogItems;
   component_subscribe($$self, visibleLogItems, (value) => $$invalidate(3, $visibleLogItems = value));
   application.position.stores.height;
   async function clearMerchantLog() {
     const doThing = await TJSDialog.confirm({
-      id: `sharing-dialog-item-pile-config-${store2.actor.id}`,
+      id: `sharing-dialog-item-pile-config-${store.actor.id}`,
       title: "Item Piles - " + localize("ITEM-PILES.Dialogs.ClearMerchantLog.Title"),
       content: {
         class: CustomDialog,
         props: {
           header: localize("ITEM-PILES.Dialogs.ClearMerchantLog.Title"),
-          content: localize("ITEM-PILES.Dialogs.ClearMerchantLog.Content", { actor_name: store2.actor.name })
+          content: localize("ITEM-PILES.Dialogs.ClearMerchantLog.Content", { actor_name: store.actor.name })
         }
       },
       modal: true
     });
     if (!doThing) return;
-    return clearActorLog(store2.actor);
+    return clearActorLog(store.actor);
   }
   function input_input_handler() {
     $logSearchStore = this.value;
@@ -65956,12 +66109,12 @@ function instance$t($$self, $$props, $$invalidate) {
     downloadText(exportableMerchantLog, `${actor.name}-merchant-log.txt`);
   };
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(9, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(9, store = $$props2.store);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*store, $logStore*/
     513) {
-      $$invalidate(1, exportableMerchantLog = getActorLogText(store2.actor, $logStore));
+      $$invalidate(1, exportableMerchantLog = getActorLogText(store.actor, $logStore));
     }
   };
   return [
@@ -65974,7 +66127,7 @@ function instance$t($$self, $$props, $$invalidate) {
     logSearchStore,
     visibleLogItems,
     clearMerchantLog,
-    store2,
+    store,
     input_input_handler,
     click_handler,
     click_handler_1
@@ -66224,28 +66377,28 @@ function create_fragment$v(ctx) {
   function select_block_type(ctx2, dirty) {
     if (
       /*$closed*/
-      ctx2[4] && !/*store*/
+      ctx2[3] && !/*store*/
       ctx2[0].userHasAuthority
     ) return 0;
     if (
       /*$activeTab*/
-      ctx2[5] === "buy"
+      ctx2[4] === "buy"
     ) return 1;
     if (
       /*$activeTab*/
-      ctx2[5] === "services"
+      ctx2[4] === "services"
     ) return 2;
     if (
       /*$activeTab*/
-      ctx2[5] === "sell"
+      ctx2[4] === "sell"
     ) return 3;
     if (
       /*$activeTab*/
-      ctx2[5] === "tables"
+      ctx2[4] === "tables"
     ) return 4;
     if (
       /*$activeTab*/
-      ctx2[5] === "log"
+      ctx2[4] === "log"
     ) return 5;
     return -1;
   }
@@ -66271,12 +66424,8 @@ function create_fragment$v(ctx) {
       if (if_block) if_block.c();
       t = space();
       create_component(merchantfooter.$$.fragment);
-      attr(div0, "class", "merchant-tabbed-center svelte-ip-1mgcf9n");
-      set_style(div0, "flex", "1");
-      set_style(div0, "max-height", "calc(100% - " + /*recipientStore*/
-      (ctx[1] && /*$currencies*/
-      ctx[3].length ? "34px" : "0px") + ")");
-      attr(div1, "class", "merchant-right-pane item-piles-flexcol svelte-ip-1mgcf9n");
+      attr(div0, "class", "merchant-tabbed-center svelte-ip-nuhfob");
+      attr(div1, "class", "merchant-right-pane item-piles-flexcol svelte-ip-nuhfob");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -66317,12 +66466,6 @@ function create_fragment$v(ctx) {
           if_block = null;
         }
       }
-      if (!current || dirty & /*recipientStore, $currencies*/
-      10) {
-        set_style(div0, "max-height", "calc(100% - " + /*recipientStore*/
-        (ctx2[1] && /*$currencies*/
-        ctx2[3].length ? "34px" : "0px") + ")");
-      }
       const merchantfooter_changes = {};
       if (dirty & /*recipientStore*/
       2) merchantfooter_changes.recipientStore = /*recipientStore*/
@@ -66355,34 +66498,22 @@ function create_fragment$v(ctx) {
   };
 }
 function instance$s($$self, $$props, $$invalidate) {
-  let $currencies;
   let $closed;
-  let $activeTab, $$unsubscribe_activeTab = noop, $$subscribe_activeTab = () => ($$unsubscribe_activeTab(), $$unsubscribe_activeTab = subscribe(activeTab, ($$value) => $$invalidate(5, $activeTab = $$value)), activeTab);
+  let $activeTab, $$unsubscribe_activeTab = noop, $$subscribe_activeTab = () => ($$unsubscribe_activeTab(), $$unsubscribe_activeTab = subscribe(activeTab, ($$value) => $$invalidate(4, $activeTab = $$value)), activeTab);
   $$self.$$.on_destroy.push(() => $$unsubscribe_activeTab());
-  let { store: store2 } = $$props;
+  let { store } = $$props;
   let { recipientStore } = $$props;
   let { activeTab } = $$props;
   $$subscribe_activeTab();
-  store2.categories;
-  let closed = store2.closed;
-  component_subscribe($$self, closed, (value) => $$invalidate(4, $closed = value));
-  const currencies = recipientStore?.allCurrencies || writable([]);
-  component_subscribe($$self, currencies, (value) => $$invalidate(3, $currencies = value));
+  store.categories;
+  let closed = store.closed;
+  component_subscribe($$self, closed, (value) => $$invalidate(3, $closed = value));
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
     if ("recipientStore" in $$props2) $$invalidate(1, recipientStore = $$props2.recipientStore);
     if ("activeTab" in $$props2) $$subscribe_activeTab($$invalidate(2, activeTab = $$props2.activeTab));
   };
-  return [
-    store2,
-    recipientStore,
-    activeTab,
-    $currencies,
-    $closed,
-    $activeTab,
-    closed,
-    currencies
-  ];
+  return [store, recipientStore, activeTab, $closed, $activeTab, closed];
 }
 class MerchantRightPane extends SvelteComponent {
   constructor(options) {
@@ -66744,26 +66875,26 @@ function instance$r($$self, $$props, $$invalidate) {
   let $pileDataStore;
   let $merchantName;
   let $closed;
-  let { store: store2 } = $$props;
-  const pileDataStore = store2.pileData;
+  let { store } = $$props;
+  const pileDataStore = store.pileData;
   component_subscribe($$self, pileDataStore, (value) => $$invalidate(1, $pileDataStore = value));
-  const merchantName = store2.name;
+  const merchantName = store.name;
   component_subscribe($$self, merchantName, (value) => $$invalidate(3, $merchantName = value));
-  const closed = store2.closed;
+  const closed = store.closed;
   component_subscribe($$self, closed, (value) => $$invalidate(4, $closed = value));
   let openTimeText = "";
   const aboutTimeEnabled = game.modules.get("foundryvtt-simple-calendar")?.active || false;
   const click_handler = () => {
-    store2.setOpenStatus("auto");
+    store.setOpenStatus("auto");
   };
   const click_handler_1 = () => {
-    store2.setOpenStatus($closed ? "open" : "closed");
+    store.setOpenStatus($closed ? "open" : "closed");
   };
   const click_handler_2 = () => {
-    store2.setOpenStatus($closed ? "open" : "closed");
+    store.setOpenStatus($closed ? "open" : "closed");
   };
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(0, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(0, store = $$props2.store);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*$pileDataStore*/
@@ -66786,7 +66917,7 @@ function instance$r($$self, $$props, $$invalidate) {
     }
   };
   return [
-    store2,
+    store,
     $pileDataStore,
     openTimeText,
     $merchantName,
@@ -67135,29 +67266,29 @@ function instance$q($$self, $$props, $$invalidate) {
   let { elementRoot } = $$props;
   let { merchant } = $$props;
   let { recipient } = $$props;
-  let { store: store2 = MerchantStore.make(application, merchant, recipient) } = $$props;
-  let { recipientStore = recipient ? MerchantStore.make(application, recipient, merchant, { recipientPileData: store2.pileData }) : false } = $$props;
-  let pileData = store2.pileData;
+  let { store = MerchantStore.make(application, merchant, recipient) } = $$props;
+  let { recipientStore = recipient ? MerchantStore.make(application, recipient, merchant, { recipientPileData: store.pileData }) : false } = $$props;
+  let pileData = store.pileData;
   component_subscribe($$self, pileData, (value) => $$invalidate(13, $pileData = value));
   onDestroy(() => {
-    store2.onDestroy();
+    store.onDestroy();
     if (recipientStore) recipientStore.onDestroy();
   });
-  let priceSelector = store2.priceSelector;
+  let priceSelector = store.priceSelector;
   component_subscribe($$self, priceSelector, (value) => $$invalidate(5, $priceSelector = value));
-  let visibleItems = store2.visibleItems;
+  let visibleItems = store.visibleItems;
   component_subscribe($$self, visibleItems, (value) => $$invalidate(14, $visibleItems = value));
-  async function dropData(data2) {
-    if (data2.type === "Actor") {
-      const newRecipient = data2.uuid ? await fromUuid(data2.uuid) : game.actors.get(data2.id);
-      this.updateRecipient(newRecipient);
+  async function dropData(data) {
+    if (data.type === "Actor") {
+      const newRecipient = data.uuid ? await foundry.utils.fromUuid(data.uuid) : game.actors.get(data.id);
+      store.updateRecipient(newRecipient);
       if (recipientStore) {
         return recipientStore.updateSource(newRecipient);
       }
-      $$invalidate(0, recipientStore = MerchantStore.make(application, newRecipient, merchant, { recipientPileData: store2.pileData }));
+      $$invalidate(0, recipientStore = MerchantStore.make(application, newRecipient, merchant, { recipientPileData: store.pileData }));
       return;
     }
-    return store2.onDrop(data2);
+    return store.onDrop(data);
   }
   const activeTab = writable("buy");
   component_subscribe($$self, activeTab, (value) => $$invalidate(4, $activeTab = value));
@@ -67181,7 +67312,7 @@ function instance$q($$self, $$props, $$invalidate) {
     if ("elementRoot" in $$props2) $$invalidate(1, elementRoot = $$props2.elementRoot);
     if ("merchant" in $$props2) $$invalidate(11, merchant = $$props2.merchant);
     if ("recipient" in $$props2) $$invalidate(12, recipient = $$props2.recipient);
-    if ("store" in $$props2) $$invalidate(2, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(2, store = $$props2.store);
     if ("recipientStore" in $$props2) $$invalidate(0, recipientStore = $$props2.recipientStore);
   };
   $$self.$$.update = () => {
@@ -67219,8 +67350,9 @@ function instance$q($$self, $$props, $$invalidate) {
             hidden: !merchant.isOwner || !$pileData.logMerchantActivity
           }
         ]);
-        if (tabs.find((tab) => tab.value === $activeTab).hidden) {
-          set_store_value(activeTab, $activeTab = tabs.find((tab) => !tab.hidden).value, $activeTab);
+        if (tabs.find((tab) => tab.value === $activeTab)?.hidden ?? true) {
+          const fallback = tabs.find((tab) => !tab.hidden);
+          if (fallback) set_store_value(activeTab, $activeTab = fallback.value, $activeTab);
         }
       }
     }
@@ -67228,7 +67360,7 @@ function instance$q($$self, $$props, $$invalidate) {
   return [
     recipientStore,
     elementRoot,
-    store2,
+    store,
     tabs,
     $activeTab,
     $priceSelector,
@@ -67282,8 +67414,8 @@ class Merchant_app_shell extends SvelteComponent {
   get store() {
     return this.$$.ctx[2];
   }
-  set store(store2) {
-    this.$$set({ store: store2 });
+  set store(store) {
+    this.$$set({ store });
     flush();
   }
   get recipientStore() {
@@ -67918,14 +68050,19 @@ class TJSContextMenu {
     return tempItems;
   }
 }
+function resolveTransform(t) {
+  return t?.subscribe ? get_store_value(t) : t;
+}
 function isItemColliding(item, otherItem) {
-  const transform = item.transform?.subscribe ? get_store_value(item.transform) : item.transform;
-  const otherTransform = otherItem.transform?.subscribe ? get_store_value(otherItem.transform) : otherItem.transform;
+  const transform = resolveTransform(item.transform);
+  const otherTransform = resolveTransform(otherItem.transform);
   return item.id !== otherItem.id && transform.x + (transform.w - 1) >= otherTransform.x && transform.y + (transform.h - 1) >= otherTransform.y && transform.x <= otherTransform.x + (otherTransform.w - 1) && transform.y <= otherTransform.y + (otherTransform.h - 1);
 }
 function getCollisions(originalItem, items) {
+  const movingTransform = resolveTransform(originalItem.transform);
+  const moving = { id: originalItem.id, transform: movingTransform };
   return items.filter((item) => {
-    return isItemColliding(originalItem, item);
+    return isItemColliding(moving, item);
   });
 }
 function coordinate2position(coordinate, cellSize, gap) {
@@ -67991,30 +68128,30 @@ function swapItemTransform(originalTransform, finalTransform, transform) {
 }
 function isPlacementValid(item, collisions, items, options) {
   if (!collisions.length) return true;
-  const finalTransform = foundry.utils.deepClone(get_store_value(item.transform));
-  const origItemTransform = foundry.utils.deepClone(get_store_value(item.item.transform));
-  const newItemPlacement = {
-    id: item.id,
-    transform: finalTransform
-  };
+  const finalTransform = resolveTransform(item.transform);
+  const origItemTransform = resolveTransform(item.item.transform);
   const itemWithinBounds = finalTransform.x + (finalTransform.w - 1) < options.enabledCols && finalTransform.y + (finalTransform.h - 1) < options.enabledRows && finalTransform.x >= 0 && finalTransform.y >= 0;
   if (!itemWithinBounds) return false;
   const assumedCollisionMovement = collisions.map((collision) => {
-    const collisionTransform = foundry.utils.deepClone(get_store_value(collision.transform));
     return {
       id: collision.id,
-      transform: swapItemTransform(origItemTransform, finalTransform, collisionTransform)
+      transform: swapItemTransform(origItemTransform, finalTransform, resolveTransform(collision.transform))
     };
   });
   if (!assumedCollisionMovement.every((entry) => {
     return entry && entry.transform.x + (entry.transform.w - 1) < options.enabledCols && entry.transform.y + (entry.transform.h - 1) < options.enabledRows && entry.transform.x >= 0 && entry.transform.y >= 0;
   })) return false;
-  const itemsSansCollisions = items.filter((i) => {
-    return i.id !== item.id && !assumedCollisionMovement.some((coll) => coll.id === i.id);
-  }).concat([newItemPlacement]);
-  return assumedCollisionMovement.every((movedBox) => {
-    return !getCollisions(movedBox, itemsSansCollisions).length;
-  });
+  const excludedIds = /* @__PURE__ */ new Set([item.id]);
+  for (const coll of assumedCollisionMovement) excludedIds.add(coll.id);
+  const newItemPlacement = { id: item.id, transform: finalTransform };
+  for (const movedBox of assumedCollisionMovement) {
+    for (const candidate of items) {
+      if (excludedIds.has(candidate.id)) continue;
+      if (isItemColliding(movedBox, candidate)) return false;
+    }
+    if (isItemColliding(movedBox, newItemPlacement)) return false;
+  }
+  return true;
 }
 const { window: window_1$1 } = globals;
 function create_if_block$h(ctx) {
@@ -68035,13 +68172,13 @@ function create_if_block$h(ctx) {
         div,
         "style",
         /*ghostStyle*/
-        ctx[6]
+        ctx[4]
       );
       attr(
         div,
         "class",
-        /*collisionClass*/
-        ctx[4]
+        /*itemClass*/
+        ctx[3]
       );
     },
     m(target, anchor) {
@@ -68052,21 +68189,21 @@ function create_if_block$h(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*ghostStyle*/
-      64) {
+      16) {
         attr(
           div,
           "style",
           /*ghostStyle*/
-          ctx2[6]
+          ctx2[4]
         );
       }
-      if (dirty[0] & /*collisionClass*/
-      16) {
+      if (dirty[0] & /*itemClass*/
+      8) {
         attr(
           div,
           "class",
-          /*collisionClass*/
-          ctx2[4]
+          /*itemClass*/
+          ctx2[3]
         );
       }
       if (
@@ -68104,13 +68241,13 @@ function create_if_block_1$c(ctx) {
         div,
         "style",
         /*style*/
-        ctx[7]
+        ctx[5]
       );
       attr(
         div,
         "class",
         /*itemClass*/
-        ctx[5]
+        ctx[3]
       );
     },
     m(target, anchor) {
@@ -68118,21 +68255,21 @@ function create_if_block_1$c(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*style*/
-      128) {
+      32) {
         attr(
           div,
           "style",
           /*style*/
-          ctx2[7]
+          ctx2[5]
         );
       }
       if (dirty[0] & /*itemClass*/
-      32) {
+      8) {
         attr(
           div,
           "class",
           /*itemClass*/
-          ctx2[5]
+          ctx2[3]
         );
       }
     },
@@ -68163,7 +68300,7 @@ function create_fragment$r(ctx) {
   );
   let if_block = (
     /*active*/
-    ctx[3] && create_if_block$h(ctx)
+    ctx[1] && create_if_block$h(ctx)
   );
   return {
     c() {
@@ -68176,13 +68313,13 @@ function create_fragment$r(ctx) {
         div,
         "class",
         /*classes*/
-        ctx[2]
+        ctx[6]
       );
       attr(
         div,
         "style",
         /*style*/
-        ctx[7]
+        ctx[5]
       );
     },
     m(target, anchor) {
@@ -68201,13 +68338,13 @@ function create_fragment$r(ctx) {
             window_1$1,
             "keydown",
             /*keydown*/
-            ctx[15]
+            ctx[14]
           ),
           listen(
             div,
             "dblclick",
             /*doubleClick*/
-            ctx[11]
+            ctx[10]
           ),
           listen(div, "dragover", prevent_default(
             /*dragover_handler*/
@@ -68217,25 +68354,25 @@ function create_fragment$r(ctx) {
             div,
             "pointerdown",
             /*moveStart*/
-            ctx[12]
+            ctx[11]
           ),
           listen(
             div,
             "pointerleave",
             /*hoverLeave*/
-            ctx[14]
+            ctx[13]
           ),
           listen(
             div,
             "pointerover",
             /*hoverOver*/
-            ctx[13]
+            ctx[12]
           ),
           listen(
             div,
             "touchstart",
             /*moveStart*/
-            ctx[12]
+            ctx[11]
           )
         ];
         mounted = true;
@@ -68266,26 +68403,26 @@ function create_fragment$r(ctx) {
         }
       }
       if (!current || dirty[0] & /*classes*/
-      4) {
+      64) {
         attr(
           div,
           "class",
           /*classes*/
-          ctx2[2]
+          ctx2[6]
         );
       }
       if (!current || dirty[0] & /*style*/
-      128) {
+      32) {
         attr(
           div,
           "style",
           /*style*/
-          ctx2[7]
+          ctx2[5]
         );
       }
       if (
         /*active*/
-        ctx2[3]
+        ctx2[1]
       ) {
         if (if_block) {
           if_block.p(ctx2, dirty);
@@ -68326,11 +68463,11 @@ function instance$o($$self, $$props, $$invalidate) {
   let active2;
   let transform;
   let gridTransform;
+  let classes;
   let ghostGridTransform;
   let style;
   let ghostStyle;
   let itemClass;
-  let collisionClass;
   let $transformStore;
   let $previewTransform;
   let $activeStore;
@@ -68340,7 +68477,7 @@ function instance$o($$self, $$props, $$invalidate) {
   let { items } = $$props;
   let { gridContainer } = $$props;
   const dispatch2 = createEventDispatcher();
-  let itemRef = HTMLElement;
+  let itemRef = null;
   let dragged = false;
   const transformStore = item.transform;
   component_subscribe($$self, transformStore, (value) => $$invalidate(23, $transformStore = value));
@@ -68348,11 +68485,12 @@ function instance$o($$self, $$props, $$invalidate) {
   component_subscribe($$self, previewTransform, (value) => $$invalidate(24, $previewTransform = value));
   const activeStore = item.active;
   component_subscribe($$self, activeStore, (value) => $$invalidate(25, $activeStore = value));
-  let classes = "";
   let splitting = false;
   let validPlacement = false;
   let collisions = [];
   let pointerOffset = { left: 0, top: 0 };
+  let dragContainerBounds = { width: 0, height: 0 };
+  let activeOtherIds = /* @__PURE__ */ new Set();
   function doubleClick(event) {
     if (event.button !== 0) return;
     dispatch2("itemdoubleclick", { item });
@@ -68373,7 +68511,7 @@ function instance$o($$self, $$props, $$invalidate) {
       x: event.pageX - pointerOffset.internalLeft,
       y: event.pageY - pointerOffset.internalTop
     });
-    dragged = true;
+    $$invalidate(19, dragged = true);
     move(event);
   }
   function splitStart(event) {
@@ -68387,9 +68525,13 @@ function instance$o($$self, $$props, $$invalidate) {
       internalLeft: event.offsetX,
       internalTop: event.offsetY
     };
+    if (!gridContainer) return;
+    const rect = gridContainer.getBoundingClientRect();
+    dragContainerBounds = { width: rect.width, height: rect.height };
+    activeOtherIds.clear();
     set_store_value(previewTransform, $previewTransform = $transformStore, $previewTransform);
-    window.addEventListener("pointermove", move, { passive: false });
-    window.addEventListener("pointerup", moveEnd, { passive: false });
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerup", moveEnd, { passive: true });
     window.addEventListener("touchmove", move, { passive: false });
     window.addEventListener("touchend", moveEnd, { passive: false });
   }
@@ -68399,67 +68541,64 @@ function instance$o($$self, $$props, $$invalidate) {
     if (event) lastMoveEvent = event;
     if (!event) return;
     const { pageX, pageY } = event.type === "touchmove" ? event.changedTouches[0] : event;
-    previewTransform.update((data2) => {
-      const unsnappedData = calcPosition(data2, options);
-      const { left, top, outOfBounds } = constrainToContainer(pageX - pointerOffset.left, pageY - pointerOffset.top, unsnappedData.width, unsnappedData.height);
+    let outOfBounds = false;
+    let newPreview = null;
+    previewTransform.update((data) => {
+      const unsnappedData = calcPosition(data, options);
+      const { left, top, outOfBounds: innerOutOfBounds } = constrainToContainer(pageX - pointerOffset.left, pageY - pointerOffset.top, unsnappedData.width, unsnappedData.height);
+      outOfBounds = innerOutOfBounds;
       activeStore.set(!outOfBounds);
       dispatch2("itemmove", {
         x: pageX - pointerOffset.internalLeft,
         y: pageY - pointerOffset.internalTop
       });
-      return {
-        ...data2,
+      newPreview = {
+        ...data,
         ...snapOnMove(left, top, unsnappedData, options),
         left,
         top
       };
+      return newPreview;
     });
-    $$invalidate(0, collisions = getCollisions({ id: item.id, transform: previewTransform }, items));
+    $$invalidate(0, collisions = getCollisions({ id: item.id, transform: newPreview }, items));
     if (!splitting) {
-      $$invalidate(20, validPlacement = isPlacementValid(
-        {
-          id: item.id,
-          item,
-          transform: previewTransform
-        },
-        collisions,
-        items,
-        options
-      ));
+      $$invalidate(20, validPlacement = !outOfBounds && isPlacementValid({ id: item.id, item, transform: newPreview }, collisions, items, options));
+      const newActiveIds = /* @__PURE__ */ new Set();
+      for (const c of collisions) newActiveIds.add(c.id);
       for (const otherItem of items) {
         if (otherItem.id === item.id) continue;
-        const isActive = collisions.indexOf(otherItem) > -1;
-        otherItem.active.set(isActive);
+        const wasActive = activeOtherIds.has(otherItem.id);
+        const isActive = newActiveIds.has(otherItem.id);
+        if (isActive !== wasActive) {
+          otherItem.active.set(isActive);
+        }
         if (isActive) {
+          const otherTransform = get_store_value(otherItem.transform);
           otherItem.ghostTransform.update(() => {
-            return calcPosition(swapItemTransform(transform, get_store_value(previewTransform), get_store_value(otherItem.transform)), options);
+            return calcPosition(swapItemTransform(transform, newPreview, otherTransform), options);
           });
         }
       }
+      activeOtherIds = newActiveIds;
     } else {
       activeStore.set(!collisions.length);
     }
   }
   function constrainToContainer(left, top, width, height) {
-    const parentRect = gridContainer.getBoundingClientRect();
-    const relativeRect = {
-      left: parentRect.left - parentRect.x,
-      top: parentRect.top - parentRect.y,
-      right: parentRect.right - parentRect.x,
-      bottom: parentRect.bottom - parentRect.y
-    };
-    const outOfBounds = left < relativeRect.left && left < relativeRect.left - width / 2 || top < relativeRect.top && top < relativeRect.top - height / 2 || left + width > relativeRect.right && left + width > relativeRect.right + width / 2 || top + height > relativeRect.bottom && top + height > relativeRect.bottom + height / 2;
-    if (left < relativeRect.left) {
-      left = relativeRect.left;
+    const right = dragContainerBounds.width;
+    const bottom = dragContainerBounds.height;
+    const outOfBounds = left < 0 && left < -width / 2 || top < 0 && top < -height / 2 || left + width > right && left + width > right + width / 2 || top + height > bottom && top + height > bottom + height / 2;
+    if (left < 0) {
+      left = 0;
     }
-    if (top < relativeRect.top) {
-      top = relativeRect.top;
+    if (top < 0) {
+      top = 0;
     }
-    if (left + width > relativeRect.right) {
-      left = relativeRect.right - width;
+    if (left + width > right) {
+      left = right - width;
     }
-    if (top + height > relativeRect.bottom) {
-      top = relativeRect.bottom - height;
+    if (top + height > bottom) {
+      top = bottom - height;
     }
     return { left, top, outOfBounds };
   }
@@ -68485,11 +68624,15 @@ function instance$o($$self, $$props, $$invalidate) {
         splitting
       });
     }
-    dragged = false;
+    $$invalidate(19, dragged = false);
     if (!active2) return;
+    activeStore.set(false);
     for (const otherItem of items) {
-      otherItem.active.set(false);
+      if (activeOtherIds.has(otherItem.id)) {
+        otherItem.active.set(false);
+      }
     }
+    activeOtherIds.clear();
     if (splitting) {
       splitting = false;
       return;
@@ -68550,24 +68693,24 @@ function instance$o($$self, $$props, $$invalidate) {
     if (!active2 || !dragged || item.item.w === item.item.h) return;
     const shouldRotate = hotkeyActionState.shouldRotateVaultItem(event);
     if (!shouldRotate) return;
-    previewTransform.update((data2) => {
-      const { w, h } = data2;
+    previewTransform.update((data) => {
+      const { w, h } = data;
       dispatch2("itemflipped", {
         item,
         target: itemRef,
         h: w,
         w: h,
-        flipped: !data2.flipped
+        flipped: !data.flipped
       });
       const width = coordinate2size(h / 2, options.gridSize, options.gap);
       const height = coordinate2size(w / 2, options.gridSize, options.gap);
       pointerOffset.top -= width - height;
       pointerOffset.left -= height - width;
       return {
-        ...data2,
+        ...data,
         w: h,
         h: w,
-        flipped: !data2.flipped
+        flipped: !data.flipped
       };
     });
     move();
@@ -68578,39 +68721,47 @@ function instance$o($$self, $$props, $$invalidate) {
   function div_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
       itemRef = $$value;
-      $$invalidate(1, itemRef);
+      $$invalidate(2, itemRef);
     });
   }
   $$self.$$set = ($$props2) => {
-    if ("item" in $$props2) $$invalidate(16, item = $$props2.item);
-    if ("options" in $$props2) $$invalidate(17, options = $$props2.options);
-    if ("items" in $$props2) $$invalidate(18, items = $$props2.items);
-    if ("gridContainer" in $$props2) $$invalidate(19, gridContainer = $$props2.gridContainer);
+    if ("item" in $$props2) $$invalidate(15, item = $$props2.item);
+    if ("options" in $$props2) $$invalidate(16, options = $$props2.options);
+    if ("items" in $$props2) $$invalidate(17, items = $$props2.items);
+    if ("gridContainer" in $$props2) $$invalidate(18, gridContainer = $$props2.gridContainer);
     if ("$$scope" in $$props2) $$invalidate(26, $$scope = $$props2.$$scope);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*$activeStore*/
     33554432) {
-      $$invalidate(3, active2 = $activeStore);
+      $$invalidate(1, active2 = $activeStore);
     }
     if ($$self.$$.dirty[0] & /*$transformStore*/
     8388608) {
       transform = $transformStore;
     }
     if ($$self.$$.dirty[0] & /*$transformStore, options*/
-    8519680) {
+    8454144) {
       $$invalidate(21, gridTransform = calcPosition($transformStore, options));
     }
-    if ($$self.$$.dirty[0] & /*$previewTransform, options*/
-    16908288) {
-      $$invalidate(22, ghostGridTransform = calcPosition(
+    if ($$self.$$.dirty[0] & /*options, item*/
+    98304) {
+      $$invalidate(6, classes = [
+        options.hoverClass,
+        options.highlightItems && item.highlight ? options.highlightClass : "",
+        options.highlightItems && !item.highlight ? options.dimClass : ""
+      ].filter(Boolean).join(" "));
+    }
+    if ($$self.$$.dirty[0] & /*dragged, active, $previewTransform, options, gridTransform*/
+    19464194) {
+      $$invalidate(22, ghostGridTransform = dragged || active2 ? calcPosition(
         {
           ...snapOnMove($previewTransform.left, $previewTransform.top, $previewTransform, options, false),
           w: $previewTransform.w,
           h: $previewTransform.h
         },
         options
-      ));
+      ) : gridTransform);
     }
     if ($$self.$$.dirty[0] & /*$activeStore*/
     33554432) {
@@ -68618,18 +68769,9 @@ function instance$o($$self, $$props, $$invalidate) {
         if (!$activeStore) $$invalidate(0, collisions = []);
       }
     }
-    if ($$self.$$.dirty[0] & /*classes, options, item*/
-    196612) {
-      {
-        $$invalidate(2, classes = "");
-        $$invalidate(2, classes += " " + options.hoverClass);
-        $$invalidate(2, classes += options.highlightItems && item.highlight ? " " + options.highlightClass : "");
-        $$invalidate(2, classes += options.highlightItems && !item.highlight ? " " + options.dimClass : "");
-      }
-    }
     if ($$self.$$.dirty[0] & /*gridTransform*/
     2097152) {
-      $$invalidate(7, style = styleFromObject({
+      $$invalidate(5, style = styleFromObject({
         "position": "absolute",
         "left": gridTransform.left + "px",
         "top": gridTransform.top + "px",
@@ -68640,7 +68782,7 @@ function instance$o($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*ghostGridTransform*/
     4194304) {
-      $$invalidate(6, ghostStyle = styleFromObject({
+      $$invalidate(4, ghostStyle = styleFromObject({
         "position": "absolute",
         "left": ghostGridTransform.left + "px",
         "top": ghostGridTransform.top + "px",
@@ -68651,23 +68793,18 @@ function instance$o($$self, $$props, $$invalidate) {
       }));
     }
     if ($$self.$$.dirty[0] & /*collisions, validPlacement, options*/
-    1179649) {
-      $$invalidate(5, itemClass = collisions.length ? validPlacement ? options.collisionClass : options.invalidCollisionClass : options.previewClass);
-    }
-    if ($$self.$$.dirty[0] & /*collisions, validPlacement, options*/
-    1179649) {
-      $$invalidate(4, collisionClass = collisions.length ? validPlacement ? options.collisionClass : options.invalidCollisionClass : options.previewClass);
+    1114113) {
+      $$invalidate(3, itemClass = collisions.length ? validPlacement ? options.collisionClass : options.invalidCollisionClass : options.previewClass);
     }
   };
   return [
     collisions,
-    itemRef,
-    classes,
     active2,
-    collisionClass,
+    itemRef,
     itemClass,
     ghostStyle,
     style,
+    classes,
     transformStore,
     previewTransform,
     activeStore,
@@ -68680,6 +68817,7 @@ function instance$o($$self, $$props, $$invalidate) {
     options,
     items,
     gridContainer,
+    dragged,
     validPlacement,
     gridTransform,
     ghostGridTransform,
@@ -68702,10 +68840,10 @@ class GridItem extends SvelteComponent {
       create_fragment$r,
       safe_not_equal,
       {
-        item: 16,
-        options: 17,
-        items: 18,
-        gridContainer: 19
+        item: 15,
+        options: 16,
+        items: 17,
+        gridContainer: 18
       },
       null,
       [-1, -1]
@@ -68714,28 +68852,28 @@ class GridItem extends SvelteComponent {
 }
 function get_each_context$b(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[26] = list[i];
-  child_ctx[28] = i;
+  child_ctx[22] = list[i];
+  child_ctx[24] = i;
   return child_ctx;
 }
 function get_each_context_1$8(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[26] = list[i];
-  child_ctx[30] = i;
+  child_ctx[22] = list[i];
+  child_ctx[26] = i;
   return child_ctx;
 }
 function get_each_context_2$3(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[31] = list[i];
-  child_ctx[32] = list;
-  child_ctx[33] = i;
+  child_ctx[27] = list[i];
+  child_ctx[28] = list;
+  child_ctx[29] = i;
   return child_ctx;
 }
-const get_default_slot_changes = (dirty) => ({ item: dirty[0] & /*items*/
+const get_default_slot_changes = (dirty) => ({ item: dirty & /*items*/
 4 });
 const get_default_slot_context = (ctx) => ({ item: (
   /*item*/
-  ctx[31]
+  ctx[27]
 ) });
 function get_if_ctx(ctx) {
   const child_ctx = ctx.slice();
@@ -68745,7 +68883,7 @@ function get_if_ctx(ctx) {
     /*options*/
     child_ctx[0]
   );
-  child_ctx[34] = constants_0;
+  child_ctx[30] = constants_0;
   return child_ctx;
 }
 function create_if_block_1$b(ctx) {
@@ -68756,11 +68894,11 @@ function create_if_block_1$b(ctx) {
     c() {
       div = element("div");
       attr(div, "style", div_style_value = `position: absolute; left:${/*dropElem*/
-      ctx[34].left}px; top:${/*dropElem*/
-      ctx[34].top}px;
+      ctx[30].left}px; top:${/*dropElem*/
+      ctx[30].top}px;
         width: ${/*dropElem*/
-      ctx[34].width}px; height: ${/*dropElem*/
-      ctx[34].height}px;`);
+      ctx[30].width}px; height: ${/*dropElem*/
+      ctx[30].height}px;`);
       attr(div, "class", div_class_value = null_to_empty(
         /*options*/
         ctx[0].previewClass
@@ -68770,16 +68908,16 @@ function create_if_block_1$b(ctx) {
       insert(target, div, anchor);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*dropGhost, options*/
+      if (dirty & /*dropGhost, options*/
       9 && div_style_value !== (div_style_value = `position: absolute; left:${/*dropElem*/
-      ctx2[34].left}px; top:${/*dropElem*/
-      ctx2[34].top}px;
+      ctx2[30].left}px; top:${/*dropElem*/
+      ctx2[30].top}px;
         width: ${/*dropElem*/
-      ctx2[34].width}px; height: ${/*dropElem*/
-      ctx2[34].height}px;`)) {
+      ctx2[30].width}px; height: ${/*dropElem*/
+      ctx2[30].height}px;`)) {
         attr(div, "style", div_style_value);
       }
-      if (dirty[0] & /*options*/
+      if (dirty & /*options*/
       1 && div_class_value !== (div_class_value = null_to_empty(
         /*options*/
         ctx2[0].previewClass
@@ -68799,13 +68937,13 @@ function create_default_slot$9(ctx) {
   let current;
   const default_slot_template = (
     /*#slots*/
-    ctx[19].default
+    ctx[15].default
   );
   const default_slot = create_slot(
     default_slot_template,
     ctx,
     /*$$scope*/
-    ctx[24],
+    ctx[20],
     get_default_slot_context
   );
   return {
@@ -68822,21 +68960,21 @@ function create_default_slot$9(ctx) {
     },
     p(ctx2, dirty) {
       if (default_slot) {
-        if (default_slot.p && (!current || dirty[0] & /*$$scope, items*/
-        16777220)) {
+        if (default_slot.p && (!current || dirty & /*$$scope, items*/
+        1048580)) {
           update_slot_base(
             default_slot,
             default_slot_template,
             ctx2,
             /*$$scope*/
-            ctx2[24],
+            ctx2[20],
             !current ? get_all_dirty_from_scope(
               /*$$scope*/
-              ctx2[24]
+              ctx2[20]
             ) : get_slot_changes(
               default_slot_template,
               /*$$scope*/
-              ctx2[24],
+              ctx2[20],
               dirty,
               get_default_slot_changes
             ),
@@ -68870,21 +69008,21 @@ function create_each_block_2$3(key_1, ctx) {
   let updating_options;
   let current;
   function griditem_item_binding(value) {
-    ctx[20](
+    ctx[16](
       value,
       /*item*/
-      ctx[31],
+      ctx[27],
       /*each_value_2*/
-      ctx[32],
+      ctx[28],
       /*item_index*/
-      ctx[33]
+      ctx[29]
     );
   }
   function griditem_items_binding(value) {
-    ctx[21](value);
+    ctx[17](value);
   }
   function griditem_options_binding(value) {
-    ctx[22](value);
+    ctx[18](value);
   }
   let griditem_props = {
     gridContainer: (
@@ -68896,10 +69034,10 @@ function create_each_block_2$3(key_1, ctx) {
   };
   if (
     /*item*/
-    ctx[31] !== void 0
+    ctx[27] !== void 0
   ) {
     griditem_props.item = /*item*/
-    ctx[31];
+    ctx[27];
   }
   if (
     /*items*/
@@ -68922,47 +69060,47 @@ function create_each_block_2$3(key_1, ctx) {
   griditem.$on(
     "itemdoubleclick",
     /*itemDoubleClickEvent*/
-    ctx[15]
+    ctx[13]
   );
   griditem.$on(
     "itemchange",
     /*itemChangeEvent*/
-    ctx[8]
+    ctx[6]
   );
   griditem.$on(
     "itemhover",
     /*itemHoverEvent*/
-    ctx[9]
+    ctx[7]
   );
   griditem.$on(
     "itembegindrag",
     /*itemBeginDrag*/
-    ctx[10]
+    ctx[8]
   );
   griditem.$on(
     "itemstopdrag",
     /*itemStopDrag*/
-    ctx[11]
+    ctx[9]
   );
   griditem.$on(
     "itemmove",
     /*itemMove*/
-    ctx[12]
+    ctx[10]
   );
   griditem.$on(
     "itemhoverleave",
     /*itemHoverLeaveEvent*/
-    ctx[13]
+    ctx[11]
   );
   griditem.$on(
     "itemrightclick",
     /*itemRightClickEvent*/
-    ctx[14]
+    ctx[12]
   );
   griditem.$on(
     "itemflipped",
     /*itemFlippedEvent*/
-    ctx[16]
+    ctx[14]
   );
   return {
     key: key_1,
@@ -68980,28 +69118,28 @@ function create_each_block_2$3(key_1, ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       const griditem_changes = {};
-      if (dirty[0] & /*gridContainer*/
+      if (dirty & /*gridContainer*/
       2) griditem_changes.gridContainer = /*gridContainer*/
       ctx[1];
-      if (dirty[0] & /*$$scope, items*/
-      16777220) {
+      if (dirty & /*$$scope, items*/
+      1048580) {
         griditem_changes.$$scope = { dirty, ctx };
       }
-      if (!updating_item && dirty[0] & /*items*/
+      if (!updating_item && dirty & /*items*/
       4) {
         updating_item = true;
         griditem_changes.item = /*item*/
-        ctx[31];
+        ctx[27];
         add_flush_callback(() => updating_item = false);
       }
-      if (!updating_items && dirty[0] & /*items*/
+      if (!updating_items && dirty & /*items*/
       4) {
         updating_items = true;
         griditem_changes.items = /*items*/
         ctx[2];
         add_flush_callback(() => updating_items = false);
       }
-      if (!updating_options && dirty[0] & /*options*/
+      if (!updating_options && dirty & /*options*/
       1) {
         updating_options = true;
         griditem_changes.options = /*options*/
@@ -69037,7 +69175,7 @@ function create_if_block$g(ctx) {
   ));
   const get_key = (ctx2) => (
     /*rowIndex*/
-    ctx2[28]
+    ctx2[24]
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context$b(ctx, each_value, i);
@@ -69067,7 +69205,7 @@ function create_if_block$g(ctx) {
       }
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*options*/
+      if (dirty & /*Array, options*/
       1) {
         each_value = ensure_array_like(Array(
           /*options*/
@@ -69075,7 +69213,7 @@ function create_if_block$g(ctx) {
         ));
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div, destroy_block, create_each_block$b, null, get_each_context$b);
       }
-      if (dirty[0] & /*backgroundGridStyle*/
+      if (dirty & /*backgroundGridStyle*/
       16) {
         attr(
           div,
@@ -69114,16 +69252,16 @@ function create_each_block_1$8(key_1, ctx) {
         "height",
         /*options*/
         ctx[0].gridSize + /*options*/
-        ctx[0].gap / 2
+        ctx[0].gap / 2 + "px"
       );
       attr(div, "class", "svelte-ip-15sf5oy");
       toggle_class(
         div,
         "grid-disabled",
         /*colIndex*/
-        ctx[30] >= /*options*/
+        ctx[26] >= /*options*/
         ctx[0].enabledCols || /*rowIndex*/
-        ctx[28] >= /*options*/
+        ctx[24] >= /*options*/
         ctx[0].enabledRows
       );
       this.first = div;
@@ -69133,7 +69271,7 @@ function create_each_block_1$8(key_1, ctx) {
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*options*/
+      if (dirty & /*options*/
       1) {
         set_style(
           div,
@@ -69143,25 +69281,25 @@ function create_each_block_1$8(key_1, ctx) {
           ctx[0].gap / 2 + "px"
         );
       }
-      if (dirty[0] & /*options*/
+      if (dirty & /*options*/
       1) {
         set_style(
           div,
           "height",
           /*options*/
           ctx[0].gridSize + /*options*/
-          ctx[0].gap / 2
+          ctx[0].gap / 2 + "px"
         );
       }
-      if (dirty[0] & /*options*/
+      if (dirty & /*Array, options*/
       1) {
         toggle_class(
           div,
           "grid-disabled",
           /*colIndex*/
-          ctx[30] >= /*options*/
+          ctx[26] >= /*options*/
           ctx[0].enabledCols || /*rowIndex*/
-          ctx[28] >= /*options*/
+          ctx[24] >= /*options*/
           ctx[0].enabledRows
         );
       }
@@ -69184,7 +69322,7 @@ function create_each_block$b(key_1, ctx) {
   ));
   const get_key = (ctx2) => (
     /*colIndex*/
-    ctx2[30]
+    ctx2[26]
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
     let child_ctx = get_each_context_1$8(ctx, each_value_1, i);
@@ -69213,7 +69351,7 @@ function create_each_block$b(key_1, ctx) {
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*options*/
+      if (dirty & /*options, Array*/
       1) {
         each_value_1 = ensure_array_like(Array(
           /*options*/
@@ -69253,7 +69391,7 @@ function create_fragment$q(ctx) {
   );
   const get_key = (ctx2) => (
     /*item*/
-    ctx2[31].id
+    ctx2[27].id
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
     let child_ctx = get_each_context_2$3(ctx, each_value_2, i);
@@ -69295,12 +69433,12 @@ function create_fragment$q(ctx) {
           each_blocks[i].m(div0, null);
         }
       }
-      ctx[23](div0);
+      ctx[19](div0);
       append(div1, t1);
       if (if_block1) if_block1.m(div1, null);
       current = true;
     },
-    p(ctx2, dirty) {
+    p(ctx2, [dirty]) {
       if (
         /*dropGhost*/
         ctx2[3] && /*dropGhost*/
@@ -69317,8 +69455,8 @@ function create_fragment$q(ctx) {
         if_block0.d(1);
         if_block0 = null;
       }
-      if (dirty[0] & /*gridContainer, items, options, itemDoubleClickEvent, itemChangeEvent, itemHoverEvent, itemBeginDrag, itemStopDrag, itemMove, itemHoverLeaveEvent, itemRightClickEvent, itemFlippedEvent, $$scope*/
-      16908039) {
+      if (dirty & /*gridContainer, items, options, itemDoubleClickEvent, itemChangeEvent, itemHoverEvent, itemBeginDrag, itemStopDrag, itemMove, itemHoverLeaveEvent, itemRightClickEvent, itemFlippedEvent, $$scope*/
+      1081287) {
         each_value_2 = ensure_array_like(
           /*items*/
           ctx2[2]
@@ -69327,12 +69465,12 @@ function create_fragment$q(ctx) {
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_2, each_1_lookup, div0, outro_and_destroy_block, create_each_block_2$3, null, get_each_context_2$3);
         check_outros();
       }
-      if (!current || dirty[0] & /*options*/
+      if (!current || dirty & /*options*/
       1 && div0_class_value !== (div0_class_value = "item-piles-grid " + /*options*/
       ctx2[0].class + " svelte-ip-15sf5oy")) {
         attr(div0, "class", div0_class_value);
       }
-      if (!current || dirty[0] & /*containerStyle*/
+      if (!current || dirty & /*containerStyle*/
       32) {
         attr(
           div0,
@@ -69378,17 +69516,16 @@ function create_fragment$q(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].d();
       }
-      ctx[23](null);
+      ctx[19](null);
       if (if_block1) if_block1.d();
     }
   };
 }
 function instance$n($$self, $$props, $$invalidate) {
   let containerStyle;
-  let $containerHeight;
-  let $containerWidth;
+  let backgroundGridStyle;
   let { $$slots: slots = {}, $$scope } = $$props;
-  let { gridContainer = HTMLDivElement } = $$props;
+  let { gridContainer = null } = $$props;
   let { items = [] } = $$props;
   let { dropGhost = false } = $$props;
   let { options = {
@@ -69409,10 +69546,6 @@ function instance$n($$self, $$props, $$invalidate) {
     highlightClass: "",
     highlightItems: false
   } } = $$props;
-  let containerHeight = writable(0);
-  component_subscribe($$self, containerHeight, (value) => $$invalidate(17, $containerHeight = value));
-  let containerWidth = writable(0);
-  component_subscribe($$self, containerWidth, (value) => $$invalidate(18, $containerWidth = value));
   const dispatch2 = createEventDispatcher();
   function itemChangeEvent(event) {
     dispatch2("change", { ...event.detail });
@@ -69441,7 +69574,6 @@ function instance$n($$self, $$props, $$invalidate) {
   function itemFlippedEvent(event) {
     dispatch2("itemflipped", { ...event.detail });
   }
-  let backgroundGridStyle = "";
   function griditem_item_binding(value, item, each_value_2, item_index) {
     each_value_2[item_index] = value;
     $$invalidate(2, items);
@@ -69465,25 +69597,17 @@ function instance$n($$self, $$props, $$invalidate) {
     if ("items" in $$props2) $$invalidate(2, items = $$props2.items);
     if ("dropGhost" in $$props2) $$invalidate(3, dropGhost = $$props2.dropGhost);
     if ("options" in $$props2) $$invalidate(0, options = $$props2.options);
-    if ("$$scope" in $$props2) $$invalidate(24, $$scope = $$props2.$$scope);
+    if ("$$scope" in $$props2) $$invalidate(20, $$scope = $$props2.$$scope);
   };
   $$self.$$.update = () => {
-    if ($$self.$$.dirty[0] & /*options*/
+    if ($$self.$$.dirty & /*options*/
     1) {
-      set_store_value(containerWidth, $containerWidth = options.cols * (options.gridSize + options.gap) + options.gap, $containerWidth);
-    }
-    if ($$self.$$.dirty[0] & /*options*/
-    1) {
-      set_store_value(containerHeight, $containerHeight = options.rows * (options.gridSize + options.gap) + options.gap, $containerHeight);
-    }
-    if ($$self.$$.dirty[0] & /*$containerWidth, $containerHeight*/
-    393216) {
       $$invalidate(5, containerStyle = styleFromObject({
-        "width": $containerWidth + "px",
-        "height": $containerHeight + "px"
+        "width": options.cols * (options.gridSize + options.gap) + options.gap + "px",
+        "height": options.rows * (options.gridSize + options.gap) + options.gap + "px"
       }));
     }
-    if ($$self.$$.dirty[0] & /*options*/
+    if ($$self.$$.dirty & /*options*/
     1) {
       $$invalidate(4, backgroundGridStyle = styleFromObject({
         "grid-template-columns": `repeat(${options.cols}, ${options.gridSize + options.gap / 2}px)`,
@@ -69500,8 +69624,6 @@ function instance$n($$self, $$props, $$invalidate) {
     dropGhost,
     backgroundGridStyle,
     containerStyle,
-    containerHeight,
-    containerWidth,
     itemChangeEvent,
     itemHoverEvent,
     itemBeginDrag,
@@ -69511,8 +69633,6 @@ function instance$n($$self, $$props, $$invalidate) {
     itemRightClickEvent,
     itemDoubleClickEvent,
     itemFlippedEvent,
-    $containerHeight,
-    $containerWidth,
     slots,
     griditem_item_binding,
     griditem_items_binding,
@@ -69524,21 +69644,12 @@ function instance$n($$self, $$props, $$invalidate) {
 class Grid extends SvelteComponent {
   constructor(options) {
     super();
-    init(
-      this,
-      options,
-      instance$n,
-      create_fragment$q,
-      safe_not_equal,
-      {
-        gridContainer: 1,
-        items: 2,
-        dropGhost: 3,
-        options: 0
-      },
-      null,
-      [-1, -1]
-    );
+    init(this, options, instance$n, create_fragment$q, safe_not_equal, {
+      gridContainer: 1,
+      items: 2,
+      dropGhost: 3,
+      options: 0
+    });
   }
 }
 function create_if_block_2$8(ctx) {
@@ -69800,8 +69911,8 @@ function instance$m($$self, $$props, $$invalidate) {
   let $name;
   let $quantity;
   let { entry } = $$props;
-  const store2 = getContext("store");
-  const gridDataStore = store2.gridData;
+  const store = getContext("store");
+  const gridDataStore = store.gridData;
   component_subscribe($$self, gridDataStore, (value) => $$invalidate(22, $gridDataStore = value));
   const item = entry.item;
   const doc = item.itemDocument;
@@ -70180,31 +70291,31 @@ class VaultStore extends ItemPileStore {
       });
     }, 10);
   }
-  async onDrop(data2) {
+  async onDrop(data) {
     let validPosition = get_store_value(this.dragPosition);
     this.dragPosition.set({ x: 0, y: 0, w: 1, h: 1, flipped: false, active: false });
-    if (data2.type === "Actor" && game.user.isGM) {
-      const newRecipient = data2.uuid ? await fromUuid(data2.uuid) : game.actors.get(data2.id);
+    if (data.type === "Actor" && game.user.isGM) {
+      const newRecipient = data.uuid ? await foundry.utils.fromUuid(data.uuid) : game.actors.get(data.id);
       this.refreshAppSize();
       this.updateRecipient(newRecipient);
       this.refreshFreeSpaces();
       return;
     }
-    if (data2.type !== "Item") {
-      custom_warning(game.i18n.format("ITEM-PILES.Warnings.DroppedIsNotItem", { type: data2.type }), true);
+    if (data.type !== "Item") {
+      custom_warning(game.i18n.format("ITEM-PILES.Warnings.DroppedIsNotItem", { type: data.type }), true);
       return false;
     }
-    const item = await Item.implementation.fromDropData(data2);
+    const item = await Item.implementation.fromDropData(data);
     const itemData = item.toObject();
     if (!itemData) {
-      console.error(data2);
+      console.error(data);
       throw custom_error("Something went wrong when dropping this item!");
     }
     if (!isItemValidBasedOnProperties(this.actor, itemData) && !game.user.isGM) {
       custom_warning(game.i18n.localize("ITEM-PILES.Warnings.ItemPileInvalidItemDropped"), true);
       return false;
     }
-    const source = (data2.uuid ? fromUuidSync(data2.uuid) : false)?.parent ?? false;
+    const source = (data.uuid ? foundry.utils.fromUuidSync(data.uuid) : false)?.parent ?? false;
     const target = this.actor;
     if (source === target) {
       custom_warning(game.i18n.localize("ITEM-PILES.Warnings.VaultSameItemOrigin"), true);
@@ -70215,7 +70326,7 @@ class VaultStore extends ItemPileStore {
       return false;
     }
     const vaultExpander = foundry.utils.getProperty(itemData, CONSTANTS.FLAGS.ITEM + ".vaultExpander");
-    if (data2.isExpander && !vaultExpander) {
+    if (data.isExpander && !vaultExpander) {
       custom_warning(game.i18n.localize("ITEM-PILES.Warnings.VaultItemNotExpander"), true);
       return false;
     }
@@ -70271,7 +70382,7 @@ class VaultStore extends ItemPileStore {
     }));
     for (const gridItem of gridItems) {
       const update2 = updates.find((item) => item._id === gridItem.id);
-      if (!gridItem) continue;
+      if (!update2) continue;
       const flagData = getItemFlagData(update2);
       gridItem.transform.update((val) => {
         val.x = flagData.x;
@@ -70330,17 +70441,17 @@ class VaultItem extends PileItem {
         }, {}) : {});
       }
     });
-    this.subscribeTo(this.itemFlagData, (data2) => {
+    this.subscribeTo(this.itemFlagData, (data) => {
       if (setup) {
-        debug("itemFlagData", data2);
+        debug("itemFlagData", data);
       }
-      const { width, height } = getVaultItemDimensions(this.item, data2);
+      const { width, height } = getVaultItemDimensions(this.item, data);
       this.transform.set({
-        x: data2.x,
-        y: data2.y,
+        x: data.x,
+        y: data.y,
         w: width,
         h: height,
-        flipped: data2.flipped ?? false
+        flipped: data.flipped ?? false
       });
       this.size = Math.max(width, height);
     });
@@ -70688,7 +70799,7 @@ function instance$l($$self, $$props, $$invalidate) {
   let $editQuantities;
   let $quantity;
   let $itemFlagData;
-  let { store: store2 } = $$props;
+  let { store } = $$props;
   let { item } = $$props;
   const name = item.name;
   component_subscribe($$self, name, (value) => $$invalidate(2, $name = value));
@@ -70698,8 +70809,8 @@ function instance$l($$self, $$props, $$invalidate) {
   component_subscribe($$self, quantity, (value) => $$invalidate(4, $quantity = value));
   const itemFlagData = item.itemFlagData;
   component_subscribe($$self, itemFlagData, (value) => $$invalidate(5, $itemFlagData = value));
-  store2.pileData;
-  const editQuantities = store2.editQuantities;
+  store.pileData;
+  const editQuantities = store.editQuantities;
   component_subscribe($$self, editQuantities, (value) => $$invalidate(3, $editQuantities = value));
   const click_handler = () => {
     item.take();
@@ -70708,7 +70819,7 @@ function instance$l($$self, $$props, $$invalidate) {
     item.remove();
   };
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(11, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(11, store = $$props2.store);
     if ("item" in $$props2) $$invalidate(0, item = $$props2.item);
   };
   return [
@@ -70723,7 +70834,7 @@ function instance$l($$self, $$props, $$invalidate) {
     quantity,
     itemFlagData,
     editQuantities,
-    store2,
+    store,
     click_handler,
     click_handler_1
   ];
@@ -72655,28 +72766,28 @@ function instance$j($$self, $$props, $$invalidate) {
   let { elementRoot } = $$props;
   let { actor } = $$props;
   let { recipient } = $$props;
-  let { store: store2 = VaultStore.make(application, actor, recipient) } = $$props;
-  setContext("store", store2);
-  const currencies = store2.allCurrencies;
-  const pileDataStore = store2.pileData;
+  let { store = VaultStore.make(application, actor, recipient) } = $$props;
+  setContext("store", store);
+  const currencies = store.allCurrencies;
+  const pileDataStore = store.pileData;
   component_subscribe($$self, pileDataStore, (value) => $$invalidate(45, $pileDataStore = value));
-  const gridDataStore = store2.gridData;
+  const gridDataStore = store.gridData;
   component_subscribe($$self, gridDataStore, (value) => $$invalidate(44, $gridDataStore = value));
-  const gridItems = store2.gridItems;
+  const gridItems = store.gridItems;
   component_subscribe($$self, gridItems, (value) => $$invalidate(7, $gridItems = value));
-  const vaultExpanderItems = store2.vaultExpanderItems;
+  const vaultExpanderItems = store.vaultExpanderItems;
   component_subscribe($$self, vaultExpanderItems, (value) => $$invalidate(10, $vaultExpanderItems = value));
-  const searchStore = store2.search;
+  const searchStore = store.search;
   component_subscribe($$self, searchStore, (value) => $$invalidate(6, $searchStore = value));
-  const logSearchStore = store2.logSearch;
+  const logSearchStore = store.logSearch;
   component_subscribe($$self, logSearchStore, (value) => $$invalidate(11, $logSearchStore = value));
-  const vaultLog = store2.vaultLog;
+  const vaultLog = store.vaultLog;
   component_subscribe($$self, vaultLog, (value) => $$invalidate(13, $vaultLog = value));
-  const visibleLogItems = store2.visibleLogItems;
+  const visibleLogItems = store.visibleLogItems;
   component_subscribe($$self, visibleLogItems, (value) => $$invalidate(14, $visibleLogItems = value));
-  const recipientDocument = store2.recipientDocument;
+  const recipientDocument = store.recipientDocument;
   component_subscribe($$self, recipientDocument, (value) => $$invalidate(9, $recipientDocument = value));
-  const dragPositionStore = store2.dragPosition;
+  const dragPositionStore = store.dragPosition;
   component_subscribe($$self, dragPositionStore, (value) => $$invalidate(8, $dragPositionStore = value));
   const activeTab = writable("vault");
   component_subscribe($$self, activeTab, (value) => $$invalidate(2, $activeTab = value));
@@ -72691,19 +72802,19 @@ function instance$j($$self, $$props, $$invalidate) {
     if (FloatingElement.id === application.id || !isCoordinateWithinPosition(clientX, clientY, rect)) {
       return onDragLeave();
     }
-    dragPositionStore.update((data2) => {
-      const x = clientX - rect.left - (offset2 ? gridData.gridSize * data2.w / 2 : gridData.gridSize / 2);
-      const y = clientY - rect.top - (offset2 ? gridData.gridSize * data2.w / 2 : gridData.gridSize / 2);
+    dragPositionStore.update((data) => {
+      const x = clientX - rect.left - (offset2 ? gridData.gridSize * data.w / 2 : gridData.gridSize / 2);
+      const y = clientY - rect.top - (offset2 ? gridData.gridSize * data.w / 2 : gridData.gridSize / 2);
       return {
-        ...data2,
-        ...snapOnMove(x, y, { w: data2.w, h: data2.h }, { ...gridData }),
+        ...data,
+        ...snapOnMove(x, y, { w: data.w, h: data.h }, { ...gridData }),
         active: true
       };
     });
   }
   async function onDragLeave() {
-    dragPositionStore.update((data2) => {
-      return { ...data2, active: false };
+    dragPositionStore.update((data) => {
+      return { ...data, active: false };
     });
   }
   const dragHookId = Hooks.on(CONSTANTS.HOOKS.DRAG_DOCUMENT, async (dropData) => {
@@ -72711,9 +72822,9 @@ function instance$j($$self, $$props, $$invalidate) {
     const item = await Item.implementation.fromDropData(dropData);
     const flags = getItemFlagData(item);
     const { width, height } = getVaultItemDimensions(item, flags);
-    dragPositionStore.update((data2) => {
+    dragPositionStore.update((data) => {
       return {
-        ...data2,
+        ...data,
         w: width,
         h: height,
         flipped: flags.flipped
@@ -72721,12 +72832,12 @@ function instance$j($$self, $$props, $$invalidate) {
     });
   });
   const dropHookId = Hooks.on(CONSTANTS.HOOKS.DROP_DOCUMENT, () => {
-    dragPositionStore.update((data2) => {
-      return { ...data2, w: 1, h: 1, flipped: false };
+    dragPositionStore.update((data) => {
+      return { ...data, w: 1, h: 1, flipped: false };
     });
   });
   onDestroy(() => {
-    store2.onDestroy();
+    store.onDestroy();
     Hooks.off(CONSTANTS.HOOKS.DRAG_DOCUMENT, dragHookId);
     Hooks.off(CONSTANTS.HOOKS.DROP_DOCUMENT, dropHookId);
   });
@@ -72766,7 +72877,7 @@ function instance$j($$self, $$props, $$invalidate) {
           }
         });
       }
-      Hooks.call(CONSTANTS.HOOKS.PILE.PRE_RIGHT_CLICK_ITEM, event.detail.item.item.item, contextMenu, actor, store2.recipient);
+      Hooks.call(CONSTANTS.HOOKS.PILE.PRE_RIGHT_CLICK_ITEM, event.detail.item.item.item, contextMenu, actor, store.recipient);
       if (!contextMenu.length) return;
       TJSContextMenu.create({
         activeWindow: window,
@@ -72792,7 +72903,7 @@ function instance$j($$self, $$props, $$invalidate) {
       },
       component: VaultItemEntry,
       componentData: { entry: item },
-      context: { store: store2 }
+      context: { store }
     });
     splitStart({
       pageX: x,
@@ -72815,7 +72926,7 @@ function instance$j($$self, $$props, $$invalidate) {
       },
       component: VaultItemEntry,
       componentData: { entry: item },
-      context: { store: store2 }
+      context: { store }
     });
     Hooks.callAll(CONSTANTS.HOOKS.DRAG_DOCUMENT, { type: "Item", uuid: item.item.item.uuid });
   }
@@ -72883,14 +72994,14 @@ function instance$j($$self, $$props, $$invalidate) {
   const defaultWidth = get_store_value(application.position.stores.width);
   function keydown(event) {
     if (event.key !== "r") return;
-    dragPositionStore.update((data2) => {
-      const { w, h } = data2;
-      if (data2.active && w !== h) {
-        data2.w = h;
-        data2.h = w;
-        data2.flipped = !data2.flipped;
+    dragPositionStore.update((data) => {
+      const { w, h } = data;
+      if (data.active && w !== h) {
+        data.w = h;
+        data.h = w;
+        data.flipped = !data.flipped;
       }
-      return data2;
+      return data;
     });
   }
   function tabs_activeTab_binding(value) {
@@ -72909,23 +73020,23 @@ function instance$j($$self, $$props, $$invalidate) {
     element2 = value;
     $$invalidate(3, element2);
   }
-  const change_handler = (event) => store2.updateGrid(event.detail.items);
+  const change_handler = (event) => store.updateGrid(event.detail.items);
   const click_handler = () => {
-    const [appPosition, actorPosition] = getApplicationPositions(application, store2.recipient.sheet);
+    const [appPosition, actorPosition] = getApplicationPositions(application, store.recipient.sheet);
     application.position.stores.left.set(appPosition.left);
     application.position.stores.top.set(appPosition.top);
-    store2.recipient.sheet.render(true, actorPosition);
+    store.recipient.sheet.render(true, actorPosition);
   };
-  const click_handler_1 = () => store2.withdrawCurrency();
-  const click_handler_2 = () => store2.depositCurrency();
-  const click_handler_32 = (event) => store2.sortItemsOnGrid(event);
-  const click_handler_4 = () => store2.addCurrency();
+  const click_handler_1 = () => store.withdrawCurrency();
+  const click_handler_2 = () => store.depositCurrency();
+  const click_handler_32 = (event) => store.sortItemsOnGrid(event);
+  const click_handler_4 = () => store.addCurrency();
   function vaultexpanderentry_item_binding(value, item, each_value_1, item_index) {
     each_value_1[item_index] = value;
     vaultExpanderItems.set($vaultExpanderItems);
   }
-  const func2 = (data2) => {
-    store2.onDrop({ ...data2, isExpander: true });
+  const func2 = (data) => {
+    store.onDrop({ ...data, isExpander: true });
   };
   function input_input_handler_1() {
     $logSearchStore = this.value;
@@ -72936,8 +73047,8 @@ function instance$j($$self, $$props, $$invalidate) {
   };
   function main_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
-      store2.mainContainer = $$value;
-      $$invalidate(1, store2);
+      store.mainContainer = $$value;
+      $$invalidate(1, store);
     });
   }
   function applicationshell_elementRoot_binding(value) {
@@ -72948,7 +73059,7 @@ function instance$j($$self, $$props, $$invalidate) {
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
     if ("actor" in $$props2) $$invalidate(40, actor = $$props2.actor);
     if ("recipient" in $$props2) $$invalidate(41, recipient = $$props2.recipient);
-    if ("store" in $$props2) $$invalidate(1, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(1, store = $$props2.store);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*$activeTab*/
@@ -72985,7 +73096,7 @@ function instance$j($$self, $$props, $$invalidate) {
   };
   return [
     elementRoot,
-    store2,
+    store,
     $activeTab,
     element2,
     gridData,
@@ -73091,8 +73202,8 @@ class Vault_shell extends SvelteComponent {
   get store() {
     return this.$$.ctx[1];
   }
-  set store(store2) {
-    this.$$set({ store: store2 });
+  set store(store) {
+    this.$$set({ store });
     flush();
   }
 }
@@ -73123,8 +73234,8 @@ class VaultApp extends SvelteApp {
     this.recipient = recipient;
     hooks.callAll(CONSTANTS.HOOKS.OPEN_INTERFACE, this, actor, recipient, options, dialogData);
   }
-  onDropData(data2) {
-    return this.store.onDrop(data2);
+  onDropData(data) {
+    return this.store.onDrop(data);
   }
   /** @inheritdoc */
   static get defaultOptions() {
@@ -73375,7 +73486,7 @@ function create_fragment$l(ctx) {
   let if_block = !/*$pileEnabled*/
   ctx[5] && create_if_block$c();
   function macroselector_macro_binding(value) {
-    ctx[20](value);
+    ctx[23](value);
   }
   let macroselector_props = {};
   if (
@@ -73582,7 +73693,7 @@ function create_fragment$l(ctx) {
         ctx[0].deleteWhenEmpty === void 0
       ) add_render_callback(() => (
         /*select0_change_handler*/
-        ctx[21].call(select0)
+        ctx[24].call(select0)
       ));
       attr(div6, "class", "form-group");
       attr(div7, "class", "break");
@@ -73600,7 +73711,7 @@ function create_fragment$l(ctx) {
         ctx[0].canStackItems === void 0
       ) add_render_callback(() => (
         /*select1_change_handler*/
-        ctx[22].call(select1)
+        ctx[25].call(select1)
       ));
       attr(div8, "class", "form-group");
       set_style(label7, "flex", "4");
@@ -73798,91 +73909,91 @@ function create_fragment$l(ctx) {
             input0,
             "change",
             /*input0_change_handler*/
-            ctx[16]
+            ctx[19]
           ),
           listen(
             input1,
             "input",
             /*input1_input_handler*/
-            ctx[17]
+            ctx[20]
           ),
           listen(
             input2,
             "change",
             /*input2_change_handler*/
-            ctx[18]
+            ctx[21]
           ),
           listen(
             input3,
             "change",
             /*input3_change_handler*/
-            ctx[19]
+            ctx[22]
           ),
           listen(
             select0,
             "change",
             /*select0_change_handler*/
-            ctx[21]
+            ctx[24]
           ),
           listen(
             select1,
             "change",
             /*select1_change_handler*/
-            ctx[22]
+            ctx[25]
           ),
           listen(
             button0,
             "click",
             /*click_handler*/
-            ctx[23]
+            ctx[26]
           ),
           listen(
             input4,
             "change",
             /*input4_change_handler*/
-            ctx[24]
+            ctx[27]
           ),
           listen(
             button1,
             "click",
             /*click_handler_1*/
-            ctx[25]
+            ctx[28]
           ),
           listen(
             input5,
             "change",
             /*input5_change_handler*/
-            ctx[26]
+            ctx[29]
           ),
           listen(
             button2,
             "click",
             /*click_handler_2*/
-            ctx[27]
+            ctx[30]
           ),
           listen(
             input6,
             "change",
             /*input6_change_handler*/
-            ctx[28]
+            ctx[31]
           ),
           listen(
             button3,
             "click",
             /*click_handler_3*/
-            ctx[29]
+            ctx[32]
           ),
           listen(
             button4,
             "click",
             /*click_handler_4*/
-            ctx[30]
+            ctx[33]
           )
         ];
         mounted = true;
       }
     },
-    p(ctx2, [dirty]) {
+    p(ctx2, dirty) {
       if (!/*$pileEnabled*/
       ctx2[5]) {
         if (if_block) ;
@@ -73895,12 +74006,12 @@ function create_fragment$l(ctx) {
         if_block.d(1);
         if_block = null;
       }
-      if (dirty & /*$pileEnabled*/
+      if (dirty[0] & /*$pileEnabled*/
       32) {
         input0.checked = /*$pileEnabled*/
         ctx2[5];
       }
-      if (dirty & /*pileData*/
+      if (dirty[0] & /*pileData*/
       1 && to_number(input1.value) !== /*pileData*/
       ctx2[0].distance) {
         set_input_value(
@@ -73909,18 +74020,18 @@ function create_fragment$l(ctx) {
           ctx2[0].distance
         );
       }
-      if (dirty & /*pileData*/
+      if (dirty[0] & /*pileData*/
       1) {
         input2.checked = /*pileData*/
         ctx2[0].canInspectItems;
       }
-      if (dirty & /*pileData*/
+      if (dirty[0] & /*pileData*/
       1) {
         input3.checked = /*pileData*/
         ctx2[0].displayItemTypes;
       }
       const macroselector_changes = {};
-      if (!updating_macro && dirty & /*pileData*/
+      if (!updating_macro && dirty[0] & /*pileData*/
       1) {
         updating_macro = true;
         macroselector_changes.macro = /*pileData*/
@@ -73928,7 +74039,7 @@ function create_fragment$l(ctx) {
         add_flush_callback(() => updating_macro = false);
       }
       macroselector.$set(macroselector_changes);
-      if (dirty & /*pileData*/
+      if (dirty[0] & /*pileData*/
       1) {
         select_option(
           select0,
@@ -73936,7 +74047,7 @@ function create_fragment$l(ctx) {
           ctx2[0].deleteWhenEmpty
         );
       }
-      if (dirty & /*pileData*/
+      if (dirty[0] & /*pileData*/
       1) {
         select_option(
           select1,
@@ -73944,32 +74055,32 @@ function create_fragment$l(ctx) {
           ctx2[0].canStackItems
         );
       }
-      if (dirty & /*$hasOverrideCurrencies*/
+      if (dirty[0] & /*$hasOverrideCurrencies*/
       16) {
         input4.checked = /*$hasOverrideCurrencies*/
         ctx2[4];
       }
-      if (!current || dirty & /*$hasOverrideCurrencies*/
+      if (!current || dirty[0] & /*$hasOverrideCurrencies*/
       16 && button1_disabled_value !== (button1_disabled_value = !/*$hasOverrideCurrencies*/
       ctx2[4])) {
         button1.disabled = button1_disabled_value;
       }
-      if (dirty & /*$hasOverrideSecondaryCurrencies*/
+      if (dirty[0] & /*$hasOverrideSecondaryCurrencies*/
       8) {
         input5.checked = /*$hasOverrideSecondaryCurrencies*/
         ctx2[3];
       }
-      if (!current || dirty & /*$hasOverrideSecondaryCurrencies*/
+      if (!current || dirty[0] & /*$hasOverrideSecondaryCurrencies*/
       8 && button2_disabled_value !== (button2_disabled_value = !/*$hasOverrideSecondaryCurrencies*/
       ctx2[3])) {
         button2.disabled = button2_disabled_value;
       }
-      if (dirty & /*$hasOverrideItemFilters*/
+      if (dirty[0] & /*$hasOverrideItemFilters*/
       4) {
         input6.checked = /*$hasOverrideItemFilters*/
         ctx2[2];
       }
-      if (!current || dirty & /*$hasOverrideItemFilters*/
+      if (!current || dirty[0] & /*$hasOverrideItemFilters*/
       4 && button3_disabled_value !== (button3_disabled_value = !/*$hasOverrideItemFilters*/
       ctx2[2])) {
         button3.disabled = button3_disabled_value;
@@ -74046,6 +74157,9 @@ function instance$i($$self, $$props, $$invalidate) {
   component_subscribe($$self, hasOverrideSecondaryCurrencies, (value) => $$invalidate(3, $hasOverrideSecondaryCurrencies = value));
   let hasOverrideItemFilters = writable(typeof pileData?.overrideItemFilters === "object");
   component_subscribe($$self, hasOverrideItemFilters, (value) => $$invalidate(2, $hasOverrideItemFilters = value));
+  let savedOverrideCurrencies = pileData?.overrideCurrencies || null;
+  let savedOverrideSecondaryCurrencies = pileData?.overrideSecondaryCurrencies || null;
+  let savedOverrideItemFilters = pileData?.overrideItemFilters || null;
   async function showCurrenciesEditor() {
     $$invalidate(0, pileData.overrideCurrencies = pileData?.overrideCurrencies || foundry.utils.deepClone(game.itempiles.API.CURRENCIES), pileData);
     return CurrenciesEditor.show(pileData.overrideCurrencies, {
@@ -74095,29 +74209,29 @@ function instance$i($$self, $$props, $$invalidate) {
   }
   function input1_input_handler() {
     pileData.distance = to_number(this.value);
-    $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters);
+    $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(16, savedOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(17, savedOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters), $$invalidate(18, savedOverrideItemFilters);
   }
   function input2_change_handler() {
     pileData.canInspectItems = this.checked;
-    $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters);
+    $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(16, savedOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(17, savedOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters), $$invalidate(18, savedOverrideItemFilters);
   }
   function input3_change_handler() {
     pileData.displayItemTypes = this.checked;
-    $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters);
+    $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(16, savedOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(17, savedOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters), $$invalidate(18, savedOverrideItemFilters);
   }
   function macroselector_macro_binding(value) {
     if ($$self.$$.not_equal(pileData.macro, value)) {
       pileData.macro = value;
-      $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters);
+      $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(16, savedOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(17, savedOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters), $$invalidate(18, savedOverrideItemFilters);
     }
   }
   function select0_change_handler() {
     pileData.deleteWhenEmpty = select_value(this);
-    $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters);
+    $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(16, savedOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(17, savedOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters), $$invalidate(18, savedOverrideItemFilters);
   }
   function select1_change_handler() {
     pileData.canStackItems = select_value(this);
-    $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters);
+    $$invalidate(0, pileData), $$invalidate(4, $hasOverrideCurrencies), $$invalidate(16, savedOverrideCurrencies), $$invalidate(3, $hasOverrideSecondaryCurrencies), $$invalidate(17, savedOverrideSecondaryCurrencies), $$invalidate(2, $hasOverrideItemFilters), $$invalidate(18, savedOverrideItemFilters);
   }
   const click_handler = () => {
     showDescriptionDialog();
@@ -74152,27 +74266,42 @@ function instance$i($$self, $$props, $$invalidate) {
     if ("pileEnabled" in $$props2) $$subscribe_pileEnabled($$invalidate(1, pileEnabled = $$props2.pileEnabled));
   };
   $$self.$$.update = () => {
-    if ($$self.$$.dirty & /*$hasOverrideCurrencies*/
-    16) {
+    if ($$self.$$.dirty[0] & /*$hasOverrideCurrencies, pileData, savedOverrideCurrencies*/
+    65553) {
       {
         if (!$hasOverrideCurrencies) {
+          if (pileData.overrideCurrencies && pileData.overrideCurrencies !== false) {
+            $$invalidate(16, savedOverrideCurrencies = pileData.overrideCurrencies);
+          }
           $$invalidate(0, pileData.overrideCurrencies = false, pileData);
+        } else if (pileData.overrideCurrencies === false && savedOverrideCurrencies) {
+          $$invalidate(0, pileData.overrideCurrencies = savedOverrideCurrencies, pileData);
         }
       }
     }
-    if ($$self.$$.dirty & /*$hasOverrideSecondaryCurrencies*/
-    8) {
+    if ($$self.$$.dirty[0] & /*$hasOverrideSecondaryCurrencies, pileData, savedOverrideSecondaryCurrencies*/
+    131081) {
       {
         if (!$hasOverrideSecondaryCurrencies) {
+          if (pileData.overrideSecondaryCurrencies && pileData.overrideSecondaryCurrencies !== false) {
+            $$invalidate(17, savedOverrideSecondaryCurrencies = pileData.overrideSecondaryCurrencies);
+          }
           $$invalidate(0, pileData.overrideSecondaryCurrencies = false, pileData);
+        } else if (pileData.overrideSecondaryCurrencies === false && savedOverrideSecondaryCurrencies) {
+          $$invalidate(0, pileData.overrideSecondaryCurrencies = savedOverrideSecondaryCurrencies, pileData);
         }
       }
     }
-    if ($$self.$$.dirty & /*$hasOverrideItemFilters*/
-    4) {
+    if ($$self.$$.dirty[0] & /*$hasOverrideItemFilters, pileData, savedOverrideItemFilters*/
+    262149) {
       {
         if (!$hasOverrideItemFilters) {
+          if (pileData.overrideItemFilters && pileData.overrideItemFilters !== false) {
+            $$invalidate(18, savedOverrideItemFilters = pileData.overrideItemFilters);
+          }
           $$invalidate(0, pileData.overrideItemFilters = false, pileData);
+        } else if (pileData.overrideItemFilters === false && savedOverrideItemFilters) {
+          $$invalidate(0, pileData.overrideItemFilters = savedOverrideItemFilters, pileData);
         }
       }
     }
@@ -74194,6 +74323,9 @@ function instance$i($$self, $$props, $$invalidate) {
     showRequiredItemPropertiesEditor,
     showDescriptionDialog,
     pileActor,
+    savedOverrideCurrencies,
+    savedOverrideSecondaryCurrencies,
+    savedOverrideItemFilters,
     input0_change_handler,
     input1_input_handler,
     input2_change_handler,
@@ -74214,11 +74346,20 @@ function instance$i($$self, $$props, $$invalidate) {
 class Main extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance$i, create_fragment$l, safe_not_equal, {
-      pileActor: 15,
-      pileData: 0,
-      pileEnabled: 1
-    });
+    init(
+      this,
+      options,
+      instance$i,
+      create_fragment$l,
+      safe_not_equal,
+      {
+        pileActor: 15,
+        pileData: 0,
+        pileEnabled: 1
+      },
+      null,
+      [-1, -1]
+    );
   }
 }
 function get_each_context$9(ctx, list, i) {
@@ -74963,8 +75104,8 @@ function instance$h($$self, $$props, $$invalidate) {
   let $itemTypePriceModifiers;
   const { application } = getContext("#external");
   let { elementRoot } = $$props;
-  let { data: data2 = [] } = $$props;
-  const itemTypePriceModifiers = writable(data2);
+  let { data = [] } = $$props;
+  const itemTypePriceModifiers = writable(data);
   component_subscribe($$self, itemTypePriceModifiers, (value) => $$invalidate(2, $itemTypePriceModifiers = value));
   let form;
   let unusedTypes;
@@ -75035,7 +75176,7 @@ function instance$h($$self, $$props, $$invalidate) {
   }
   $$self.$$set = ($$props2) => {
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
-    if ("data" in $$props2) $$invalidate(12, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(12, data = $$props2.data);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*$itemTypePriceModifiers*/
@@ -75061,7 +75202,7 @@ function instance$h($$self, $$props, $$invalidate) {
     add,
     remove,
     updateSettings,
-    data2,
+    data,
     input_change_handler,
     change_handler,
     sliderinput0_value_binding,
@@ -75090,8 +75231,8 @@ class Item_type_price_modifiers_editor extends SvelteComponent {
   get data() {
     return this.$$.ctx[12];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get requestSubmit() {
@@ -75680,9 +75821,9 @@ function instance$g($$self, $$props, $$invalidate) {
   let $merchantColumns;
   const { application } = getContext("#external");
   let form;
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   let { elementRoot } = $$props;
-  const merchantColumns = writable(data2);
+  const merchantColumns = writable(data);
   component_subscribe($$self, merchantColumns, (value) => $$invalidate(3, $merchantColumns = value));
   function addColumn() {
     merchantColumns.update((value) => {
@@ -75704,10 +75845,10 @@ function instance$g($$self, $$props, $$invalidate) {
     });
   }
   async function showMappingEditor(index) {
-    const data3 = get_store_value(merchantColumns)[index];
-    return StringListEditor.show(Object.entries(data3.mapping), {
-      id: `merchant-columns-mapping-editor-${data3.path}`,
-      title: localize("ITEM-PILES.Applications.MerchantColumnsEditor.MappingTitle", { label: data3.label }),
+    const data2 = get_store_value(merchantColumns)[index];
+    return StringListEditor.show(Object.entries(data2.mapping), {
+      id: `merchant-columns-mapping-editor-${data2.path}`,
+      title: localize("ITEM-PILES.Applications.MerchantColumnsEditor.MappingTitle", { label: data2.label }),
       content: localize("ITEM-PILES.Applications.MerchantColumnsEditor.MappingContent"),
       keyValuePair: true
     }).then((result) => {
@@ -75763,7 +75904,7 @@ function instance$g($$self, $$props, $$invalidate) {
     $$invalidate(0, elementRoot);
   }
   $$self.$$set = ($$props2) => {
-    if ("data" in $$props2) $$invalidate(10, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(10, data = $$props2.data);
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
   };
   return [
@@ -75777,7 +75918,7 @@ function instance$g($$self, $$props, $$invalidate) {
     removeColumn,
     showMappingEditor,
     updateSettings,
-    data2,
+    data,
     click_handler,
     input0_input_handler,
     propertypathinput_value_binding,
@@ -75803,8 +75944,8 @@ class Merchant_columns_editor_shell extends SvelteComponent {
   get data() {
     return this.$$.ctx[10];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get elementRoot() {
@@ -77053,7 +77194,7 @@ function create_fragment$i(ctx) {
     filepicker_props.value = /*pileData*/
     ctx[0].merchantImage;
   }
-  filepicker = new FilePicker_1({ props: filepicker_props });
+  filepicker = new FilePicker({ props: filepicker_props });
   binding_callbacks.push(() => bind(filepicker, "value", filepicker_value_binding));
   function sliderinput0_value_binding(value) {
     ctx[24](value);
@@ -78193,9 +78334,9 @@ function instance$f($$self, $$props, $$invalidate) {
     return refreshItemsHolidays.some((holiday) => holiday.name === refreshItemsHoliday);
   });
   async function showItemTypePriceModifiers() {
-    const data2 = pileData.itemTypePriceModifiers || [];
+    const data = pileData.itemTypePriceModifiers || [];
     return ItemTypePriceModifiersEditor.show(
-      data2,
+      data,
       {
         id: `item-type-price-modifier-item-pile-config-${pileActor.id}`
       },
@@ -78207,9 +78348,9 @@ function instance$f($$self, $$props, $$invalidate) {
     });
   }
   async function showActorPriceModifiers() {
-    const data2 = pileData.actorPriceModifiers || [];
+    const data = pileData.actorPriceModifiers || [];
     return PriceModifiersEditor.show(
-      data2,
+      data,
       {
         id: `price-modifier-item-pile-config-${pileActor.id}`
       },
@@ -78226,9 +78367,9 @@ function instance$f($$self, $$props, $$invalidate) {
     });
   }
   async function showMerchantColumns() {
-    const data2 = Array.isArray(pileData.merchantColumns) ? pileData.merchantColumns : [];
+    const data = Array.isArray(pileData.merchantColumns) ? pileData.merchantColumns : [];
     return MerchantColumnsEditor.show(
-      data2,
+      data,
       {
         id: `merchant-columns-item-pile-config-${pileActor.id}`
       },
@@ -78851,7 +78992,7 @@ function create_fragment$g(ctx) {
     filepicker0_props.value = /*pileData*/
     ctx[0].closedImage;
   }
-  filepicker0 = new FilePicker_1({ props: filepicker0_props });
+  filepicker0 = new FilePicker({ props: filepicker0_props });
   binding_callbacks.push(() => bind(filepicker0, "value", filepicker0_value_binding));
   function filepicker1_value_binding(value) {
     ctx[4](value);
@@ -78867,7 +79008,7 @@ function create_fragment$g(ctx) {
     filepicker1_props.value = /*pileData*/
     ctx[0].openedImage;
   }
-  filepicker1 = new FilePicker_1({ props: filepicker1_props });
+  filepicker1 = new FilePicker({ props: filepicker1_props });
   binding_callbacks.push(() => bind(filepicker1, "value", filepicker1_value_binding));
   function filepicker2_value_binding(value) {
     ctx[5](value);
@@ -78883,7 +79024,7 @@ function create_fragment$g(ctx) {
     filepicker2_props.value = /*pileData*/
     ctx[0].emptyImage;
   }
-  filepicker2 = new FilePicker_1({ props: filepicker2_props });
+  filepicker2 = new FilePicker({ props: filepicker2_props });
   binding_callbacks.push(() => bind(filepicker2, "value", filepicker2_value_binding));
   function filepicker3_value_binding(value) {
     ctx[6](value);
@@ -78899,7 +79040,7 @@ function create_fragment$g(ctx) {
     filepicker3_props.value = /*pileData*/
     ctx[0].lockedImage;
   }
-  filepicker3 = new FilePicker_1({ props: filepicker3_props });
+  filepicker3 = new FilePicker({ props: filepicker3_props });
   binding_callbacks.push(() => bind(filepicker3, "value", filepicker3_value_binding));
   function filepicker4_value_binding(value) {
     ctx[7](value);
@@ -78915,7 +79056,7 @@ function create_fragment$g(ctx) {
     filepicker4_props.value = /*pileData*/
     ctx[0].closeSound;
   }
-  filepicker4 = new FilePicker_1({ props: filepicker4_props });
+  filepicker4 = new FilePicker({ props: filepicker4_props });
   binding_callbacks.push(() => bind(filepicker4, "value", filepicker4_value_binding));
   function filepicker5_value_binding(value) {
     ctx[8](value);
@@ -78931,7 +79072,7 @@ function create_fragment$g(ctx) {
     filepicker5_props.value = /*pileData*/
     ctx[0].openSound;
   }
-  filepicker5 = new FilePicker_1({ props: filepicker5_props });
+  filepicker5 = new FilePicker({ props: filepicker5_props });
   binding_callbacks.push(() => bind(filepicker5, "value", filepicker5_value_binding));
   function filepicker6_value_binding(value) {
     ctx[9](value);
@@ -78947,7 +79088,7 @@ function create_fragment$g(ctx) {
     filepicker6_props.value = /*pileData*/
     ctx[0].lockedSound;
   }
-  filepicker6 = new FilePicker_1({ props: filepicker6_props });
+  filepicker6 = new FilePicker({ props: filepicker6_props });
   binding_callbacks.push(() => bind(filepicker6, "value", filepicker6_value_binding));
   return {
     c() {
@@ -80352,9 +80493,9 @@ function instance$b($$self, $$props, $$invalidate) {
   let $vaultAccessStore;
   const { application } = getContext("#external");
   let form;
-  let { data: data2 } = $$props;
+  let { data } = $$props;
   let { elementRoot } = $$props;
-  const vaultAccessStore = writable(data2.map((access) => {
+  const vaultAccessStore = writable(data.map((access) => {
     return foundry.utils.mergeObject(
       {
         view: true,
@@ -80450,7 +80591,7 @@ function instance$b($$self, $$props, $$invalidate) {
     $$invalidate(0, elementRoot);
   }
   $$self.$$set = ($$props2) => {
-    if ("data" in $$props2) $$invalidate(11, data2 = $$props2.data);
+    if ("data" in $$props2) $$invalidate(11, data = $$props2.data);
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
   };
   $$self.$$.update = () => {
@@ -80475,7 +80616,7 @@ function instance$b($$self, $$props, $$invalidate) {
     addAccess,
     removeAccess,
     updateSettings,
-    data2,
+    data,
     validDocuments,
     click_handler,
     select_change_handler,
@@ -80512,8 +80653,8 @@ class Vault_access_editor_shell extends SvelteComponent {
   get data() {
     return this.$$.ctx[11];
   }
-  set data(data2) {
-    this.$$set({ data: data2 });
+  set data(data) {
+    this.$$set({ data });
     flush();
   }
   get elementRoot() {
@@ -81114,8 +81255,8 @@ function instance$a($$self, $$props, $$invalidate) {
   let { pileData } = $$props;
   let { pileActor } = $$props;
   async function showVaultAccessEditor() {
-    const data2 = pileData.vaultAccess || [];
-    return VaultAccessEditor.show(data2, {
+    const data = pileData.vaultAccess || [];
+    return VaultAccessEditor.show(data, {
       id: `vault-access-editor-item-pile-config-${pileActor.id}`,
       title: localize("ITEM-PILES.Applications.VaultAccessEditor.Title", { actor_name: pileActor.name })
     }).then((result) => {
@@ -81980,16 +82121,16 @@ function create_fragment$c(ctx) {
 function instance$9($$self, $$props, $$invalidate) {
   let { pileData } = $$props;
   const flags = Object.entries(CONSTANTS.CUSTOM_PILE_TYPES[pileData.type]);
-  for (const [key, data2] of flags) {
+  for (const [key, data] of flags) {
     if (pileData[key] === void 0) {
-      pileData[key] = data2.value;
+      pileData[key] = data.value;
     }
   }
-  async function handleDropData(dropData, key, data2) {
-    if (!data2.type.implementation) {
+  async function handleDropData(dropData, key, data) {
+    if (!data.type.implementation) {
       return;
     }
-    const doc = await data2.type.implementation.fromDropData(dropData);
+    const doc = await data.type.implementation.fromDropData(dropData);
     $$invalidate(
       0,
       pileData[key] = {
@@ -82001,7 +82142,7 @@ function instance$9($$self, $$props, $$invalidate) {
   }
   async function previewDocument(key) {
     if (!pileData[key].uuid) return;
-    const doc = fromUuidSync(pileData[key].uuid);
+    const doc = foundry.utils.fromUuidSync(pileData[key].uuid);
     if (!doc) return;
     doc.sheet.render(true);
   }
@@ -82020,7 +82161,7 @@ function instance$9($$self, $$props, $$invalidate) {
     delete pileData[key];
     $$invalidate(0, pileData[key] = false, pileData);
   };
-  const func2 = (key, data2, dropData) => handleDropData(dropData, key, data2);
+  const func2 = (key, data, dropData) => handleDropData(dropData, key, data);
   function input_input_handler_1(key) {
     pileData[key] = to_number(this.value);
     $$invalidate(0, pileData);
@@ -82053,12 +82194,12 @@ class Custom extends SvelteComponent {
 }
 function get_each_context$4(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[24] = list[i];
+  child_ctx[25] = list[i];
   return child_ctx;
 }
 function get_each_context_1$2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[27] = list[i];
+  child_ctx[28] = list[i];
   return child_ctx;
 }
 function create_if_block_7$2(ctx) {
@@ -82066,7 +82207,7 @@ function create_if_block_7$2(ctx) {
   let updating_pileData;
   let current;
   function mainsettings_pileData_binding(value) {
-    ctx[13](value);
+    ctx[14](value);
   }
   let mainsettings_props = {
     pileActor: (
@@ -82075,7 +82216,7 @@ function create_if_block_7$2(ctx) {
     ),
     pileEnabled: (
       /*pileEnabled*/
-      ctx[6]
+      ctx[7]
     )
   };
   if (
@@ -82097,10 +82238,10 @@ function create_if_block_7$2(ctx) {
     },
     p(ctx2, dirty) {
       const mainsettings_changes = {};
-      if (dirty & /*pileActor*/
+      if (dirty[0] & /*pileActor*/
       2) mainsettings_changes.pileActor = /*pileActor*/
       ctx2[1];
-      if (!updating_pileData && dirty & /*pileData*/
+      if (!updating_pileData && dirty[0] & /*pileData*/
       8) {
         updating_pileData = true;
         mainsettings_changes.pileData = /*pileData*/
@@ -82149,7 +82290,7 @@ function create_if_block$7(ctx) {
   }
   let each_value = ensure_array_like(
     /*customTypes*/
-    ctx[9]
+    ctx[10]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value.length; i += 1) {
@@ -82158,7 +82299,7 @@ function create_if_block$7(ctx) {
   const if_block_creators = [create_if_block_1$5, create_if_block_2$4, create_if_block_5$2, create_if_block_6$2];
   const if_blocks = [];
   function select_block_type(ctx2, dirty) {
-    if (dirty & /*pileData*/
+    if (dirty[0] & /*pileData*/
     8) show_if = null;
     if (
       /*pileData*/
@@ -82174,14 +82315,14 @@ function create_if_block$7(ctx) {
       ctx2[3].type === CONSTANTS.PILE_TYPES.VAULT
     ) return 2;
     if (show_if == null) show_if = !!/*customTypes*/
-    ctx2[9].includes(
+    ctx2[10].includes(
       /*pileData*/
       ctx2[3].type
     );
     if (show_if) return 3;
     return -1;
   }
-  if (~(current_block_type_index = select_block_type(ctx, -1))) {
+  if (~(current_block_type_index = select_block_type(ctx, [-1, -1]))) {
     if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
   }
   return {
@@ -82214,7 +82355,7 @@ function create_if_block$7(ctx) {
         ctx[3].type === void 0
       ) add_render_callback(() => (
         /*select_change_handler*/
-        ctx[14].call(select)
+        ctx[15].call(select)
       ));
       attr(div, "class", "form-group");
     },
@@ -82256,17 +82397,17 @@ function create_if_block$7(ctx) {
           select,
           "change",
           /*select_change_handler*/
-          ctx[14]
+          ctx[15]
         );
         mounted = true;
       }
     },
     p(ctx2, dirty) {
-      if (dirty & /*customTypes*/
-      512) {
+      if (dirty[0] & /*customTypes*/
+      1024) {
         each_value = ensure_array_like(
           /*customTypes*/
-          ctx2[9]
+          ctx2[10]
         );
         let i;
         for (i = 0; i < each_value.length; i += 1) {
@@ -82284,8 +82425,8 @@ function create_if_block$7(ctx) {
         }
         each_blocks.length = each_value.length;
       }
-      if (dirty & /*pileData, customTypes*/
-      520) {
+      if (dirty[0] & /*pileData, customTypes*/
+      1032) {
         select_option(
           select,
           /*pileData*/
@@ -82354,9 +82495,9 @@ function create_each_block_1$2(ctx) {
     c() {
       option = element("option");
       option.textContent = `${localize(`ITEM-PILES.Types.${/*type*/
-      ctx[27]}`)} `;
+      ctx[28]}`)} `;
       option.__value = /*type*/
-      ctx[27];
+      ctx[28];
       set_input_value(option, option.__value);
     },
     m(target, anchor) {
@@ -82373,7 +82514,7 @@ function create_each_block_1$2(ctx) {
 function create_each_block$4(ctx) {
   let option;
   let t0_value = localize(`ITEM-PILES.Types.${/*customType*/
-  ctx[24]}`) + "";
+  ctx[25]}`) + "";
   let t0;
   let t1;
   return {
@@ -82382,7 +82523,7 @@ function create_each_block$4(ctx) {
       t0 = text(t0_value);
       t1 = space();
       option.__value = /*customType*/
-      ctx[24];
+      ctx[25];
       set_input_value(option, option.__value);
     },
     m(target, anchor) {
@@ -82403,7 +82544,7 @@ function create_if_block_6$2(ctx) {
   let updating_pileData;
   let current;
   function customsettings_pileData_binding(value) {
-    ctx[20](value);
+    ctx[21](value);
   }
   let customsettings_props = { pileActor: (
     /*pileActor*/
@@ -82428,10 +82569,10 @@ function create_if_block_6$2(ctx) {
     },
     p(ctx2, dirty) {
       const customsettings_changes = {};
-      if (dirty & /*pileActor*/
+      if (dirty[0] & /*pileActor*/
       2) customsettings_changes.pileActor = /*pileActor*/
       ctx2[1];
-      if (!updating_pileData && dirty & /*pileData*/
+      if (!updating_pileData && dirty[0] & /*pileData*/
       8) {
         updating_pileData = true;
         customsettings_changes.pileData = /*pileData*/
@@ -82459,7 +82600,7 @@ function create_if_block_5$2(ctx) {
   let updating_pileData;
   let current;
   function vaultsettings_pileData_binding(value) {
-    ctx[19](value);
+    ctx[20](value);
   }
   let vaultsettings_props = { pileActor: (
     /*pileActor*/
@@ -82484,10 +82625,10 @@ function create_if_block_5$2(ctx) {
     },
     p(ctx2, dirty) {
       const vaultsettings_changes = {};
-      if (dirty & /*pileActor*/
+      if (dirty[0] & /*pileActor*/
       2) vaultsettings_changes.pileActor = /*pileActor*/
       ctx2[1];
-      if (!updating_pileData && dirty & /*pileData*/
+      if (!updating_pileData && dirty[0] & /*pileData*/
       8) {
         updating_pileData = true;
         vaultsettings_changes.pileData = /*pileData*/
@@ -82527,7 +82668,7 @@ function create_if_block_2$4(ctx) {
     ctx[3].type === CONSTANTS.PILE_TYPES.CONTAINER && create_if_block_3$4(ctx)
   );
   function sharingsettings_pileData_binding(value) {
-    ctx[18](value);
+    ctx[19](value);
   }
   let sharingsettings_props = { pileActor: (
     /*pileActor*/
@@ -82569,7 +82710,7 @@ function create_if_block_2$4(ctx) {
       ) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
-          if (dirty & /*pileData*/
+          if (dirty[0] & /*pileData*/
           8) {
             transition_in(if_block0, 1);
           }
@@ -82592,7 +82733,7 @@ function create_if_block_2$4(ctx) {
       ) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
-          if (dirty & /*pileData*/
+          if (dirty[0] & /*pileData*/
           8) {
             transition_in(if_block1, 1);
           }
@@ -82610,10 +82751,10 @@ function create_if_block_2$4(ctx) {
         check_outros();
       }
       const sharingsettings_changes = {};
-      if (dirty & /*pileActor*/
+      if (dirty[0] & /*pileActor*/
       2) sharingsettings_changes.pileActor = /*pileActor*/
       ctx2[1];
-      if (!updating_pileData && dirty & /*pileData*/
+      if (!updating_pileData && dirty[0] & /*pileData*/
       8) {
         updating_pileData = true;
         sharingsettings_changes.pileData = /*pileData*/
@@ -82653,7 +82794,7 @@ function create_if_block_1$5(ctx) {
   let updating_pileData;
   let current;
   function merchantsettings_pileData_binding(value) {
-    ctx[15](value);
+    ctx[16](value);
   }
   let merchantsettings_props = { pileActor: (
     /*pileActor*/
@@ -82678,10 +82819,10 @@ function create_if_block_1$5(ctx) {
     },
     p(ctx2, dirty) {
       const merchantsettings_changes = {};
-      if (dirty & /*pileActor*/
+      if (dirty[0] & /*pileActor*/
       2) merchantsettings_changes.pileActor = /*pileActor*/
       ctx2[1];
-      if (!updating_pileData && dirty & /*pileData*/
+      if (!updating_pileData && dirty[0] & /*pileData*/
       8) {
         updating_pileData = true;
         merchantsettings_changes.pileData = /*pileData*/
@@ -82709,7 +82850,7 @@ function create_if_block_4$4(ctx) {
   let updating_pileData;
   let current;
   function itempilesettings_pileData_binding(value) {
-    ctx[16](value);
+    ctx[17](value);
   }
   let itempilesettings_props = {};
   if (
@@ -82731,7 +82872,7 @@ function create_if_block_4$4(ctx) {
     },
     p(ctx2, dirty) {
       const itempilesettings_changes = {};
-      if (!updating_pileData && dirty & /*pileData*/
+      if (!updating_pileData && dirty[0] & /*pileData*/
       8) {
         updating_pileData = true;
         itempilesettings_changes.pileData = /*pileData*/
@@ -82759,7 +82900,7 @@ function create_if_block_3$4(ctx) {
   let updating_pileData;
   let current;
   function containersettings_pileData_binding(value) {
-    ctx[17](value);
+    ctx[18](value);
   }
   let containersettings_props = {};
   if (
@@ -82781,7 +82922,7 @@ function create_if_block_3$4(ctx) {
     },
     p(ctx2, dirty) {
       const containersettings_changes = {};
-      if (!updating_pileData && dirty & /*pileData*/
+      if (!updating_pileData && dirty[0] & /*pileData*/
       8) {
         updating_pileData = true;
         containersettings_changes.pileData = /*pileData*/
@@ -82824,36 +82965,36 @@ function create_default_slot$3(ctx) {
   let mounted;
   let dispose;
   function tabs_1_activeTab_binding(value) {
-    ctx[11](value);
+    ctx[12](value);
   }
   function tabs_1_tabs_binding(value) {
-    ctx[12](value);
+    ctx[13](value);
   }
   let tabs_1_props = {};
   if (
     /*activeTab*/
-    ctx[5] !== void 0
+    ctx[6] !== void 0
   ) {
     tabs_1_props.activeTab = /*activeTab*/
-    ctx[5];
+    ctx[6];
   }
   if (
     /*tabs*/
-    ctx[4] !== void 0
+    ctx[5] !== void 0
   ) {
     tabs_1_props.tabs = /*tabs*/
-    ctx[4];
+    ctx[5];
   }
   tabs_1 = new Tabs({ props: tabs_1_props });
   binding_callbacks.push(() => bind(tabs_1, "activeTab", tabs_1_activeTab_binding));
   binding_callbacks.push(() => bind(tabs_1, "tabs", tabs_1_tabs_binding));
   let if_block0 = (
     /*activeTab*/
-    ctx[5] === "main" && create_if_block_7$2(ctx)
+    ctx[6] === "main" && create_if_block_7$2(ctx)
   );
   let if_block1 = (
     /*activeTab*/
-    ctx[5] === "other" && create_if_block$7(ctx)
+    ctx[6] === "other" && create_if_block$7(ctx)
   );
   return {
     c() {
@@ -82875,6 +83016,8 @@ function create_default_slot$3(ctx) {
       attr(section, "class", "tab-body");
       attr(i, "class", "far fa-save");
       attr(button, "type", "button");
+      button.disabled = /*isSubmitting*/
+      ctx[4];
       attr(form_1, "autocomplete", "off");
       attr(form_1, "class", "item-piles-config-container");
     },
@@ -82893,7 +83036,7 @@ function create_default_slot$3(ctx) {
       append(button, i);
       append(button, t3);
       append(button, t4);
-      ctx[21](form_1);
+      ctx[22](form_1);
       current = true;
       if (!mounted) {
         dispose = [
@@ -82901,42 +83044,41 @@ function create_default_slot$3(ctx) {
             button,
             "click",
             /*requestSubmit*/
-            ctx[8],
-            { once: true }
+            ctx[9]
           ),
           listen(form_1, "submit", prevent_default(
             /*updateSettings*/
-            ctx[7]
-          ), { once: true })
+            ctx[8]
+          ))
         ];
         mounted = true;
       }
     },
     p(ctx2, dirty) {
       const tabs_1_changes = {};
-      if (!updating_activeTab && dirty & /*activeTab*/
-      32) {
+      if (!updating_activeTab && dirty[0] & /*activeTab*/
+      64) {
         updating_activeTab = true;
         tabs_1_changes.activeTab = /*activeTab*/
-        ctx2[5];
+        ctx2[6];
         add_flush_callback(() => updating_activeTab = false);
       }
-      if (!updating_tabs && dirty & /*tabs*/
-      16) {
+      if (!updating_tabs && dirty[0] & /*tabs*/
+      32) {
         updating_tabs = true;
         tabs_1_changes.tabs = /*tabs*/
-        ctx2[4];
+        ctx2[5];
         add_flush_callback(() => updating_tabs = false);
       }
       tabs_1.$set(tabs_1_changes);
       if (
         /*activeTab*/
-        ctx2[5] === "main"
+        ctx2[6] === "main"
       ) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
-          if (dirty & /*activeTab*/
-          32) {
+          if (dirty[0] & /*activeTab*/
+          64) {
             transition_in(if_block0, 1);
           }
         } else {
@@ -82954,12 +83096,12 @@ function create_default_slot$3(ctx) {
       }
       if (
         /*activeTab*/
-        ctx2[5] === "other"
+        ctx2[6] === "other"
       ) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
-          if (dirty & /*activeTab*/
-          32) {
+          if (dirty[0] & /*activeTab*/
+          64) {
             transition_in(if_block1, 1);
           }
         } else {
@@ -82974,6 +83116,11 @@ function create_default_slot$3(ctx) {
           if_block1 = null;
         });
         check_outros();
+      }
+      if (!current || dirty[0] & /*isSubmitting*/
+      16) {
+        button.disabled = /*isSubmitting*/
+        ctx2[4];
       }
     },
     i(local) {
@@ -82996,7 +83143,7 @@ function create_default_slot$3(ctx) {
       destroy_component(tabs_1);
       if (if_block0) if_block0.d();
       if (if_block1) if_block1.d();
-      ctx[21](null);
+      ctx[22](null);
       mounted = false;
       run_all(dispose);
     }
@@ -83007,7 +83154,7 @@ function create_fragment$b(ctx) {
   let updating_elementRoot;
   let current;
   function applicationshell_elementRoot_binding(value) {
-    ctx[22](value);
+    ctx[23](value);
   }
   let applicationshell_props = {
     $$slots: { default: [create_default_slot$3] },
@@ -83030,13 +83177,14 @@ function create_fragment$b(ctx) {
       mount_component(applicationshell, target, anchor);
       current = true;
     },
-    p(ctx2, [dirty]) {
+    p(ctx2, dirty) {
       const applicationshell_changes = {};
-      if (dirty & /*$$scope, form, pileActor, pileData, activeTab, tabs*/
-      1073741886) {
+      if (dirty[0] & /*form, isSubmitting, pileActor, pileData, activeTab, tabs*/
+      126 | dirty[1] & /*$$scope*/
+      1) {
         applicationshell_changes.$$scope = { dirty, ctx: ctx2 };
       }
-      if (!updating_elementRoot && dirty & /*elementRoot*/
+      if (!updating_elementRoot && dirty[0] & /*elementRoot*/
       1) {
         updating_elementRoot = true;
         applicationshell_changes.elementRoot = /*elementRoot*/
@@ -83075,68 +83223,71 @@ function instance$8($$self, $$props, $$invalidate) {
     pileData.deleteWhenEmpty = !!pileData?.deleteWhenEmpty;
   }
   let pileEnabled = writable(pileData.enabled);
-  component_subscribe($$self, pileEnabled, (value) => $$invalidate(10, $pileEnabled = value));
+  component_subscribe($$self, pileEnabled, (value) => $$invalidate(11, $pileEnabled = value));
+  let isSubmitting = false;
   async function updateSettings() {
-    let defaults = foundry.utils.duplicate(getPileDefaults());
-    const types = [
-      "closedImage",
-      "emptyImage",
-      "openedImage",
-      "lockedImage",
-      "closeSound",
-      "openSound",
-      "lockedSound",
-      "unlockedSound"
-    ];
-    for (let type of types) {
-      if (pileData[type].includes("*")) {
-        $$invalidate(3, pileData[type + "s"] = await getFiles(pileData[type], { applyWildCard: true, softFail: true }), pileData);
-        $$invalidate(3, pileData[type + "s"] = pileData[type + "s"] || [], pileData);
+    if (isSubmitting) return;
+    $$invalidate(4, isSubmitting = true);
+    try {
+      let defaults = foundry.utils.duplicate(getPileDefaults());
+      const types = [
+        "closedImage",
+        "emptyImage",
+        "openedImage",
+        "lockedImage",
+        "closeSound",
+        "openSound",
+        "lockedSound",
+        "unlockedSound"
+      ];
+      for (let type of types) {
+        if (pileData[type].includes("*")) {
+          $$invalidate(3, pileData[type + "s"] = await getFiles(pileData[type], { applyWildCard: true, softFail: true }), pileData);
+          $$invalidate(3, pileData[type + "s"] = pileData[type + "s"] || [], pileData);
+        }
       }
-    }
-    const data2 = foundry.utils.mergeObject(defaults, pileData);
-    data2.deleteWhenEmpty = {
-      "default": "default",
-      "true": true,
-      "false": false
-    }[data2.deleteWhenEmpty];
-    const currentData = getActorFlagData(pileActor);
-    const diff = Object.keys(foundry.utils.diffObject(currentData, foundry.utils.deepClone(data2)));
-    game.itempiles.API.updateItemPile(pileActor, data2).then(async () => {
+      const data = foundry.utils.mergeObject(defaults, pileData);
+      data.deleteWhenEmpty = {
+        "default": "default",
+        "true": true,
+        "false": false
+      }[data.deleteWhenEmpty];
+      const currentData = getActorFlagData(pileActor);
+      const diff = Object.keys(foundry.utils.diffObject(currentData, foundry.utils.deepClone(data)));
+      await game.itempiles.API.updateItemPile(pileActor, data);
       if (diff.includes("enabled") || diff.includes("type")) {
         const promises = [];
         let apps = [];
         switch (currentData.type) {
-          case CONSTANTS.PILE_TYPES.MERCHANT:
-            if (MerchantApp.getActiveApp(pileActor)) {
-              promises.push(MerchantApp.getActiveApp(pileActor).close());
-            }
-            if (MerchantApp.getActiveApp(pileActor)) {
-              promises.push(MerchantApp.getActiveApp(pileActor).close());
-            }
+          case CONSTANTS.PILE_TYPES.MERCHANT: {
+            const merchantApp = MerchantApp.getActiveApp(pileActor);
+            if (merchantApp) promises.push(merchantApp.close());
             break;
+          }
           case CONSTANTS.PILE_TYPES.VAULT:
-            apps = VaultApp.getActiveApps(pileActor).concat(VaultApp.getActiveApps(pileActor));
+            apps = VaultApp.getActiveApps(pileActor);
             break;
           default:
-            apps = ItemPileInventoryApp.getActiveApps(pileActor).concat(ItemPileInventoryApp.getActiveApps(pileActor));
+            apps = ItemPileInventoryApp.getActiveApps(pileActor);
             break;
         }
         for (let app of apps) {
           promises.push(app.close());
         }
         await Promise.allSettled(promises);
-        if (data2.enabled) {
+        if (data.enabled) {
           if (pileActor?.sheet) {
             pileActor.sheet.close({ force: true });
           }
           game.itempiles.API.renderItemPileInterface(pileActor);
-        } else if (!data2.enabled && pileActor?.sheet) {
+        } else if (!data.enabled && pileActor?.sheet) {
           pileActor.sheet.render(true, { bypassItemPiles: true });
         }
       }
-    });
-    application.close();
+      application.close();
+    } finally {
+      $$invalidate(4, isSubmitting = false);
+    }
   }
   function requestSubmit() {
     form.requestSubmit();
@@ -83146,44 +83297,44 @@ function instance$8($$self, $$props, $$invalidate) {
   const customTypes = Object.keys(CONSTANTS.CUSTOM_PILE_TYPES);
   function tabs_1_activeTab_binding(value) {
     activeTab = value;
-    $$invalidate(5, activeTab);
+    $$invalidate(6, activeTab);
   }
   function tabs_1_tabs_binding(value) {
     tabs = value;
-    $$invalidate(4, tabs), $$invalidate(10, $pileEnabled);
+    $$invalidate(5, tabs), $$invalidate(11, $pileEnabled);
   }
   function mainsettings_pileData_binding(value) {
     pileData = value;
-    $$invalidate(3, pileData), $$invalidate(10, $pileEnabled);
+    $$invalidate(3, pileData), $$invalidate(11, $pileEnabled);
   }
   function select_change_handler() {
     pileData.type = select_value(this);
-    $$invalidate(3, pileData), $$invalidate(10, $pileEnabled);
-    $$invalidate(9, customTypes);
+    $$invalidate(3, pileData), $$invalidate(11, $pileEnabled);
+    $$invalidate(10, customTypes);
   }
   function merchantsettings_pileData_binding(value) {
     pileData = value;
-    $$invalidate(3, pileData), $$invalidate(10, $pileEnabled);
+    $$invalidate(3, pileData), $$invalidate(11, $pileEnabled);
   }
   function itempilesettings_pileData_binding(value) {
     pileData = value;
-    $$invalidate(3, pileData), $$invalidate(10, $pileEnabled);
+    $$invalidate(3, pileData), $$invalidate(11, $pileEnabled);
   }
   function containersettings_pileData_binding(value) {
     pileData = value;
-    $$invalidate(3, pileData), $$invalidate(10, $pileEnabled);
+    $$invalidate(3, pileData), $$invalidate(11, $pileEnabled);
   }
   function sharingsettings_pileData_binding(value) {
     pileData = value;
-    $$invalidate(3, pileData), $$invalidate(10, $pileEnabled);
+    $$invalidate(3, pileData), $$invalidate(11, $pileEnabled);
   }
   function vaultsettings_pileData_binding(value) {
     pileData = value;
-    $$invalidate(3, pileData), $$invalidate(10, $pileEnabled);
+    $$invalidate(3, pileData), $$invalidate(11, $pileEnabled);
   }
   function customsettings_pileData_binding(value) {
     pileData = value;
-    $$invalidate(3, pileData), $$invalidate(10, $pileEnabled);
+    $$invalidate(3, pileData), $$invalidate(11, $pileEnabled);
   }
   function form_1_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
@@ -83200,14 +83351,14 @@ function instance$8($$self, $$props, $$invalidate) {
     if ("pileActor" in $$props2) $$invalidate(1, pileActor = $$props2.pileActor);
   };
   $$self.$$.update = () => {
-    if ($$self.$$.dirty & /*$pileEnabled*/
-    1024) {
+    if ($$self.$$.dirty[0] & /*$pileEnabled*/
+    2048) {
       $$invalidate(3, pileData.enabled = $pileEnabled, pileData);
     }
-    if ($$self.$$.dirty & /*$pileEnabled*/
-    1024) {
+    if ($$self.$$.dirty[0] & /*$pileEnabled*/
+    2048) {
       {
-        $$invalidate(4, tabs = [
+        $$invalidate(5, tabs = [
           {
             value: "main",
             label: "ITEM-PILES.Applications.ItemPileConfig.Main.Title",
@@ -83226,6 +83377,7 @@ function instance$8($$self, $$props, $$invalidate) {
     pileActor,
     form,
     pileData,
+    isSubmitting,
     tabs,
     activeTab,
     pileEnabled,
@@ -83250,7 +83402,7 @@ function instance$8($$self, $$props, $$invalidate) {
 class Item_pile_config extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance$8, create_fragment$b, safe_not_equal, { elementRoot: 0, pileActor: 1 });
+    init(this, options, instance$8, create_fragment$b, safe_not_equal, { elementRoot: 0, pileActor: 1 }, null, [-1, -1]);
   }
   get elementRoot() {
     return this.$$.ctx[0];
@@ -83678,8 +83830,8 @@ class PrivateAPI {
   /**
    * @private
    */
-  static _onPreCreateToken(doc, data2) {
-    const docData = foundry.utils.deepClone(data2);
+  static _onPreCreateToken(doc, data) {
+    const docData = foundry.utils.deepClone(data);
     const sourceActor = game.actors.get(doc.actorId);
     let itemPileConfig = foundry.utils.mergeObject(
       foundry.utils.deepClone(getPileDefaults()),
@@ -83695,19 +83847,19 @@ class PrivateAPI {
     if (!doc.isLinked) {
       deleteProperty(docData, CONSTANTS.ACTOR_DELTA_PROPERTY + "." + CONSTANTS.FLAGS.SHARING);
     }
-    if (itemPileConfig.closedImage.includes("*")) {
+    if (itemPileConfig.closedImage?.includes("*")) {
       itemPileConfig.closedImage = random_array_element(itemPileConfig.closedImages);
       itemPileConfig.closedImages = [];
     }
-    if (itemPileConfig.emptyImage.includes("*")) {
+    if (itemPileConfig.emptyImage?.includes("*")) {
       itemPileConfig.emptyImage = random_array_element(itemPileConfig.emptyImages);
       itemPileConfig.emptyImages = [];
     }
-    if (itemPileConfig.openedImage.includes("*")) {
+    if (itemPileConfig.openedImage?.includes("*")) {
       itemPileConfig.openedImage = random_array_element(itemPileConfig.openedImages);
       itemPileConfig.openedImages = [];
     }
-    if (itemPileConfig.lockedImage.includes("*")) {
+    if (itemPileConfig.lockedImage?.includes("*")) {
       itemPileConfig.lockedImage = random_array_element(itemPileConfig.lockedImages);
       itemPileConfig.lockedImages = [];
     }
@@ -83720,13 +83872,15 @@ class PrivateAPI {
     const pileData = { data: itemPileConfig, items: targetItems, currencies: targetCurrencies };
     const scale = getItemPileTokenScale(doc, pileData);
     foundry.utils.setProperty(docData, "texture.src", getItemPileTokenImage(doc, pileData));
-    foundry.utils.setProperty(docData, "texture.scaleX", scale);
-    foundry.utils.setProperty(docData, "texture.scaleY", scale);
+    foundry.utils.mergeObject(docData, getItemPileTokenScaleUpdate(doc, scale));
     foundry.utils.setProperty(docData, "name", getItemPileName(doc, pileData));
     const cleanItemPileConfig = cleanFlagData(itemPileConfig);
     deleteProperty(docData, CONSTANTS.FLAGS.PILE);
     foundry.utils.setProperty(docData, CONSTANTS.FLAGS.PILE, cleanItemPileConfig);
     if (!doc.isLinked) {
+      if (!docData[CONSTANTS.ACTOR_DELTA_PROPERTY]) {
+        docData[CONSTANTS.ACTOR_DELTA_PROPERTY] = {};
+      }
       deleteProperty(docData, CONSTANTS.ACTOR_DELTA_PROPERTY + "." + CONSTANTS.FLAGS.PILE);
       foundry.utils.setProperty(docData, CONSTANTS.ACTOR_DELTA_PROPERTY + "." + CONSTANTS.FLAGS.PILE, cleanItemPileConfig);
     }
@@ -83830,8 +83984,8 @@ class PrivateAPI {
     const sourceTransaction = new Transaction(sourceActor);
     if (SYSTEMS.DATA.ITEM_TYPE_HANDLERS) {
       const newItems = [];
-      for (const data2 of items) {
-        const itemData = data2?.item ?? data2;
+      for (const data of items) {
+        const itemData = data?.item ?? data;
         const item = sourceActor.items.get(itemData._id ?? itemData.id);
         const handler = getItemTypeHandler(CONSTANTS.ITEM_TYPE_METHODS.TRANSFER, item.type);
         if (!handler) continue;
@@ -83923,11 +84077,11 @@ class PrivateAPI {
     await this._executeItemPileMacro(targetUuid, macroData);
     const sourceIsItemPile = isValidItemPile(sourceActor);
     const itemPileUuid = sourceIsItemPile ? sourceUuid : targetUuid;
-    const itemPile = sourceIsItemPile ? getToken(sourceUuid) : getToken(targetUuid);
+    sourceIsItemPile ? getToken(sourceUuid) : getToken(targetUuid);
     const shouldBeDeleted = shouldItemPileBeDeleted(itemPileUuid);
     if (shouldBeDeleted) {
       await this._deleteItemPile(itemPileUuid);
-    } else if (!skipVaultLogging && (isItemPileVault(itemPile) || isItemPileVault(targetActor))) {
+    } else if (!skipVaultLogging && (isItemPileVault(sourceActor) || isItemPileVault(targetActor))) {
       const pileActor = sourceIsItemPile ? sourceActor : targetActor;
       const actorToLog = sourceIsItemPile ? targetActor : sourceActor;
       await updateVaultLog(pileActor, {
@@ -84115,15 +84269,15 @@ class PrivateAPI {
         });
       }
     } else if (!skipVaultLogging && (isItemPileVault(sourceActor) || isItemPileVault(targetActor))) {
-      const sourceIsItemPile2 = isItemPileVault(sourceActor);
-      const pileActor = sourceIsItemPile2 ? sourceActor : targetActor;
-      const actorToLog = sourceIsItemPile2 ? targetActor : sourceActor;
+      const sourceIsVault = isItemPileVault(sourceActor);
+      const pileActor = sourceIsVault ? sourceActor : targetActor;
+      const actorToLog = sourceIsVault ? targetActor : sourceActor;
       await updateVaultLog(pileActor, {
         userId,
         actor: actorToLog,
         items: itemDeltas,
         attributes: attributeDeltas,
-        withdrawal: sourceIsItemPile2
+        withdrawal: sourceIsVault
       });
     }
     return { itemDeltas, attributeDeltas };
@@ -84322,6 +84476,8 @@ class PrivateAPI {
   } = {}) {
     const sourceDocument = getDocument(sourceUuid);
     const targetDocument = getDocument(targetUuid);
+    const sourceActor = getActor(sourceUuid);
+    const targetActor = getActor(targetUuid);
     const sourceAttributes = getActorCurrencies(sourceDocument).filter((entry) => entry.type === "attribute");
     const attributesToTransfer = sourceAttributes.filter((attribute) => {
       return foundry.utils.hasProperty(targetActor, attribute.data.path);
@@ -84347,8 +84503,6 @@ class PrivateAPI {
     };
     await this._executeItemPileMacro(sourceUuid, macroData);
     await this._executeItemPileMacro(targetUuid, macroData);
-    const sourceActor = getActor(sourceUuid);
-    const targetActor = getActor(targetUuid);
     const sourceIsItemPile = isValidItemPile(sourceActor);
     const itemPileUuid = sourceIsItemPile ? sourceUuid : targetUuid;
     const shouldBeDeleted = shouldItemPileBeDeleted(itemPileUuid);
@@ -84428,15 +84582,18 @@ class PrivateAPI {
       sourceTransactions.push({ transaction: sourceTransaction, updates: sourceUpdates2 });
     }
     const targetUpdates = targetTransaction.prepare();
-    const sourceUpdates = sourceTransactions.map((data2) => data2.updates);
+    const sourceUpdates = sourceTransactions.map((data) => data.updates);
+    const combineHookResult = hooks.call(CONSTANTS.HOOKS.PRE_COMBINE_ITEM_PILES, sourceActors, sourceUpdates, targetActor, targetUpdates, interactionId);
+    if (combineHookResult === false) return false;
     const hookResult = hooks.call(CONSTANTS.HOOKS.PRE_TRANSFER_EVERYTHING, sourceActors, sourceUpdates, targetActor, targetUpdates, interactionId);
     if (hookResult === false) return false;
-    await Promise.allSettled(sourceTransactions.map((data2) => data2.transaction.commit()));
+    await Promise.allSettled(sourceTransactions.map((data) => data.transaction.commit()));
     const { itemDeltas, attributeDeltas } = await targetTransaction.commit();
     if (targetItemPileFlags) {
       const flags = cleanFlagData(foundry.utils.mergeObject(getPileDefaults(), targetItemPileFlags));
       await updateItemPileData(targetActor, flags);
     }
+    await ItemPileSocket.executeForEveryone(ItemPileSocket.HANDLERS.CALL_HOOK, CONSTANTS.HOOKS.COMBINE_ITEM_PILES, sourceUuids, targetUuid, itemDeltas, attributeDeltas, userId, interactionId);
     await ItemPileSocket.executeForEveryone(ItemPileSocket.HANDLERS.CALL_HOOK, CONSTANTS.HOOKS.TRANSFER_EVERYTHING, sourceUuids, targetUuid, itemDeltas, attributeDeltas, userId, interactionId);
     const macroData = {
       action: CONSTANTS.MACRO_EXECUTION_TYPES.TRANSFER_EVERYTHING,
@@ -84514,8 +84671,8 @@ class PrivateAPI {
     let itemsDropped;
     foundry.utils.setProperty(itemData.item, game.itempiles.API.ITEM_QUANTITY_ATTRIBUTE, itemData?.quantity ?? 1);
     const containerItems = [itemData.item];
-    const item = fromUuidSync(itemData.uuid);
-    const handler = getItemTypeHandler(CONSTANTS.ITEM_TYPE_METHODS.TRANSFER, item.type);
+    const item = foundry.utils.fromUuidSync(itemData.uuid) ?? itemData.item;
+    const handler = item ? getItemTypeHandler(CONSTANTS.ITEM_TYPE_METHODS.TRANSFER, item.type) : false;
     if (handler) handler({ item, items: containerItems });
     const items = containerItems.map((item2) => ({
       item: item2,
@@ -84536,7 +84693,7 @@ class PrivateAPI {
           position,
           items: itemsDropped,
           tokenOverrides: {
-            elevation: elevation || fromUuidSync(sourceUuid)?.elevation || 0
+            elevation: elevation || foundry.utils.fromUuidSync(sourceUuid)?.elevation || 0
           },
           checkContainers: false
         });
@@ -84548,7 +84705,7 @@ class PrivateAPI {
         targetUuid = await this._createItemPile({
           sceneId,
           position,
-          items: items.map((data2) => data2.item),
+          items: items.map((data) => data.item),
           tokenOverrides: { elevation: elevation || 0 }
         });
       }
@@ -84643,7 +84800,7 @@ class PrivateAPI {
         await game.settings.set(CONSTANTS.MODULE_NAME, SETTINGS.DEFAULT_ITEM_PILE_ACTOR_ID, pileActor.id);
       }
     } else {
-      pileActor = await fromUuid(actor);
+      pileActor = await foundry.utils.fromUuid(actor);
       if (!pileActor) {
         throw custom_error("Could not find actor with UUID " + actor);
       }
@@ -84675,19 +84832,18 @@ class PrivateAPI {
       }, {});
       if (!pileActor.prototypeToken.actorLink) {
         overrideData[CONSTANTS.ACTOR_DELTA_PROPERTY] = actorOverrides;
-        const data2 = { data: pileData, items: [...items] };
-        for (let index = 0; index < data2.items.length; index++) {
-          data2.items[index] = new Item.implementation(data2.items[index]);
+        const data = { data: pileData, items: [...items] };
+        for (let index = 0; index < data.items.length; index++) {
+          data.items[index] = new Item.implementation(data.items[index]);
         }
         const overrideImage = foundry.utils.getProperty(overrideData, "texture.src") ?? foundry.utils.getProperty(overrideData, "img");
         const overrideScale = foundry.utils.getProperty(overrideData, "texture.scaleX") ?? foundry.utils.getProperty(overrideData, "texture.scaleY") ?? foundry.utils.getProperty(overrideData, "scale");
-        const scale = getItemPileTokenScale(pileActor, data2, overrideScale);
+        const scale = getItemPileTokenScale(pileActor, data, overrideScale);
         overrideData = foundry.utils.mergeObject(overrideData, {
-          "texture.src": getItemPileTokenImage(pileActor, data2, overrideImage),
-          "texture.scaleX": scale,
-          "texture.scaleY": scale,
-          "name": getItemPileName(pileActor, data2, overrideData?.name)
+          "texture.src": getItemPileTokenImage(pileActor, data, overrideImage),
+          "name": getItemPileName(pileActor, data, overrideData?.name)
         });
+        foundry.utils.mergeObject(overrideData, getItemPileTokenScaleUpdate(pileActor, scale));
       }
       const hookResult = hooks.call(CONSTANTS.HOOKS.PILE.PRE_CREATE, overrideData, items);
       if (hookResult === false) return false;
@@ -84716,7 +84872,7 @@ class PrivateAPI {
       }
       returns["tokenUuid"] = getUuid(tokenDocument);
     } else if (pileActor.prototypeToken.actorLink) {
-      if (items.length && !pileActor.prototypeToken.actorLink) {
+      if (items.length) {
         await hooks.runWithout(async () => {
           const newItems = ensureValidIds(pileActor, items);
           await pileActor.createEmbeddedDocuments("Item", newItems, { keepId: true, keepEmbeddedIds: true });
@@ -84730,7 +84886,7 @@ class PrivateAPI {
     const tokenUpdateGroups = {};
     const actorUpdateGroups = {};
     for (const targetUuid of targetUuids) {
-      const target = fromUuidSync(targetUuid);
+      const target = foundry.utils.fromUuidSync(targetUuid);
       let targetItemPileSettings = getActorFlagData(target);
       const defaultItemPileId = getSetting(SETTINGS.DEFAULT_ITEM_PILE_ACTOR_ID);
       const defaultItemPileActor = game.actors.get(defaultItemPileId);
@@ -84742,17 +84898,16 @@ class PrivateAPI {
       specificPileSettings.enabled = true;
       const targetItems = getActorItems(target, { itemFilters: specificPileSettings.overrideItemFilters });
       const targetCurrencies = getActorCurrencies(target, { currencyList: specificPileSettings.overrideCurrencies });
-      const data2 = { data: specificPileSettings, items: targetItems, currencies: targetCurrencies };
+      const data = { data: specificPileSettings, items: targetItems, currencies: targetCurrencies };
       let specificTokenSettings = isFunction(tokenSettings) ? await tokenSettings(target) : foundry.utils.deepClone(tokenSettings);
       const overrideImage = foundry.utils.getProperty(specificTokenSettings, "texture.src") ?? foundry.utils.getProperty(specificTokenSettings, "img");
       const overrideScale = foundry.utils.getProperty(specificTokenSettings, "texture.scaleX") ?? foundry.utils.getProperty(specificTokenSettings, "texture.scaleY") ?? foundry.utils.getProperty(specificTokenSettings, "scale");
-      const scale = getItemPileTokenScale(target, data2, overrideScale);
+      const scale = getItemPileTokenScale(target, data, overrideScale);
       specificTokenSettings = foundry.utils.mergeObject(specificTokenSettings, {
-        "texture.src": getItemPileTokenImage(target, data2, overrideImage),
-        "texture.scaleX": scale,
-        "texture.scaleY": scale,
-        "name": getItemPileName(target, data2, specificTokenSettings?.name)
+        "texture.src": getItemPileTokenImage(target, data, overrideImage),
+        "name": getItemPileName(target, data, specificTokenSettings?.name)
       });
+      foundry.utils.mergeObject(specificTokenSettings, getItemPileTokenScaleUpdate(target, scale));
       const sceneId = targetUuid.split(".")[1];
       const tokenId = targetUuid.split(".")[3];
       if (!tokenUpdateGroups[sceneId]) {
@@ -84785,7 +84940,7 @@ class PrivateAPI {
     const actorUpdateGroups = {};
     const tokenUpdateGroups = {};
     for (const targetUuid of targetUuids) {
-      let target = fromUuidSync(targetUuid);
+      let target = foundry.utils.fromUuidSync(targetUuid);
       let specificPileSettings = getActorFlagData(target);
       specificPileSettings.enabled = false;
       const sceneId = targetUuid.split(".")[1];
@@ -84821,13 +84976,13 @@ class PrivateAPI {
     const targetActor = getActor(targetUuid);
     const interactingToken = interactingTokenUuid ? getToken(interactingTokenUuid) : false;
     const oldData = getActorFlagData(targetActor);
-    const data2 = foundry.utils.mergeObject(foundry.utils.deepClone(oldData), foundry.utils.deepClone(newData));
-    const diff = foundry.utils.diffObject(oldData, data2);
-    const hookResult = hooks.call(CONSTANTS.HOOKS.PILE.PRE_UPDATE, targetActor, data2, interactingToken, tokenSettings);
+    const data = foundry.utils.mergeObject(foundry.utils.deepClone(oldData), foundry.utils.deepClone(newData));
+    const diff = foundry.utils.diffObject(oldData, data);
+    const hookResult = hooks.call(CONSTANTS.HOOKS.PILE.PRE_UPDATE, targetActor, data, interactingToken, tokenSettings);
     if (hookResult === false) return false;
     await wait(15);
-    await updateItemPileData(targetActor, data2, tokenSettings);
-    if (isItemPileContainer(targetActor, data2)) {
+    await updateItemPileData(targetActor, data, tokenSettings);
+    if (isItemPileContainer(targetActor, data)) {
       if (diff?.closed === true) {
         await this._executeItemPileMacro(targetUuid, {
           action: CONSTANTS.MACRO_EXECUTION_TYPES.OPEN_ITEM_PILE,
@@ -84861,11 +85016,11 @@ class PrivateAPI {
   }
   static _updatedItemPile(targetUuid, diffData, interactingTokenUuid) {
     const target = getToken(targetUuid);
-    const interactingToken = interactingTokenUuid ? fromUuidSync(interactingTokenUuid) : false;
+    const interactingToken = interactingTokenUuid ? foundry.utils.fromUuidSync(interactingTokenUuid) : false;
     if (foundry.utils.isEmpty(diffData)) return false;
-    const data2 = getActorFlagData(target);
+    const data = getActorFlagData(target);
     hooks.callAll(CONSTANTS.HOOKS.PILE.UPDATE, target, diffData, interactingToken);
-    if (isItemPileContainer(target, data2)) {
+    if (isItemPileContainer(target, data)) {
       if (diffData?.closed === true) {
         hooks.callAll(CONSTANTS.HOOKS.PILE.CLOSE, target, interactingToken);
       }
@@ -84937,7 +85092,7 @@ class PrivateAPI {
           debug(`Preloaded image: ${filePath}`);
         } else if (isSound) {
           debug(`Preloaded sound: ${filePath}`);
-          await AudioHelper.preloadSound(filePath);
+          await foundry.audio.AudioHelper.preloadSound(filePath);
         }
         resolve();
       });
@@ -84956,13 +85111,13 @@ class PrivateAPI {
       return;
     }
     if (macroData.source) {
-      macroData.source = fromUuidSync(macroData.source);
+      macroData.source = foundry.utils.fromUuidSync(macroData.source);
     }
     if (Array.isArray(macroData.target)) {
-      macroData.target = macroData.target.map((target) => fromUuidSync(target));
+      macroData.target = macroData.target.map((target) => foundry.utils.fromUuidSync(target));
     } else {
       if (macroData.target) {
-        macroData.target = fromUuidSync(macroData.target);
+        macroData.target = foundry.utils.fromUuidSync(macroData.target);
       }
       const sourceActor = macroData.source instanceof TokenDocument ? macroData.source.actor : macroData.source;
       const targetActor = macroData.target instanceof TokenDocument ? macroData.target.actor : macroData.target;
@@ -85002,26 +85157,26 @@ class PrivateAPI {
    * @return {Promise}
    */
   static async _dropData(canvas2, userDropData) {
-    const data2 = foundry.utils.deepClone(userDropData);
-    if (data2.type !== "Item") return;
-    let item = await Item.implementation.fromDropData(data2);
+    const data = foundry.utils.deepClone(userDropData);
+    if (data.type !== "Item") return;
+    let item = await Item.implementation.fromDropData(data);
     let itemData = item ? item.toObject() : false;
     if (!itemData) {
-      console.error(data2);
+      console.error(data);
       throw custom_error("Something went wrong when dropping this item!");
     }
     const dropData = {
       source: false,
-      target: data2?.target ?? false,
-      elevation: data2?.elevation,
+      target: data?.target ?? false,
+      elevation: data?.elevation,
       itemData: {
         item: itemData,
         quantity: 1,
-        uuid: data2?.uuid
+        uuid: data?.uuid
       },
       position: false
     };
-    dropData.source = getSourceActorFromDropData(data2);
+    dropData.source = getSourceActorFromDropData(data);
     if (!dropData.source && !game.user.isGM) {
       return custom_warning(game.i18n.localize("ITEM-PILES.Errors.NoSourceDrop"), true);
     }
@@ -85031,7 +85186,7 @@ class PrivateAPI {
     if (dropData.target) {
       droppableDocuments.push(dropData.target);
     } else {
-      const { x, y } = canvas2.grid.getTopLeftPoint(data2);
+      const { x, y } = canvas2.grid.getTopLeftPoint(data);
       droppableDocuments = getTokensAtLocation({ x, y }).map((token) => getDocument(token));
       if (!droppableDocuments.length) {
         dropData.position = { x, y };
@@ -85098,7 +85253,10 @@ class PrivateAPI {
     const sourceActor = getActor(dropData.source);
     const targetActor = getActor(dropData.target);
     if (sourceActor && targetActor && sourceActor === targetActor) return;
-    if (dropData.target && isItemPileMerchant(dropData.target) && !dropData.target.isOwner) return;
+    if (dropData.target && isItemPileMerchant(dropData.target) && !dropData.target.isOwner) {
+      custom_warning(game.i18n.localize("ITEM-PILES.Warnings.NoMerchantOwnership"), true);
+      return;
+    }
     const validItem = await checkItemType(dropData.target, dropData.itemData.item);
     if (!validItem) return;
     dropData.itemData.item = validItem;
@@ -85462,7 +85620,7 @@ class PrivateAPI {
     if (useDefaultCharacter) {
       inspectingTarget = getUserCharacter();
     } else {
-      inspectingTarget = inspectingTargetUuid ? fromUuidSync(inspectingTargetUuid) : false;
+      inspectingTarget = inspectingTargetUuid ? foundry.utils.fromUuidSync(inspectingTargetUuid) : false;
     }
     const hookResult = Hooks.call(CONSTANTS.HOOKS.PRE_RENDER_INTERFACE, target, inspectingTarget);
     if (hookResult === false) return;
@@ -85491,10 +85649,10 @@ class PrivateAPI {
     const sellingActor = getActor(sellerUuid);
     const buyingActor = getActor(buyerUuid);
     const itemPrices = getPaymentData({
-      purchaseData: items.map((data2) => {
+      purchaseData: items.map((data) => {
         return {
-          ...data2,
-          item: sellingActor.items.get(data2.id)
+          ...data,
+          item: sellingActor.items.get(data.id)
         };
       }),
       seller: sellingActor,
@@ -85520,6 +85678,22 @@ class PrivateAPI {
           item: payment.data.item,
           quantity: payment.quantity
         }], { type: payment.isCurrency ? "currency" : payment.type });
+      }
+    }
+    if (!sellerInfiniteCurrencies) {
+      for (const change of itemPrices.sellerChangeGiven) {
+        if (!change.quantity) continue;
+        if (change.type === "attribute") {
+          await sellerTransaction.appendDocumentChanges([{
+            path: change.data.path,
+            quantity: change.quantity
+          }], { remove: true, type: "currency" });
+        } else {
+          await sellerTransaction.appendItemChanges([{
+            item: change.data.item,
+            quantity: change.quantity
+          }], { remove: true, type: "currency", keepIfZero: sellerKeepZeroQuantity });
+        }
       }
     }
     for (const entry of itemPrices.buyerReceive) {
@@ -86235,14 +86409,14 @@ function instance$6($$self, $$props, $$invalidate) {
   }
   async function dropData(event) {
     $$invalidate(3, counter = 0);
-    let data2;
+    let data;
     try {
-      data2 = JSON.parse(event.dataTransfer.getData("text/plain"));
+      data = JSON.parse(event.dataTransfer.getData("text/plain"));
     } catch (err) {
       return false;
     }
-    if (data2.type !== "Actor") return;
-    $$invalidate(0, actor = getSourceActorFromDropData(data2));
+    if (data.type !== "Actor") return;
+    $$invalidate(0, actor = getSourceActorFromDropData(data));
   }
   let counter = 0;
   function dragEnter() {
@@ -86863,12 +87037,12 @@ function get_interpolator(a, b) {
   throw new Error(`Cannot interpolate ${type} values`);
 }
 function tweened(value, defaults = {}) {
-  const store2 = writable(value);
+  const store = writable(value);
   let task;
   let target_value = value;
   function set2(new_value, opts) {
     if (value == null) {
-      store2.set(value = new_value);
+      store.set(value = new_value);
       return Promise.resolve();
     }
     target_value = new_value;
@@ -86885,7 +87059,7 @@ function tweened(value, defaults = {}) {
         previous_task.abort();
         previous_task = null;
       }
-      store2.set(value = target_value);
+      store.set(value = target_value);
       return Promise.resolve();
     }
     const start = now() + delay;
@@ -86904,10 +87078,10 @@ function tweened(value, defaults = {}) {
       const elapsed = now2 - start;
       if (elapsed > /** @type {number} */
       duration) {
-        store2.set(value = new_value);
+        store.set(value = new_value);
         return false;
       }
-      store2.set(value = fn(easing(elapsed / duration)));
+      store.set(value = fn(easing(elapsed / duration)));
       return true;
     });
     return task.promise;
@@ -86915,7 +87089,7 @@ function tweened(value, defaults = {}) {
   return {
     set: set2,
     update: (fn, opts) => set2(fn(target_value, value), opts),
-    subscribe: store2.subscribe
+    subscribe: store.subscribe
   };
 }
 function create_else_block_1$1(ctx) {
@@ -87439,6 +87613,11 @@ function instance$4($$self, $$props, $$invalidate) {
     done = true;
     application.close();
   }
+  onDestroy(() => {
+    clearTimeout(timeout);
+    clearInterval(connection);
+    done = true;
+  });
   function actordropselect_actor_binding(value) {
     actor = value;
     $$invalidate(2, actor);
@@ -87649,7 +87828,7 @@ class TradeStore {
   static import(tradeData) {
     const leftTrader = {
       user: game.users.get(tradeData.leftTraderData.user),
-      actor: fromUuidSync(tradeData.leftTraderData.actor),
+      actor: foundry.utils.fromUuidSync(tradeData.leftTraderData.actor),
       items: tradeData.leftTraderData.items,
       currencies: tradeData.leftTraderData.currencies,
       itemCurrencies: tradeData.leftTraderData.itemCurrencies,
@@ -87657,7 +87836,7 @@ class TradeStore {
     };
     const rightTrader = {
       user: game.users.get(tradeData.rightTraderData.user),
-      actor: fromUuidSync(tradeData.rightTraderData.actor),
+      actor: foundry.utils.fromUuidSync(tradeData.rightTraderData.actor),
       items: tradeData.rightTraderData.items,
       currencies: tradeData.rightTraderData.currencies,
       itemCurrencies: tradeData.rightTraderData.itemCurrencies,
@@ -87760,7 +87939,7 @@ class TradeStore {
         item.newQuantity = item.quantity;
         item.maxQuantity = maxQuantity;
       } else {
-        items.splice(items.indexOf(item));
+        items.splice(items.indexOf(item), 1);
       }
     } else if (!item && quantity) {
       items.push({
@@ -88277,33 +88456,16 @@ function create_fragment$6(ctx) {
 }
 const click_handler_3 = (evt) => evt.stopPropagation();
 function instance$3($$self, $$props, $$invalidate) {
-  let { store: store2 } = $$props;
-  let { data: data2 } = $$props;
+  let { store } = $$props;
+  let { data } = $$props;
   let { editable = true } = $$props;
-  const canPreview = data2.id && (getSetting(SETTINGS.INSPECT_ITEMS_IN_TRADE) || editable);
+  const canPreview = data.id && (getSetting(SETTINGS.INSPECT_ITEMS_IN_TRADE) || editable);
   function previewItem2() {
-    if (!canPreview || !data2.id) return;
-    const item = store2.leftTraderActor.items.get(data2.id) ?? store2.rightTraderActor.items.get(data2.id);
+    if (!canPreview || !data.id) return;
+    const item = store.leftTraderActor.items.get(data.id) ?? store.rightTraderActor.items.get(data.id);
     if (!item) return;
-    if (SYSTEMS.DATA?.PREVIEW_ITEM_TRANSFORMER) {
-      if (!SYSTEMS.DATA?.PREVIEW_ITEM_TRANSFORMER(item)) {
-        return;
-      }
-    }
-    if (game.user.isGM || item.ownership[game.user.id] === 3) {
-      return item.sheet.render(true);
-    }
-    const itemData = item.toObject();
-    itemData.ownership[game.user.id] = 1;
-    const newItem = new Item.implementation(itemData);
-    const cls = newItem._getSheetClass();
-    newItem.document = newItem;
-    const sheet = new cls(newItem, { editable: false });
-    if (sheet?._render) {
-      sheet._render(true);
-    } else {
-      sheet.render(true);
-    }
+    if (SYSTEMS.DATA?.PREVIEW_ITEM_TRANSFORMER && !SYSTEMS.DATA.PREVIEW_ITEM_TRANSFORMER(item)) return;
+    return renderReadOnlyItemPreview(item);
   }
   function onKeyDown(e) {
     if (e.keyCode === 13) {
@@ -88311,34 +88473,34 @@ function instance$3($$self, $$props, $$invalidate) {
     }
   }
   function updateQuantity() {
-    $$invalidate(0, data2.quantity = Math.max(0, Math.min(data2.maxQuantity, data2.newQuantity)), data2);
-    if (data2.quantity === 0) {
-      return store2.removeEntry(data2);
+    $$invalidate(0, data.quantity = Math.max(0, Math.min(data.maxQuantity, data.newQuantity)), data);
+    if (data.quantity === 0) {
+      return store.removeEntry(data);
     }
-    $$invalidate(0, data2.newQuantity = data2.quantity, data2);
-    $$invalidate(0, data2.editing = false, data2);
+    $$invalidate(0, data.newQuantity = data.quantity, data);
+    $$invalidate(0, data.editing = false, data);
   }
   const click_handler = () => {
-    if (data2.editing && editable) updateQuantity();
+    if (data.editing && editable) updateQuantity();
   };
   const click_handler_1 = () => {
-    store2.removeEntry(data2);
+    store.removeEntry(data);
   };
   function input_input_handler() {
-    data2.newQuantity = to_number(this.value);
-    $$invalidate(0, data2);
+    data.newQuantity = to_number(this.value);
+    $$invalidate(0, data);
   }
   const click_handler_2 = () => {
-    $$invalidate(0, data2.editing = true, data2);
+    $$invalidate(0, data.editing = true, data);
   };
   $$self.$$set = ($$props2) => {
-    if ("store" in $$props2) $$invalidate(1, store2 = $$props2.store);
-    if ("data" in $$props2) $$invalidate(0, data2 = $$props2.data);
+    if ("store" in $$props2) $$invalidate(1, store = $$props2.store);
+    if ("data" in $$props2) $$invalidate(0, data = $$props2.data);
     if ("editable" in $$props2) $$invalidate(2, editable = $$props2.editable);
   };
   return [
-    data2,
-    store2,
+    data,
+    store,
     editable,
     canPreview,
     previewItem2,
@@ -88358,44 +88520,44 @@ class TradeEntry extends SvelteComponent {
 }
 function get_each_context$1(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[33] = list[i];
-  child_ctx[34] = list;
-  child_ctx[35] = i;
+  child_ctx[34] = list[i];
+  child_ctx[35] = list;
+  child_ctx[36] = i;
   return child_ctx;
 }
 function get_each_context_1$1(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[36] = list[i];
-  child_ctx[37] = list;
-  child_ctx[38] = i;
+  child_ctx[37] = list[i];
+  child_ctx[38] = list;
+  child_ctx[39] = i;
   return child_ctx;
 }
 function get_each_context_2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[33] = list[i];
-  child_ctx[39] = list;
-  child_ctx[40] = i;
+  child_ctx[34] = list[i];
+  child_ctx[40] = list;
+  child_ctx[41] = i;
   return child_ctx;
 }
 function get_each_context_3(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[33] = list[i];
-  child_ctx[41] = list;
-  child_ctx[42] = i;
+  child_ctx[34] = list[i];
+  child_ctx[42] = list;
+  child_ctx[43] = i;
   return child_ctx;
 }
 function get_each_context_4(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[36] = list[i];
-  child_ctx[43] = list;
-  child_ctx[44] = i;
+  child_ctx[37] = list[i];
+  child_ctx[44] = list;
+  child_ctx[45] = i;
   return child_ctx;
 }
 function get_each_context_5(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[33] = list[i];
-  child_ctx[45] = list;
-  child_ctx[46] = i;
+  child_ctx[34] = list[i];
+  child_ctx[46] = list;
+  child_ctx[47] = i;
   return child_ctx;
 }
 function create_if_block_7$1(ctx) {
@@ -88469,11 +88631,11 @@ function create_each_block_5(key_1, ctx) {
     ctx[22](
       value,
       /*item*/
-      ctx[33],
+      ctx[34],
       /*each_value_5*/
-      ctx[45],
+      ctx[46],
       /*item_index_3*/
-      ctx[46]
+      ctx[47]
     );
   }
   let tradeentry_props = {
@@ -88488,10 +88650,10 @@ function create_each_block_5(key_1, ctx) {
   };
   if (
     /*item*/
-    ctx[33] !== void 0
+    ctx[34] !== void 0
   ) {
     tradeentry_props.data = /*item*/
-    ctx[33];
+    ctx[34];
   }
   tradeentry = new TradeEntry({ props: tradeentry_props });
   binding_callbacks.push(() => bind(tradeentry, "data", tradeentry_data_binding));
@@ -88521,7 +88683,7 @@ function create_each_block_5(key_1, ctx) {
       16) {
         updating_data = true;
         tradeentry_changes.data = /*item*/
-        ctx[33];
+        ctx[34];
         add_flush_callback(() => updating_data = false);
       }
       tradeentry.$set(tradeentry_changes);
@@ -88562,7 +88724,7 @@ function create_if_block_3$1(ctx) {
   );
   const get_key = (ctx2) => (
     /*currency*/
-    ctx2[36].path
+    ctx2[37].path
   );
   for (let i = 0; i < each_value_4.length; i += 1) {
     let child_ctx = get_each_context_4(ctx, each_value_4, i);
@@ -88575,7 +88737,7 @@ function create_if_block_3$1(ctx) {
   );
   const get_key_1 = (ctx2) => (
     /*item*/
-    ctx2[33].id
+    ctx2[34].id
   );
   for (let i = 0; i < each_value_3.length; i += 1) {
     let child_ctx = get_each_context_3(ctx, each_value_3, i);
@@ -88812,11 +88974,11 @@ function create_each_block_4(key_1, ctx) {
     ctx[25](
       value,
       /*currency*/
-      ctx[36],
+      ctx[37],
       /*each_value_4*/
-      ctx[43],
+      ctx[44],
       /*currency_index_1*/
-      ctx[44]
+      ctx[45]
     );
   }
   let tradeentry_props = {
@@ -88831,10 +88993,10 @@ function create_each_block_4(key_1, ctx) {
   };
   if (
     /*currency*/
-    ctx[36] !== void 0
+    ctx[37] !== void 0
   ) {
     tradeentry_props.data = /*currency*/
-    ctx[36];
+    ctx[37];
   }
   tradeentry = new TradeEntry({ props: tradeentry_props });
   binding_callbacks.push(() => bind(tradeentry, "data", tradeentry_data_binding_1));
@@ -88864,7 +89026,7 @@ function create_each_block_4(key_1, ctx) {
       32) {
         updating_data = true;
         tradeentry_changes.data = /*currency*/
-        ctx[36];
+        ctx[37];
         add_flush_callback(() => updating_data = false);
       }
       tradeentry.$set(tradeentry_changes);
@@ -88895,11 +89057,11 @@ function create_each_block_3(key_1, ctx) {
     ctx[26](
       value,
       /*item*/
-      ctx[33],
+      ctx[34],
       /*each_value_3*/
-      ctx[41],
+      ctx[42],
       /*item_index_2*/
-      ctx[42]
+      ctx[43]
     );
   }
   let tradeentry_props = {
@@ -88914,10 +89076,10 @@ function create_each_block_3(key_1, ctx) {
   };
   if (
     /*item*/
-    ctx[33] !== void 0
+    ctx[34] !== void 0
   ) {
     tradeentry_props.data = /*item*/
-    ctx[33];
+    ctx[34];
   }
   tradeentry = new TradeEntry({ props: tradeentry_props });
   binding_callbacks.push(() => bind(tradeentry, "data", tradeentry_data_binding_2));
@@ -88947,7 +89109,7 @@ function create_each_block_3(key_1, ctx) {
       64) {
         updating_data = true;
         tradeentry_changes.data = /*item*/
-        ctx[33];
+        ctx[34];
         add_flush_callback(() => updating_data = false);
       }
       tradeentry.$set(tradeentry_changes);
@@ -89084,11 +89246,11 @@ function create_each_block_2(key_1, ctx) {
     ctx[28](
       value,
       /*item*/
-      ctx[33],
+      ctx[34],
       /*each_value_2*/
-      ctx[39],
+      ctx[40],
       /*item_index_1*/
-      ctx[40]
+      ctx[41]
     );
   }
   let tradeentry_props = { store: (
@@ -89097,10 +89259,10 @@ function create_each_block_2(key_1, ctx) {
   ), editable: false };
   if (
     /*item*/
-    ctx[33] !== void 0
+    ctx[34] !== void 0
   ) {
     tradeentry_props.data = /*item*/
-    ctx[33];
+    ctx[34];
   }
   tradeentry = new TradeEntry({ props: tradeentry_props });
   binding_callbacks.push(() => bind(tradeentry, "data", tradeentry_data_binding_3));
@@ -89127,7 +89289,7 @@ function create_each_block_2(key_1, ctx) {
       128) {
         updating_data = true;
         tradeentry_changes.data = /*item*/
-        ctx[33];
+        ctx[34];
         add_flush_callback(() => updating_data = false);
       }
       tradeentry.$set(tradeentry_changes);
@@ -89163,7 +89325,7 @@ function create_if_block$2(ctx) {
   );
   const get_key = (ctx2) => (
     /*currency*/
-    ctx2[36].path
+    ctx2[37].path
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
     let child_ctx = get_each_context_1$1(ctx, each_value_1, i);
@@ -89176,7 +89338,7 @@ function create_if_block$2(ctx) {
   );
   const get_key_1 = (ctx2) => (
     /*item*/
-    ctx2[33].id
+    ctx2[34].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context$1(ctx, each_value, i);
@@ -89290,11 +89452,11 @@ function create_each_block_1$1(key_1, ctx) {
     ctx[29](
       value,
       /*currency*/
-      ctx[36],
-      /*each_value_1*/
       ctx[37],
+      /*each_value_1*/
+      ctx[38],
       /*currency_index*/
-      ctx[38]
+      ctx[39]
     );
   }
   let tradeentry_props = { store: (
@@ -89303,10 +89465,10 @@ function create_each_block_1$1(key_1, ctx) {
   ), editable: false };
   if (
     /*currency*/
-    ctx[36] !== void 0
+    ctx[37] !== void 0
   ) {
     tradeentry_props.data = /*currency*/
-    ctx[36];
+    ctx[37];
   }
   tradeentry = new TradeEntry({ props: tradeentry_props });
   binding_callbacks.push(() => bind(tradeentry, "data", tradeentry_data_binding_4));
@@ -89333,7 +89495,7 @@ function create_each_block_1$1(key_1, ctx) {
       256) {
         updating_data = true;
         tradeentry_changes.data = /*currency*/
-        ctx[36];
+        ctx[37];
         add_flush_callback(() => updating_data = false);
       }
       tradeentry.$set(tradeentry_changes);
@@ -89364,11 +89526,11 @@ function create_each_block$1(key_1, ctx) {
     ctx[30](
       value,
       /*item*/
-      ctx[33],
-      /*each_value*/
       ctx[34],
+      /*each_value*/
+      ctx[35],
       /*item_index*/
-      ctx[35]
+      ctx[36]
     );
   }
   let tradeentry_props = { store: (
@@ -89377,10 +89539,10 @@ function create_each_block$1(key_1, ctx) {
   ), editable: false };
   if (
     /*item*/
-    ctx[33] !== void 0
+    ctx[34] !== void 0
   ) {
     tradeentry_props.data = /*item*/
-    ctx[33];
+    ctx[34];
   }
   tradeentry = new TradeEntry({ props: tradeentry_props });
   binding_callbacks.push(() => bind(tradeentry, "data", tradeentry_data_binding_5));
@@ -89407,7 +89569,7 @@ function create_each_block$1(key_1, ctx) {
       512) {
         updating_data = true;
         tradeentry_changes.data = /*item*/
-        ctx[33];
+        ctx[34];
         add_flush_callback(() => updating_data = false);
       }
       tradeentry.$set(tradeentry_changes);
@@ -89486,7 +89648,7 @@ function create_default_slot_1(ctx) {
   );
   const get_key = (ctx2) => (
     /*item*/
-    ctx2[33].id
+    ctx2[34].id
   );
   for (let i = 0; i < each_value_5.length; i += 1) {
     let child_ctx = get_each_context_5(ctx, each_value_5, i);
@@ -89507,7 +89669,7 @@ function create_default_slot_1(ctx) {
   );
   const get_key_1 = (ctx2) => (
     /*item*/
-    ctx2[33].id
+    ctx2[34].id
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
     let child_ctx = get_each_context_2(ctx, each_value_2, i);
@@ -89876,7 +90038,7 @@ function create_default_slot(ctx) {
       const dropzone_changes = {};
       if (dirty[0] & /*$rightCurrencies, $rightItemCurrencies, store, $rightItems, $rightTraderAccepted, $leftTraderAccepted, $leftCurrencies, $leftItemCurrencies, $leftItems*/
       1022 | dirty[1] & /*$$scope*/
-      65536) {
+      131072) {
         dropzone_changes.$$scope = { dirty, ctx: ctx2 };
       }
       dropzone.$set(dropzone_changes);
@@ -89933,7 +90095,7 @@ function create_fragment$5(ctx) {
       const applicationshell_changes = {};
       if (dirty[0] & /*$rightCurrencies, $rightItemCurrencies, store, $rightItems, $rightTraderAccepted, $leftTraderAccepted, $leftCurrencies, $leftItemCurrencies, $leftItems*/
       1022 | dirty[1] & /*$$scope*/
-      65536) {
+      131072) {
         applicationshell_changes.$$scope = { dirty, ctx: ctx2 };
       }
       if (!updating_elementRoot && dirty[0] & /*elementRoot*/
@@ -89969,112 +90131,116 @@ function instance$2($$self, $$props, $$invalidate) {
   let $rightCurrencies;
   let $rightItemCurrencies;
   let { elementRoot } = $$props;
-  let { store: store2 } = $$props;
-  const leftItems = store2.leftTraderItems;
+  let { store } = $$props;
+  const leftItems = store.leftTraderItems;
   component_subscribe($$self, leftItems, (value) => $$invalidate(4, $leftItems = value));
-  const leftCurrencies = store2.leftTraderCurrencies;
+  const leftCurrencies = store.leftTraderCurrencies;
   component_subscribe($$self, leftCurrencies, (value) => $$invalidate(5, $leftCurrencies = value));
-  const leftItemCurrencies = store2.leftTraderItemCurrencies;
+  const leftItemCurrencies = store.leftTraderItemCurrencies;
   component_subscribe($$self, leftItemCurrencies, (value) => $$invalidate(6, $leftItemCurrencies = value));
-  const leftTraderAccepted = store2.leftTraderAccepted;
+  const leftTraderAccepted = store.leftTraderAccepted;
   component_subscribe($$self, leftTraderAccepted, (value) => $$invalidate(2, $leftTraderAccepted = value));
-  const rightItems = store2.rightTraderItems;
+  const rightItems = store.rightTraderItems;
   component_subscribe($$self, rightItems, (value) => $$invalidate(7, $rightItems = value));
-  const rightCurrencies = store2.rightTraderCurrencies;
+  const rightCurrencies = store.rightTraderCurrencies;
   component_subscribe($$self, rightCurrencies, (value) => $$invalidate(8, $rightCurrencies = value));
-  const rightItemCurrencies = store2.rightTraderItemCurrencies;
+  const rightItemCurrencies = store.rightTraderItemCurrencies;
   component_subscribe($$self, rightItemCurrencies, (value) => $$invalidate(9, $rightItemCurrencies = value));
-  const rightTraderAccepted = store2.rightTraderAccepted;
+  const rightTraderAccepted = store.rightTraderAccepted;
   component_subscribe($$self, rightTraderAccepted, (value) => $$invalidate(3, $rightTraderAccepted = value));
   let isGM = game.user.isGM;
   let systemHasCurrencies = game.itempiles.API.CURRENCIES.length > 0;
-  async function dropItem(data2) {
-    if (data2.type !== "Item") return;
-    let item = (await Item.implementation.fromDropData(data2)).toObject();
-    data2.actorId = getSourceActorFromDropData(data2)?.id;
-    if (!data2.actorId && !game.user.isGM) {
+  async function dropItem(data) {
+    if (data.type !== "Item") return;
+    let item = (await Item.implementation.fromDropData(data)).toObject();
+    data.actorId = getSourceActorFromDropData(data)?.id;
+    if (!data.actorId && !game.user.isGM) {
       return custom_warning(game.i18n.localize("ITEM-PILES.Errors.NoSourceDrop"), true);
     }
-    if (!game.user.isGM && data2.actorId && data2.actorId !== store2.leftTraderActor.id) {
-      throw custom_error(`You cannot drop items into the trade UI from a different actor than ${store2.leftTraderActor.name}!`);
+    if (!game.user.isGM && data.actorId && data.actorId !== store.leftTraderActor.id) {
+      throw custom_error(`You cannot drop items into the trade UI from a different actor than ${store.leftTraderActor.name}!`);
     }
-    const validItem = await checkItemType(store2.rightTraderActor, item, {
+    const validItem = await checkItemType(store.rightTraderActor, item, {
       errorText: "ITEM-PILES.Errors.DisallowedItemTrade",
       warningTitle: "ITEM-PILES.Dialogs.TypeWarning.Title",
       warningContent: "ITEM-PILES.Dialogs.TypeWarning.TradeContent"
     });
     if (!validItem) return;
-    const actorItemCurrencyList = getCurrencyList(store2.leftTraderActor).filter((entry) => entry.type !== "attribute");
+    const actorItemCurrencyList = getCurrencyList(store.leftTraderActor).filter((entry) => entry.type !== "attribute");
     const isCurrency = !!findSimilarItem(actorItemCurrencyList.map((item2) => item2.data), validItem);
     if (!validItem._id) {
       validItem._id = item._id;
     }
     const itemToSend = new Item.implementation(validItem);
-    return store2.addItem(itemToSend, {
-      uuid: data2.uuid,
+    return store.addItem(itemToSend, {
+      uuid: data.uuid,
       quantity: 1,
       currency: isCurrency
     });
   }
-  if (store2.isUserParticipant) {
-    const itemsUpdatedDebounce = debounce(
+  const tradeSubscriptions = [];
+  if (store.isUserParticipant) {
+    const itemsUpdatedDebounce = foundry.utils.debounce(
       async (items) => {
-        await ItemPileSocket.executeForUsers(ItemPileSocket.HANDLERS.PRIVATE_TRADE_UPDATE_ITEMS, [store2.leftTraderUser.id, store2.rightTraderUser.id], store2.privateTradeId, game.user.id, items);
-        return executeSocketAction(ItemPileSocket.HANDLERS.PUBLIC_TRADE_UPDATE_ITEMS, store2.publicTradeId, game.user.id, items);
+        await ItemPileSocket.executeForUsers(ItemPileSocket.HANDLERS.PRIVATE_TRADE_UPDATE_ITEMS, [store.leftTraderUser.id, store.rightTraderUser.id], store.privateTradeId, game.user.id, items);
+        return executeSocketAction(ItemPileSocket.HANDLERS.PUBLIC_TRADE_UPDATE_ITEMS, store.publicTradeId, game.user.id, items);
       },
       20
     );
-    leftItems.subscribe(itemsUpdatedDebounce);
-    const itemCurrenciesUpdatedDebounce = debounce(
+    tradeSubscriptions.push(leftItems.subscribe(itemsUpdatedDebounce));
+    const itemCurrenciesUpdatedDebounce = foundry.utils.debounce(
       async (items) => {
-        await ItemPileSocket.executeForUsers(ItemPileSocket.HANDLERS.PRIVATE_TRADE_UPDATE_ITEM_CURRENCIES, [store2.leftTraderUser.id, store2.rightTraderUser.id], store2.privateTradeId, game.user.id, items);
-        return executeSocketAction(ItemPileSocket.HANDLERS.PUBLIC_TRADE_UPDATE_ITEM_CURRENCIES, store2.publicTradeId, game.user.id, items);
+        await ItemPileSocket.executeForUsers(ItemPileSocket.HANDLERS.PRIVATE_TRADE_UPDATE_ITEM_CURRENCIES, [store.leftTraderUser.id, store.rightTraderUser.id], store.privateTradeId, game.user.id, items);
+        return executeSocketAction(ItemPileSocket.HANDLERS.PUBLIC_TRADE_UPDATE_ITEM_CURRENCIES, store.publicTradeId, game.user.id, items);
       },
       20
     );
-    leftItemCurrencies.subscribe(itemCurrenciesUpdatedDebounce);
-    const attributesUpdatedDebounce = debounce(
+    tradeSubscriptions.push(leftItemCurrencies.subscribe(itemCurrenciesUpdatedDebounce));
+    const attributesUpdatedDebounce = foundry.utils.debounce(
       async (attributes) => {
-        await ItemPileSocket.executeForUsers(ItemPileSocket.HANDLERS.PRIVATE_TRADE_UPDATE_CURRENCIES, [store2.leftTraderUser.id, store2.rightTraderUser.id], store2.privateTradeId, game.user.id, attributes);
-        return executeSocketAction(ItemPileSocket.HANDLERS.PUBLIC_TRADE_UPDATE_CURRENCIES, store2.publicTradeId, game.user.id, attributes);
+        await ItemPileSocket.executeForUsers(ItemPileSocket.HANDLERS.PRIVATE_TRADE_UPDATE_CURRENCIES, [store.leftTraderUser.id, store.rightTraderUser.id], store.privateTradeId, game.user.id, attributes);
+        return executeSocketAction(ItemPileSocket.HANDLERS.PUBLIC_TRADE_UPDATE_CURRENCIES, store.publicTradeId, game.user.id, attributes);
       },
       40
     );
-    leftCurrencies.subscribe(attributesUpdatedDebounce);
-    const acceptedDebounce = debounce(
+    tradeSubscriptions.push(leftCurrencies.subscribe(attributesUpdatedDebounce));
+    const acceptedDebounce = foundry.utils.debounce(
       async (acceptedState) => {
-        await ItemPileSocket.executeForUsers(ItemPileSocket.HANDLERS.PRIVATE_TRADE_STATE, [store2.leftTraderUser.id, store2.rightTraderUser.id], store2.privateTradeId, game.user.id, acceptedState);
-        return executeSocketAction(ItemPileSocket.HANDLERS.PUBLIC_TRADE_STATE, store2.publicTradeId, game.user.id, acceptedState);
+        await ItemPileSocket.executeForUsers(ItemPileSocket.HANDLERS.PRIVATE_TRADE_STATE, [store.leftTraderUser.id, store.rightTraderUser.id], store.privateTradeId, game.user.id, acceptedState);
+        return executeSocketAction(ItemPileSocket.HANDLERS.PUBLIC_TRADE_STATE, store.publicTradeId, game.user.id, acceptedState);
       },
       10
     );
-    leftTraderAccepted.subscribe(acceptedDebounce);
+    tradeSubscriptions.push(leftTraderAccepted.subscribe(acceptedDebounce));
   }
+  onDestroy(() => {
+    tradeSubscriptions.forEach((unsub) => unsub());
+  });
   async function executeSocketAction(socketHandler, ...args) {
-    if (store2.isPrivate) {
-      return ItemPileSocket.executeForUsers(socketHandler, [store2.leftTraderUser.id, store2.rightTraderUser.id], ...args);
+    if (store.isPrivate) {
+      return ItemPileSocket.executeForUsers(socketHandler, [store.leftTraderUser.id, store.rightTraderUser.id], ...args);
     }
     return ItemPileSocket.executeForEveryone(socketHandler, ...args);
   }
   async function addCurrency(asGM = false) {
-    const currenciesToAdd = await DropCurrencyDialog.show(store2.leftTraderActor, store2.rightTraderActor, {
-      existingCurrencies: store2.getExistingCurrencies(),
+    const currenciesToAdd = await DropCurrencyDialog.show(store.leftTraderActor, store.rightTraderActor, {
+      existingCurrencies: store.getExistingCurrencies(),
       title: game.i18n.localize("ITEM-PILES.Trade.AddCurrency.Title"),
       content: game.i18n.format("ITEM-PILES.Trade.AddCurrency.Content", {
-        trader_actor_name: store2.rightTraderActor.name
+        trader_actor_name: store.rightTraderActor.name
       }),
       button: game.i18n.localize("ITEM-PILES.Trade.AddCurrency.Label"),
       unlimitedCurrencies: asGM
     });
     if (!currenciesToAdd || foundry.utils.isEmpty(currenciesToAdd.attributes) && !currenciesToAdd.items.length) return;
     currenciesToAdd.items.forEach((item) => {
-      const itemData = store2.leftTraderActor.items.get(item.item._id).toObject();
-      store2.addItem(itemData, { quantity: item.quantity, currency: true });
+      const itemData = store.leftTraderActor.items.get(item.item._id).toObject();
+      store.addItem(itemData, { quantity: item.quantity, currency: true });
     });
-    const currencies = getActorCurrencies(store2.leftTraderActor, { getAll: asGM }).filter((currency) => currency.type === "attribute");
+    const currencies = getActorCurrencies(store.leftTraderActor, { getAll: asGM }).filter((currency) => currency.type === "attribute");
     Object.entries(currenciesToAdd.attributes).forEach(([path, quantity]) => {
       const currency = currencies.find((currency2) => currency2.path === path);
-      store2.addAttribute({
+      store.addAttribute({
         path,
         quantity,
         newQuantity: quantity,
@@ -90104,7 +90270,7 @@ function instance$2($$self, $$props, $$invalidate) {
     leftItemCurrencies.set($leftItemCurrencies);
   }
   const click_handler_2 = () => {
-    store2.toggleAccepted(store2.leftTraderUser.id);
+    store.toggleAccepted();
   };
   function tradeentry_data_binding_3(value, item, each_value_2, item_index_1) {
     each_value_2[item_index_1] = value;
@@ -90124,11 +90290,11 @@ function instance$2($$self, $$props, $$invalidate) {
   }
   $$self.$$set = ($$props2) => {
     if ("elementRoot" in $$props2) $$invalidate(0, elementRoot = $$props2.elementRoot);
-    if ("store" in $$props2) $$invalidate(1, store2 = $$props2.store);
+    if ("store" in $$props2) $$invalidate(1, store = $$props2.store);
   };
   return [
     elementRoot,
-    store2,
+    store,
     $leftTraderAccepted,
     $rightTraderAccepted,
     $leftItems,
@@ -90176,29 +90342,29 @@ class Trading_app_shell extends SvelteComponent {
   get store() {
     return this.$$.ctx[1];
   }
-  set store(store2) {
-    this.$$set({ store: store2 });
+  set store(store) {
+    this.$$set({ store });
     flush();
   }
 }
 class TradingApp extends SvelteApp {
-  constructor(store2, options = {}, dialogData = {}) {
+  constructor(store, options = {}, dialogData = {}) {
     super({
       title: game.i18n.format("ITEM-PILES.Trade.Between", {
-        actor_1: store2.leftTraderActor.name,
-        actor_2: store2.rightTraderActor.name
+        actor_1: store.leftTraderActor.name,
+        actor_2: store.rightTraderActor.name
       }),
       svelte: {
         class: Trading_app_shell,
         target: document.body,
         props: {
-          store: store2
+          store
         }
       },
       ...options
     }, dialogData);
-    this.store = store2;
-    this.publicTradeId = store2.publicTradeId;
+    this.store = store;
+    this.publicTradeId = store.publicTradeId;
   }
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
@@ -90315,41 +90481,41 @@ class TradeAPI {
       top: 50,
       width: 300
     }).render(true);
-    return ItemPileSocket.executeAsUser(ItemPileSocket.HANDLERS.TRADE_REQUEST_PROMPT, userId, game.user.id, actor.uuid, privateTradeId, publicTradeId, isPrivate).then(async (data2) => {
-      if (data2 === "cancelled") return;
+    return ItemPileSocket.executeAsUser(ItemPileSocket.HANDLERS.TRADE_REQUEST_PROMPT, userId, game.user.id, actor.uuid, privateTradeId, publicTradeId, isPrivate).then(async (data) => {
+      if (data === "cancelled") return;
       cancelDialog.close();
-      if (data2 === "same-actor") {
+      if (data === "same-actor") {
         return custom_warning(game.i18n.localize("ITEM-PILES.Trade.SameActor"), true);
       }
-      if (!data2 || !data2.fullPrivateTradeId.includes(privateTradeId)) {
+      if (!data || typeof data.fullPrivateTradeId !== "string" || !data.fullPrivateTradeId.startsWith(privateTradeId)) {
         return custom_warning(game.i18n.localize("ITEM-PILES.Trade.Declined"), true);
       }
-      const traderActor = getActor(data2.actorUuid);
+      const traderActor = getActor(data.actorUuid);
       if (traderActor === actor) {
         return custom_warning(game.i18n.localize("ITEM-PILES.Trade.SameActor"), true);
       }
-      const store2 = new TradeStore(game.user.id, {
+      const store = new TradeStore(game.user.id, {
         user: game.user,
         actor
       }, {
         user: game.users.get(userId),
         actor: traderActor
-      }, data2.fullPublicTradeId, data2.fullPrivateTradeId, isPrivate);
+      }, data.fullPublicTradeId, data.fullPrivateTradeId, isPrivate);
       const [actorSheet, tradeApp] = getApplicationPositions(actor.sheet);
-      const app = new TradingApp(store2, tradeApp).render(true);
-      ongoingTrades.set(data2.fullPublicTradeId, { app, store: store2 });
-      actorSheet.byassItemPiles = true;
+      const app = new TradingApp(store, tradeApp).render(true);
+      ongoingTrades.set(data.fullPublicTradeId, { app, store });
+      actorSheet.bypassItemPiles = true;
       actor.sheet.render(true, actorSheet);
       if (isPrivate) {
         return ItemPileSocket.callHookForUsers(CONSTANTS.HOOKS.TRADE.STARTED, [game.user.id, userId], {
           user: game.user.id,
           actor: actor.uuid
-        }, { user: userId, actor: data2.actorUuid }, data2.fullPublicTradeId, isPrivate);
+        }, { user: userId, actor: data.actorUuid }, data.fullPublicTradeId, isPrivate);
       }
       return ItemPileSocket.callHook(CONSTANTS.HOOKS.TRADE.STARTED, {
         user: game.user.id,
         actor: actor.uuid
-      }, { user: userId, actor: data2.actorUuid }, data2.fullPublicTradeId, isPrivate);
+      }, { user: userId, actor: data.actorUuid }, data.fullPublicTradeId, isPrivate);
     }).catch((err) => {
       console.error(err);
       custom_warning(game.i18n.localize("ITEM-PILES.Trade.Disconnected"), true);
@@ -90371,7 +90537,7 @@ class TradeAPI {
       return "cancelled";
     }
     if (result === "mute") {
-      mutedUsers.push(tradingUserId);
+      mutedUsers.add(tradingUserId);
       return false;
     }
     const actor = result.actor ?? result;
@@ -90379,7 +90545,7 @@ class TradeAPI {
       custom_warning(game.i18n.localize("ITEM-PILES.Trade.SameActor"), true);
       return "same-actor";
     }
-    const store2 = new TradeStore(tradingUserId, {
+    const store = new TradeStore(tradingUserId, {
       user: game.user,
       actor
     }, {
@@ -90387,9 +90553,9 @@ class TradeAPI {
       actor: tradingActor
     }, fullPublicTradeId, fullPrivateTradeId, isPrivate);
     const [actorSheet, tradeApp] = getApplicationPositions(actor.sheet);
-    const app = new TradingApp(store2, tradeApp).render(true);
-    ongoingTrades.set(fullPublicTradeId, { app, store: store2 });
-    actorSheet.byassItemPiles = true;
+    const app = new TradingApp(store, tradeApp).render(true);
+    ongoingTrades.set(fullPublicTradeId, { app, store });
+    actorSheet.bypassItemPiles = true;
     actor.sheet.render(true, actorSheet);
     return {
       fullPrivateTradeId,
@@ -90450,9 +90616,9 @@ class TradeAPI {
       }
       return custom_warning(game.i18n.localize("ITEM-PILES.Trade.Over"), true);
     }
-    const store2 = TradeStore.import(ongoingTradeData);
-    const app = new TradingApp(store2).render(true);
-    ongoingTrades.set(store2.publicTradeId, { app, store: store2 });
+    const store = TradeStore.import(ongoingTradeData);
+    const app = new TradingApp(store).render(true);
+    ongoingTrades.set(store.publicTradeId, { app, store });
   }
   static async _respondActiveTradeData(tradeId, requesterId) {
     const trade = this._getOngoingTrade(tradeId, requesterId);
@@ -90586,7 +90752,7 @@ class TradeAPI {
     for (const entry of updates.add.items) {
       let item = updates.targetActor.items.get(entry.id);
       if (!item) {
-        item = await fromUuid(entry.uuid);
+        item = await foundry.utils.fromUuid(entry.uuid);
         if (!item) continue;
       }
       const itemData = item.toObject();
@@ -90606,7 +90772,8 @@ class TradeAPI {
     await transaction.appendDocumentChanges(updates.remove.attributes, { remove: true });
     await transaction.commit();
     if (trade.store.isPrivate) {
-      Hooks.callAll(CONSTANTS.HOOKS.TRADE.COMPLETE, trade.store.instigator, data[0], data[1], tradeId);
+      const data = trade.store.export();
+      Hooks.callAll(CONSTANTS.HOOKS.TRADE.COMPLETE, trade.store.instigator, data.leftTraderData, data.rightTraderData, tradeId);
       trade.app.close({ callback: true });
       ongoingTrades.delete(tradeId);
     } else if (userId === game.user.id) {
@@ -90619,17 +90786,17 @@ class TradeAPI {
   static async _tradeCompleted(tradeId) {
     const trade = this._getOngoingTrade(tradeId);
     if (!trade) return;
-    const data2 = trade.store.export();
-    if (data2.instigator === game.user.id) {
+    const data = trade.store.export();
+    if (data.instigator === game.user.id) {
       if (trade.store.isPrivate) {
-        Hooks.callAll(CONSTANTS.HOOKS.TRADE.COMPLETE, data2.instigator, data2.leftTraderData, data2.rightTraderData, tradeId);
+        Hooks.callAll(CONSTANTS.HOOKS.TRADE.COMPLETE, data.instigator, data.leftTraderData, data.rightTraderData, tradeId);
       } else {
         ItemPileSocket.executeForEveryone(
           ItemPileSocket.HANDLERS.CALL_HOOK,
           CONSTANTS.HOOKS.TRADE.COMPLETE,
           trade.store.instigator,
-          data2.leftTraderData,
-          data2.rightTraderData,
+          data.leftTraderData,
+          data.rightTraderData,
           tradeId,
           trade.store.isPrivate
         );
@@ -90643,6 +90810,7 @@ class ChatAPI {
   static initialize() {
     hooks.on("preCreateChatMessage", this._preCreateChatMessage.bind(this));
     hooks.on("renderChatMessage", this._renderChatMessage.bind(this));
+    hooks.on("renderChatMessageHTML", this._renderChatMessage.bind(this));
     hooks.on(CONSTANTS.HOOKS.ITEM.TRANSFER, this._outputTransferItem.bind(this));
     hooks.on(CONSTANTS.HOOKS.ATTRIBUTE.TRANSFER, this._outputTransferCurrency.bind(this));
     hooks.on(CONSTANTS.HOOKS.TRANSFER_EVERYTHING, this._outputTransferEverything.bind(this));
@@ -90658,9 +90826,9 @@ class ChatAPI {
     });
   }
   static _preCreateChatMessage(chatMessage) {
-    if (!getSetting(SETTINGS.ENABLE_TRADING)) return;
     const content = chatMessage.content.toLowerCase();
     if (!(content.startsWith("!itempiles") || content.startsWith("!ip"))) return;
+    if (!getSetting(SETTINGS.ENABLE_TRADING)) return false;
     const args = content.split(" ").slice(1);
     if (args[0] === "trade") {
       setTimeout(() => {
@@ -90670,7 +90838,7 @@ class ChatAPI {
     return false;
   }
   static _renderChatMessage(app, html) {
-    html.find(".item-piles-specate-trade").click(function() {
+    $(html).find(".item-piles-specate-trade").click(function() {
       game.itempiles.API.spectateTrade($(this).data());
     });
   }
@@ -90693,7 +90861,7 @@ class ChatAPI {
       const update2 = this._replaceChatContent(message);
       const tradeId = foundry.utils.getProperty(message, CONSTANTS.FLAGS.PUBLIC_TRADE_ID);
       const tradeUsers = foundry.utils.getProperty(message, CONSTANTS.FLAGS.TRADE_USERS);
-      const bothUsersActive = tradeUsers.filter((userId) => game.users.get(userId).active).length === tradeUsers.length;
+      const bothUsersActive = tradeUsers.filter((userId) => game.users.get(userId)?.active).length === tradeUsers.length;
       if (!bothUsersActive) {
         updates.push(update2);
       } else {
@@ -90819,15 +90987,15 @@ class ChatAPI {
     const currencyList = getActorCurrencies(itemPile, { getAll: true });
     for (const itemData of items) {
       const tempItem = new Item.implementation(itemData.item);
-      const data2 = {
+      const data = {
         name: game.i18n.localize(tempItem.name),
         img: tempItem.img ?? itemData?.item?.img ?? "",
         quantity: Math.abs(itemData.quantity) / divideBy
       };
       if (isItemCurrency(tempItem, { actorCurrencies: currencyList })) {
-        formattedCurrencies.push(data2);
+        formattedCurrencies.push(data);
       } else {
-        formattedItems.push(data2);
+        formattedItems.push(data);
       }
     }
     return [formattedItems, formattedCurrencies];
@@ -90871,11 +91039,11 @@ class ChatAPI {
     messages.reverse();
     for (const message of messages) {
       const flags = foundry.utils.getProperty(message, CONSTANTS.FLAGS.PILE);
-      if (flags && flags.version && !foundry.utils.isNewerVersion(getModuleVersion(), flags.version) && flags.source === sourceUuid && flags.target === targetUuid && flags.interactionId === interactionId) {
+      if (flags && flags.version && !foundry.utils.isNewerVersion(getModuleVersion(), flags.version) && flags.source === sourceUuid && flags.target === targetUuid && flags.interactionId === interactionId && this._messageMatchesOutputVisibility(message, userId)) {
         return this._updateExistingPickupMessage(message, sourceActor, targetActor, items, currencies, interactionId);
       }
     }
-    const chatCardHtml = await renderTemplate(CONSTANTS.PATH + "templates/chat/looted.html", {
+    const chatCardHtml = await foundry.applications.handlebars.renderTemplate(CONSTANTS.PATH + "templates/chat/looted.html", {
       message: game.i18n.format("ITEM-PILES.Chat.Pickup", { name: targetActor.name }),
       itemPile: sourceActor,
       actor: targetActor,
@@ -90884,7 +91052,7 @@ class ChatAPI {
     });
     return this._createNewChatMessage(userId, {
       user: game.user.id,
-      type: CONST.CHAT_MESSAGE_STYLES.OTHER,
+      style: CONST.CHAT_MESSAGE_STYLES.OTHER,
       content: chatCardHtml,
       flavor: "Item Piles",
       speaker: ChatMessage.getSpeaker({ alias: game.user.name }),
@@ -90917,7 +91085,7 @@ class ChatAPI {
     newCurrencies.sort((a, b) => {
       return a.index - b.index;
     });
-    const chatCardHtml = await renderTemplate(CONSTANTS.PATH + "templates/chat/looted.html", {
+    const chatCardHtml = await foundry.applications.handlebars.renderTemplate(CONSTANTS.PATH + "templates/chat/looted.html", {
       message: game.i18n.format("ITEM-PILES.Chat.Pickup", { name: targetActor.name }),
       itemPile: sourceActor,
       actor: targetActor,
@@ -90936,7 +91104,7 @@ class ChatAPI {
     const divideBy = Object.values(actorDeltas).length;
     const [items, itemCurrencies] = await this._formatItemData(sourceActor, pileDeltas.itemDeltas, divideBy);
     const currencies = this._formatCurrencyData(sourceActor, pileDeltas.attributeDeltas, divideBy).concat(itemCurrencies);
-    const chatCardHtml = await renderTemplate(CONSTANTS.PATH + "templates/chat/looted.html", {
+    const chatCardHtml = await foundry.applications.handlebars.renderTemplate(CONSTANTS.PATH + "templates/chat/looted.html", {
       message: game.i18n.format("ITEM-PILES.Chat.Split", { num_players: divideBy }),
       itemPile: sourceActor,
       items,
@@ -90944,7 +91112,7 @@ class ChatAPI {
     });
     return this._createNewChatMessage(userId, {
       user: game.user.id,
-      type: CONST.CHAT_MESSAGE_STYLES.OTHER,
+      style: CONST.CHAT_MESSAGE_STYLES.OTHER,
       content: chatCardHtml,
       flavor: "Item Piles",
       speaker: ChatMessage.getSpeaker({ alias: game.user.name })
@@ -90953,7 +91121,7 @@ class ChatAPI {
   static async _outputTradeStartedToChat(party_1, party_2, publicTradeId) {
     const party_1_actor = getActor(party_1.actor);
     const party_2_actor = getActor(party_2.actor);
-    const chatCardHtml = await renderTemplate(CONSTANTS.PATH + "templates/chat/trade-started.html", {
+    const chatCardHtml = await foundry.applications.handlebars.renderTemplate(CONSTANTS.PATH + "templates/chat/trade-started.html", {
       party_1_actor,
       party_2_actor,
       publicTradeId,
@@ -90961,7 +91129,7 @@ class ChatAPI {
     });
     return this._createNewChatMessage(game.user.id, {
       user: game.user.id,
-      type: CONST.CHAT_MESSAGE_STYLES.OTHER,
+      style: CONST.CHAT_MESSAGE_STYLES.OTHER,
       content: chatCardHtml,
       flavor: "Item Piles",
       speaker: ChatMessage.getSpeaker({ alias: game.user.name }),
@@ -90985,9 +91153,9 @@ class ChatAPI {
       currencies: party_1.currencies.concat(party_1.itemCurrencies)
     };
     party_2_data.got_nothing = !party_2_data.items.length && !party_2_data.currencies.length;
-    if (party_1.got_nothing && party_2.got_nothing) return;
+    if (party_1_data.got_nothing && party_2_data.got_nothing) return;
     const enableCollapse = party_1_data.items.length + party_1_data.currencies.length + party_2_data.items.length + party_2_data.currencies.length > 6;
-    const chatCardHtml = await renderTemplate(CONSTANTS.PATH + "templates/chat/trade-complete.html", {
+    const chatCardHtml = await foundry.applications.handlebars.renderTemplate(CONSTANTS.PATH + "templates/chat/trade-complete.html", {
       party_1: party_1_data,
       party_2: party_2_data,
       publicTradeId,
@@ -90996,11 +91164,15 @@ class ChatAPI {
     });
     return this._createNewChatMessage(game.user.id, {
       user: game.user.id,
-      type: CONST.CHAT_MESSAGE_STYLES.OTHER,
+      style: CONST.CHAT_MESSAGE_STYLES.OTHER,
       content: chatCardHtml,
       flavor: "Item Piles" + (isPrivate ? ": " + game.i18n.localize("ITEM-PILES.Chat.PrivateTrade") : ""),
       speaker: ChatMessage.getSpeaker({ alias: game.user.name }),
-      whisper: isPrivate ? [party_2.user] : []
+      whisper: isPrivate ? Array.from(/* @__PURE__ */ new Set([
+        party_1.user,
+        party_2.user,
+        ...Array.from(game.users).filter((u) => u.isGM).map((u) => u.id)
+      ])) : []
     });
   }
   static async _outputMerchantTradeToChat(sourceUuid, targetUuid, priceInformation, userId, interactionId) {
@@ -91012,12 +91184,12 @@ class ChatAPI {
     messages.reverse();
     for (const message of messages) {
       const flags = foundry.utils.getProperty(message, CONSTANTS.FLAGS.PILE);
-      if (flags && flags.version && !foundry.utils.isNewerVersion(getModuleVersion(), flags.version) && flags.source === sourceUuid && flags.target === targetUuid && flags.interactionId === interactionId) {
+      if (flags && flags.version && !foundry.utils.isNewerVersion(getModuleVersion(), flags.version) && flags.source === sourceUuid && flags.target === targetUuid && flags.interactionId === interactionId && this._messageMatchesOutputVisibility(message, userId)) {
         return this._updateExistingMerchantMessage(message, sourceActor, targetActor, priceInformation, interactionId);
       }
     }
     const pileData = getActorFlagData(sourceActor);
-    const chatCardHtml = await renderTemplate(CONSTANTS.PATH + "templates/chat/merchant-traded.html", {
+    const chatCardHtml = await foundry.applications.handlebars.renderTemplate(CONSTANTS.PATH + "templates/chat/merchant-traded.html", {
       message: game.i18n.format("ITEM-PILES.Chat.MerchantTraded", {
         name: targetActor.name,
         merchant: sourceActor.name
@@ -91031,7 +91203,7 @@ class ChatAPI {
     });
     return this._createNewChatMessage(userId, {
       user: game.user.id,
-      type: CONST.CHAT_MESSAGE_STYLES.OTHER,
+      style: CONST.CHAT_MESSAGE_STYLES.OTHER,
       content: chatCardHtml,
       flavor: "Item Piles",
       speaker: ChatMessage.getSpeaker({ alias: game.user.name }),
@@ -91055,7 +91227,7 @@ class ChatAPI {
         return this._updateExistingGiveMessage(message, sourceActor, targetActor, items);
       }
     }
-    const chatCardHtml = await renderTemplate(CONSTANTS.PATH + "templates/chat/gave-items.html", {
+    const chatCardHtml = await foundry.applications.handlebars.renderTemplate(CONSTANTS.PATH + "templates/chat/gave-items.html", {
       message: game.i18n.format("ITEM-PILES.Chat.GaveItems", { source: sourceActor.name, target: targetActor.name }),
       source: sourceActor,
       target: targetActor,
@@ -91064,7 +91236,7 @@ class ChatAPI {
     const user = game.users.get(userId);
     const chatData = {
       user: user.id,
-      type: CONST.CHAT_MESSAGE_STYLES.OTHER,
+      style: CONST.CHAT_MESSAGE_STYLES.OTHER,
       content: chatCardHtml,
       flavor: "Item Piles",
       speaker: ChatMessage.getSpeaker({ alias: user.name }),
@@ -91086,7 +91258,7 @@ class ChatAPI {
   static async _updateExistingGiveMessage(message, sourceActor, targetActor, items) {
     const flags = foundry.utils.getProperty(message, CONSTANTS.FLAGS.PILE);
     const newItems = this._matchEntries(flags.items, items);
-    const chatCardHtml = await renderTemplate(CONSTANTS.PATH + "templates/chat/gave-items.html", {
+    const chatCardHtml = await foundry.applications.handlebars.renderTemplate(CONSTANTS.PATH + "templates/chat/gave-items.html", {
       message: game.i18n.format("ITEM-PILES.Chat.GaveItems", { source: sourceActor.name, target: targetActor.name }),
       source: sourceActor,
       target: targetActor,
@@ -91127,7 +91299,7 @@ class ChatAPI {
       return priceInformation;
     }).concat([incomingPriceInformation].filter((priceInformation) => priceInformation.buyerReceive.length));
     const pileData = getActorFlagData(sourceActor);
-    const chatCardHtml = await renderTemplate(CONSTANTS.PATH + "templates/chat/merchant-traded.html", {
+    const chatCardHtml = await foundry.applications.handlebars.renderTemplate(CONSTANTS.PATH + "templates/chat/merchant-traded.html", {
       message: game.i18n.format("ITEM-PILES.Chat.MerchantTraded", {
         name: targetActor.name,
         merchant: sourceActor.name
@@ -91145,15 +91317,43 @@ class ChatAPI {
       [`${CONSTANTS.FLAGS.PILE}.priceInformation`]: newPriceInformation
     });
   }
+  /**
+   * Build the whisper recipient list for the current OUTPUT_TO_CHAT mode.
+   * @param {string} userId - the user whose action triggered the message
+   * @returns {string[]} - empty array means "public message"
+   */
+  static _getOutputWhisperRecipients(userId) {
+    const mode = Number(getSetting(SETTINGS.OUTPUT_TO_CHAT)) || 0;
+    if (mode < 2) return [];
+    const recipients = Array.from(game.users).filter((user) => user.isGM).map((user) => user.id);
+    if (mode === 2) recipients.push(userId);
+    return Array.from(new Set(recipients));
+  }
+  /**
+   * Whether an existing chat card's whisper set matches what we'd compute for
+   * the current user under the current OUTPUT_TO_CHAT mode. Used to decide
+   * whether to merge a new pickup/purchase into the existing card or post a
+   * fresh one. Merging a private update into a public card would leak, and
+   * when chat output is "Off" we must not touch any card at all.
+   *
+   * @param {ChatMessage} message
+   * @param {string} userId
+   * @returns {boolean}
+   */
+  static _messageMatchesOutputVisibility(message, userId) {
+    const mode = Number(getSetting(SETTINGS.OUTPUT_TO_CHAT)) || 0;
+    if (!mode) return false;
+    const expected = this._getOutputWhisperRecipients(userId);
+    const actual = Array.from(new Set(message.whisper ?? []));
+    if (expected.length !== actual.length) return false;
+    return expected.every((recipient) => actual.includes(recipient));
+  }
   static _createNewChatMessage(userId, chatData) {
-    if (!chatData.whisper) {
-      const mode = getSetting(SETTINGS.OUTPUT_TO_CHAT);
-      if (mode > 1) {
-        chatData.whisper = Array.from(game.users).filter((user) => user.isGM).map((user) => user.id);
-        if (mode === 2) {
-          chatData.whisper.push(userId);
-        }
-      }
+    const mode = Number(getSetting(SETTINGS.OUTPUT_TO_CHAT)) || 0;
+    if (!mode && !chatData.whisper?.length) return;
+    if (!chatData.whisper?.length) {
+      const whisper = this._getOutputWhisperRecipients(userId);
+      if (whisper.length) chatData.whisper = whisper;
     }
     if (chatData?.whisper?.length) {
       chatData.whisper = Array.from(new Set(chatData.whisper));
@@ -91247,7 +91447,7 @@ class ItemPileSocket {
     [this.HANDLERS.TOGGLE_HOOKS]: (toggle) => {
       hooks.run = toggle;
     },
-    [this.HANDLERS.DROP_ITEMS]: (args) => PrivateAPI._dropItems(args),
+    [this.HANDLERS.DROP_ITEMS]: (...args) => PrivateAPI._dropItems(...args),
     [this.HANDLERS.GIVE_ITEMS]: (...args) => PrivateAPI._giveItems(...args),
     [this.HANDLERS.GIVE_ITEMS_RESPONSE]: (...args) => PrivateAPI._giveItemsResponse(...args),
     [this.HANDLERS.ADD_ITEMS]: (...args) => PrivateAPI._addItems(...args),
@@ -91398,7 +91598,7 @@ async function callHook(hook, ...args) {
   const newArgs = [];
   for (let arg of args) {
     if (stringIsUuid(arg)) {
-      const testArg = fromUuidSync(arg);
+      const testArg = foundry.utils.fromUuidSync(arg);
       if (testArg) {
         arg = testArg;
       }
@@ -91645,7 +91845,7 @@ const computePosition$1 = async (reference, floating, config) => {
     const {
       x: nextX,
       y: nextY,
-      data: data2,
+      data,
       reset
     } = await fn({
       x,
@@ -91667,7 +91867,7 @@ const computePosition$1 = async (reference, floating, config) => {
       ...middlewareData,
       [name]: {
         ...middlewareData[name],
-        ...data2
+        ...data
       }
     };
     if (reset && resetCount <= 50) {
@@ -92540,12 +92740,12 @@ function getOffsetParent(element2, polyfill) {
   }
   return offsetParent || getContainingBlock(element2) || win;
 }
-const getElementRects = async function(data2) {
+const getElementRects = async function(data) {
   const getOffsetParentFn = this.getOffsetParent || getOffsetParent;
   const getDimensionsFn = this.getDimensions;
-  const floatingDimensions = await getDimensionsFn(data2.floating);
+  const floatingDimensions = await getDimensionsFn(data.floating);
   return {
-    reference: getRectRelativeToOffsetParent(data2.reference, await getOffsetParentFn(data2.floating), data2.strategy),
+    reference: getRectRelativeToOffsetParent(data.reference, await getOffsetParentFn(data.floating), data.strategy),
     floating: {
       x: 0,
       y: 0,
@@ -95698,7 +95898,7 @@ function instance$1($$self, $$props, $$invalidate) {
   let { loading = false } = $$props;
   let { listOpen = false } = $$props;
   let timeout;
-  let { debounce: debounce2 = (fn, wait2 = 1) => {
+  let { debounce = (fn, wait2 = 1) => {
     clearTimeout(timeout);
     timeout = setTimeout(fn, wait2);
   } } = $$props;
@@ -95811,7 +96011,7 @@ function instance$1($$self, $$props, $$invalidate) {
   function setupFilterText() {
     if (!loadOptions && filterText.length === 0) return;
     if (loadOptions) {
-      debounce2(
+      debounce(
         async function() {
           $$invalidate(5, loading = true);
           let res = await getItems$1({
@@ -96212,7 +96412,7 @@ function instance$1($$self, $$props, $$invalidate) {
     if ("clearable" in $$props2) $$invalidate(68, clearable = $$props2.clearable);
     if ("loading" in $$props2) $$invalidate(5, loading = $$props2.loading);
     if ("listOpen" in $$props2) $$invalidate(6, listOpen = $$props2.listOpen);
-    if ("debounce" in $$props2) $$invalidate(69, debounce2 = $$props2.debounce);
+    if ("debounce" in $$props2) $$invalidate(69, debounce = $$props2.debounce);
     if ("debounceWait" in $$props2) $$invalidate(70, debounceWait = $$props2.debounceWait);
     if ("hideEmptyState" in $$props2) $$invalidate(19, hideEmptyState = $$props2.hideEmptyState);
     if ("inputAttributes" in $$props2) $$invalidate(71, inputAttributes = $$props2.inputAttributes);
@@ -96454,7 +96654,7 @@ function instance$1($$self, $$props, $$invalidate) {
     createGroupHeaderItem,
     getFilteredItems,
     clearable,
-    debounce2,
+    debounce,
     debounceWait,
     inputAttributes,
     listAutoWidth,
@@ -96905,8 +97105,8 @@ function instance($$self, $$props, $$invalidate) {
   let selectedActor = localStorage.getItem("item-piles-give-item") ?? false;
   let items = Array.from(game.actors).filter((actor) => {
     return game.user.isGM || (actor.ownership["default"] >= 1 || actor.ownership[game.user.id] >= 1);
-  }).concat(game.users.map((user) => user.character).filter(Boolean)).filter((actor) => actor !== item.parent).filter((actor, index, self) => {
-    return index === self.findIndex((a) => a.uuid === actor.uuid);
+  }).concat(game.users.map((user) => user.character).filter(Boolean)).filter((actor) => actor !== item.parent).filter((actor, index, self2) => {
+    return index === self2.findIndex((a) => a.uuid === actor.uuid);
   }).map((actor) => ({
     value: actor.uuid,
     label: actor.name,
@@ -96915,7 +97115,7 @@ function instance($$self, $$props, $$invalidate) {
   })).sort((a, b) => {
     return (a.group >= b.group ? 1e5 : -1e5) + (a.label >= b.label ? 1 : -1);
   });
-  if (selectedActor && !items.some((data2) => data2.value === selectedActor)) {
+  if (selectedActor && !items.some((data) => data.value === selectedActor)) {
     selectedActor = false;
   }
   const groupBy = (item2) => item2.group;
@@ -97023,7 +97223,7 @@ class GiveItems extends TJSDialog {
       for (let app of apps) {
         app.render(false, { focus: true });
       }
-      return;
+      return null;
     }
     return new Promise((resolve) => {
       options.resolve = resolve;
@@ -97265,7 +97465,7 @@ class API {
    */
   static setCurrencyDecimalDigits(inDecimalDigits) {
     if (typeof inDecimalDigits !== "number") {
-      throw custom_error("setCurrencyDecimalDigits | inDecimalDigits must be of type string");
+      throw custom_error("setCurrencyDecimalDigits | inDecimalDigits must be of type number");
     }
     return setSetting(SETTINGS.CURRENCY_DECIMAL_DIGITS, inDecimalDigits);
   }
@@ -97436,35 +97636,35 @@ class API {
    */
   static addSystemIntegration(inData, version = "latest") {
     const defaultSettings = foundry.utils.deepClone(SYSTEMS.DEFAULT_SETTINGS);
-    const data2 = foundry.utils.mergeObject(defaultSettings, inData, { insertKeys: false });
-    if (typeof data2["VERSION"] !== "string") {
+    const data = foundry.utils.mergeObject(defaultSettings, inData, { insertKeys: false });
+    if (typeof data["VERSION"] !== "string") {
       throw custom_error("addSystemIntegration | data.VERSION must be of type string");
     }
-    if (typeof data2["ACTOR_CLASS_TYPE"] !== "string") {
+    if (typeof data["ACTOR_CLASS_TYPE"] !== "string") {
       throw custom_error("addSystemIntegration | data.ACTOR_CLASS_TYPE must be of type string");
     }
-    if (data2["ITEM_CLASS_LOOT_TYPE"] && typeof data2["ITEM_CLASS_LOOT_TYPE"] !== "string") {
+    if (data["ITEM_CLASS_LOOT_TYPE"] && typeof data["ITEM_CLASS_LOOT_TYPE"] !== "string") {
       throw custom_error("addSystemIntegration | data.ITEM_CLASS_LOOT_TYPE must be of type string");
     }
-    if (data2["ITEM_CLASS_WEAPON_TYPE"] && typeof data2["ITEM_CLASS_WEAPON_TYPE"] !== "string") {
+    if (data["ITEM_CLASS_WEAPON_TYPE"] && typeof data["ITEM_CLASS_WEAPON_TYPE"] !== "string") {
       throw custom_error("addSystemIntegration | data.ITEM_CLASS_WEAPON_TYPE must be of type string");
     }
-    if (data2["ITEM_CLASS_EQUIPMENT_TYPE"] && typeof data2["ITEM_CLASS_EQUIPMENT_TYPE"] !== "string") {
+    if (data["ITEM_CLASS_EQUIPMENT_TYPE"] && typeof data["ITEM_CLASS_EQUIPMENT_TYPE"] !== "string") {
       throw custom_error("addSystemIntegration | data.ITEM_CLASS_EQUIPMENT_TYPE must be of type string");
     }
-    if (typeof data2["ITEM_QUANTITY_ATTRIBUTE"] !== "string") {
+    if (typeof data["ITEM_QUANTITY_ATTRIBUTE"] !== "string") {
       throw custom_error("addSystemIntegration | data.ITEM_QUANTITY_ATTRIBUTE must be of type string");
     }
-    if (typeof data2["ITEM_PRICE_ATTRIBUTE"] !== "string") {
+    if (typeof data["ITEM_PRICE_ATTRIBUTE"] !== "string") {
       throw custom_error("addSystemIntegration | data.ITEM_PRICE_ATTRIBUTE must be of type string");
     }
-    if (data2["QUANTITY_FOR_PRICE_ATTRIBUTE"] && typeof data2["QUANTITY_FOR_PRICE_ATTRIBUTE"] !== "string") {
+    if (data["QUANTITY_FOR_PRICE_ATTRIBUTE"] && typeof data["QUANTITY_FOR_PRICE_ATTRIBUTE"] !== "string") {
       throw custom_error("addSystemIntegration | data.QUANTITY_FOR_PRICE_ATTRIBUTE must be of type string");
     }
-    if (!Array.isArray(data2["ITEM_FILTERS"])) {
+    if (!Array.isArray(data["ITEM_FILTERS"])) {
       throw custom_error("addSystemIntegration | data.ITEM_FILTERS must be of type array");
     }
-    data2["ITEM_FILTERS"].forEach((filter2) => {
+    data["ITEM_FILTERS"].forEach((filter2) => {
       if (typeof filter2?.path !== "string") {
         throw custom_error('addSystemIntegration | each entry in data.ITEM_FILTERS must have a "path" property with a value that is of type string');
       }
@@ -97472,68 +97672,68 @@ class API {
         throw custom_error('addSystemIntegration | each entry in data.ITEM_FILTERS must have a "filters" property with a value that is of type string');
       }
     });
-    if (data2["ITEM_TRANSFORMER"]) {
-      if (!isFunction(data2["ITEM_TRANSFORMER"])) {
+    if (data["ITEM_TRANSFORMER"]) {
+      if (!isFunction(data["ITEM_TRANSFORMER"])) {
         throw custom_error("addSystemIntegration | data.ITEM_TRANSFORMER must be of type function");
       }
-      if (typeof data2["ITEM_TRANSFORMER"]({}) !== "object") {
+      if (typeof data["ITEM_TRANSFORMER"]({}) !== "object") {
         throw custom_error("addSystemIntegration | data.ITEM_TRANSFORMER's return value must be of type object");
       }
     }
-    if (data2["PREVIEW_ITEM_TRANSFORMER"]) {
-      if (!isFunction(data2["PREVIEW_ITEM_TRANSFORMER"])) {
+    if (data["PREVIEW_ITEM_TRANSFORMER"]) {
+      if (!isFunction(data["PREVIEW_ITEM_TRANSFORMER"])) {
         throw custom_error("addSystemIntegration | data.PREVIEW_ITEM_TRANSFORMER must be of type function");
       }
-      if (typeof data2["PREVIEW_ITEM_TRANSFORMER"]({}) !== "object") {
+      if (typeof data["PREVIEW_ITEM_TRANSFORMER"]({}) !== "object") {
         throw custom_error("addSystemIntegration | data.PREVIEW_ITEM_TRANSFORMER's return value must be of type object");
       }
     }
-    if (data2["ITEM_COST_TRANSFORMER"]) {
-      if (!isFunction(data2["ITEM_COST_TRANSFORMER"])) {
+    if (data["ITEM_COST_TRANSFORMER"]) {
+      if (!isFunction(data["ITEM_COST_TRANSFORMER"])) {
         throw custom_error("addSystemIntegration | data.ITEM_COST_TRANSFORMER must be of type function");
       }
     }
-    if (data2["ITEM_PREVIEW_PERMISSION_LEVEL"] !== void 0) {
-      if (typeof data2["ITEM_PREVIEW_PERMISSION_LEVEL"] !== "number") {
+    if (data["ITEM_PREVIEW_PERMISSION_LEVEL"] !== void 0) {
+      if (typeof data["ITEM_PREVIEW_PERMISSION_LEVEL"] !== "number") {
         throw custom_error("addSystemIntegration | data.ITEM_PREVIEW_PERMISSION_LEVEL must be of type number");
       }
-      if (data2["ITEM_PREVIEW_PERMISSION_LEVEL"] < 0 || data2["ITEM_PREVIEW_PERMISSION_LEVEL"] > 3) {
+      if (data["ITEM_PREVIEW_PERMISSION_LEVEL"] < 0 || data["ITEM_PREVIEW_PERMISSION_LEVEL"] > 3) {
         throw custom_error("addSystemIntegration | data.ITEM_PREVIEW_PERMISSION_LEVEL must be between 0 and 3 - see CONST.DOCUMENT_OWNERSHIP_LEVELS");
       }
     }
-    if (data2["PRICE_MODIFIER_TRANSFORMER"]) {
-      if (!isFunction(data2["PRICE_MODIFIER_TRANSFORMER"])) {
+    if (data["PRICE_MODIFIER_TRANSFORMER"]) {
+      if (!isFunction(data["PRICE_MODIFIER_TRANSFORMER"])) {
         throw custom_error("addSystemIntegration | data.PRICE_MODIFIER_TRANSFORMER must be of type function");
       }
-      if (typeof data2["PRICE_MODIFIER_TRANSFORMER"]({}) !== "object") {
+      if (typeof data["PRICE_MODIFIER_TRANSFORMER"]({}) !== "object") {
         throw custom_error("addSystemIntegration | data.PRICE_MODIFIER_TRANSFORMER's return value must be of type object");
       }
     }
-    if (data2["SYSTEM_HOOKS"]) {
-      if (!isFunction(data2["SYSTEM_HOOKS"])) {
+    if (data["SYSTEM_HOOKS"]) {
+      if (!isFunction(data["SYSTEM_HOOKS"])) {
         throw custom_error("addSystemIntegration | data.SYSTEM_HOOKS must be of type function");
       }
     }
-    if (data2["SHEET_OVERRIDES"]) {
-      if (!isFunction(data2["SHEET_OVERRIDES"])) {
+    if (data["SHEET_OVERRIDES"]) {
+      if (!isFunction(data["SHEET_OVERRIDES"])) {
         throw custom_error("addSystemIntegration | data.SHEET_OVERRIDES must be of type function");
       }
     }
-    if (typeof data2["PILE_DEFAULTS"] !== "object") {
+    if (typeof data["PILE_DEFAULTS"] !== "object") {
       throw custom_error("addSystemIntegration | data.PILE_DEFAULTS must be of type object");
     }
     const validKeys = new Set(Object.keys(CONSTANTS.PILE_DEFAULTS));
-    for (const key of Object.keys(data2["PILE_DEFAULTS"])) {
+    for (const key of Object.keys(data["PILE_DEFAULTS"])) {
       if (!validKeys.has(key)) {
         throw custom_error(`addSystemIntegration | data.PILE_DEFAULTS contains illegal key "${key}" that is not a valid pile default`);
       }
     }
-    if (data2["VAULT_STYLES"]) {
-      if (!Array.isArray(data2["VAULT_STYLES"])) {
+    if (data["VAULT_STYLES"]) {
+      if (!Array.isArray(data["VAULT_STYLES"])) {
         throw custom_error("addSystemIntegration | data.VAULT_STYLES must be of type object");
       }
       const requiredKeys = /* @__PURE__ */ new Set(["path", "value", "styling"]);
-      for (const [index, entry] of data2["VAULT_STYLES"].entries()) {
+      for (const [index, entry] of data["VAULT_STYLES"].entries()) {
         for (const key of requiredKeys) {
           if (!entry.hasOwnProperty(key)) {
             throw custom_error(`addSystemIntegration | data.VAULT_STYLES.${index} is missing required key "${key}"`);
@@ -97549,31 +97749,31 @@ class API {
         }
       }
     }
-    if (data2["TOKEN_FLAG_DEFAULTS"] && typeof data2["TOKEN_FLAG_DEFAULTS"] !== "object") {
+    if (data["TOKEN_FLAG_DEFAULTS"] && typeof data["TOKEN_FLAG_DEFAULTS"] !== "object") {
       throw custom_error("addSystemIntegration | data.TOKEN_FLAG_DEFAULTS must be of type object");
     }
-    if (!Array.isArray(data2["ITEM_SIMILARITIES"])) {
+    if (!Array.isArray(data["ITEM_SIMILARITIES"])) {
       throw custom_error("addSystemIntegration | data.ITEM_SIMILARITIES must be of type array");
     }
-    data2["ITEM_SIMILARITIES"].forEach((path) => {
+    data["ITEM_SIMILARITIES"].forEach((path) => {
       if (typeof path !== "string") {
         throw custom_error("addSystemIntegration | each entry in data.ITEM_SIMILARITIES must be of type string");
       }
     });
-    if (data2["UNSTACKABLE_ITEM_TYPES"]) {
-      if (!Array.isArray(data2["UNSTACKABLE_ITEM_TYPES"])) {
+    if (data["UNSTACKABLE_ITEM_TYPES"]) {
+      if (!Array.isArray(data["UNSTACKABLE_ITEM_TYPES"])) {
         throw custom_error("addSystemIntegration | data.UNSTACKABLE_ITEM_TYPES must be of type array");
       }
-      data2["UNSTACKABLE_ITEM_TYPES"].forEach((path) => {
+      data["UNSTACKABLE_ITEM_TYPES"].forEach((path) => {
         if (typeof path !== "string") {
           throw custom_error("addSystemIntegration | each entry in data.UNSTACKABLE_ITEM_TYPES must be of type string");
         }
       });
     }
-    if (!Array.isArray(data2["CURRENCIES"])) {
+    if (!Array.isArray(data["CURRENCIES"])) {
       throw custom_error("addSystemIntegration | data.CURRENCIES must be an array");
     }
-    data2["CURRENCIES"].forEach((currency) => {
+    data["CURRENCIES"].forEach((currency) => {
       if (typeof currency !== "object") {
         throw custom_error("addSystemIntegration | CURRENCIES | each entry in data.CURRENCIES must be of type object");
       }
@@ -97599,11 +97799,11 @@ class API {
         throw custom_error("addSystemIntegration | CURRENCIES | currency.img must be of type string");
       }
     });
-    if (data2["SECONDARY_CURRENCIES"]) {
-      if (!Array.isArray(data2["SECONDARY_CURRENCIES"])) {
+    if (data["SECONDARY_CURRENCIES"]) {
+      if (!Array.isArray(data["SECONDARY_CURRENCIES"])) {
         throw custom_error("addSystemIntegration | data.SECONDARY_CURRENCIES must be an array");
       }
-      data2["SECONDARY_CURRENCIES"].forEach((currency) => {
+      data["SECONDARY_CURRENCIES"].forEach((currency) => {
         if (typeof currency !== "object") {
           throw custom_error("addSystemIntegration | SECONDARY_CURRENCIES | each entry in data.SECONDARY_CURRENCIES must be of type object");
         }
@@ -97624,17 +97824,19 @@ class API {
         }
       });
     }
-    if (data2["CURRENCY_DECIMAL_DIGITS"] && typeof data2["CURRENCY_DECIMAL_DIGITS"] !== "number") {
+    if (data["CURRENCY_DECIMAL_DIGITS"] && typeof data["CURRENCY_DECIMAL_DIGITS"] !== "number") {
       throw custom_error("addSystemIntegration | data.CURRENCY_DECIMAL_DIGITS must be of type number");
     }
-    data2["INTEGRATION"] = true;
-    SYSTEMS.addSystem(data2, version);
-    debug(`Registered system settings for ${game.system.id}`, data2);
+    data["INTEGRATION"] = true;
+    SYSTEMS.addSystem(data, version);
+    debug(`Registered system settings for ${game.system.id}`, data);
   }
   /**
-   * Gets all the system item types, including custom item piles item categories
+   * Gets the primary currency descriptor for the system (or the actor-specific
+   * primary currency if an actor is provided).
    *
-   * @returns {Array<{primary: boolean, name: string, data: Object, img: string, abbreviation: string, exchange: number}>}
+   * @param {Actor|boolean} [actor=false] Optional actor to resolve the primary currency for.
+   * @returns {{primary: boolean, name: string, data: Object, img: string, abbreviation: string, exchangeRate: number}|undefined}
    */
   static getPrimaryCurrency(actor = false) {
     if (actor && actor instanceof Actor) {
@@ -97706,7 +97908,7 @@ class API {
       if (typeof actor !== "string") {
         throw custom_error(`createItemPile | actor must be of type string`);
       }
-      let pileActor = await fromUuid(actor);
+      let pileActor = await foundry.utils.fromUuid(actor);
       if (!pileActor) {
         pileActor = game.actors.getName(actor);
       }
@@ -97725,10 +97927,10 @@ class API {
       throw custom_error(`createItemPile | tokenOverrides must be of type object`);
     }
     if (typeof actorOverrides !== "object") {
-      throw custom_error(`createItemPile | tokenOverrides must be of type object`);
+      throw custom_error(`createItemPile | actorOverrides must be of type object`);
     }
     if (typeof itemPileFlags !== "object") {
-      throw custom_error(`createItemPile | tokenOverrides must be of type object`);
+      throw custom_error(`createItemPile | itemPileFlags must be of type object`);
     }
     if (items) {
       if (!Array.isArray(items)) items = [items];
@@ -97816,10 +98018,10 @@ class API {
     if (hookResult === false) return false;
     if (wasClosed && pileData.openSound) {
       let sound = pileData.openSound;
-      if (pileData.openSound.includes("*")) {
+      if (pileData.openSound.includes("*") && pileData.openSounds?.length) {
         sound = random_array_element(pileData.openSounds);
       }
-      AudioHelper.play({ src: sound }, true);
+      foundry.audio.AudioHelper.play({ src: sound }, true);
     }
     return this.updateItemPile(targetActor, pileData, { interactingToken: interactingTokenDocument });
   }
@@ -97842,10 +98044,10 @@ class API {
     if (hookResult === false) return false;
     if (wasOpen && pileData.closeSound) {
       let sound = pileData.closeSound;
-      if (pileData.closeSound.includes("*")) {
+      if (pileData.closeSound.includes("*") && pileData.closeSounds?.length) {
         sound = random_array_element(pileData.closeSounds);
       }
-      AudioHelper.play({ src: sound }, true);
+      foundry.audio.AudioHelper.play({ src: sound }, true);
     }
     return this.updateItemPile(targetActor, pileData, { interactingToken: interactingTokenDocument });
   }
@@ -97893,10 +98095,10 @@ class API {
     if (hookResult === false) return false;
     if (!wasClosed && pileData.closeSound) {
       let sound = pileData.closeSound;
-      if (pileData.closeSound.includes("*")) {
+      if (pileData.closeSound.includes("*") && pileData.closeSounds?.length) {
         sound = random_array_element(pileData.closeSounds);
       }
-      AudioHelper.play({ src: sound }, true);
+      foundry.audio.AudioHelper.play({ src: sound }, true);
     }
     return this.updateItemPile(targetActor, pileData, { interactingToken: interactingTokenDocument });
   }
@@ -97951,10 +98153,10 @@ class API {
     hooks.call(CONSTANTS.HOOKS.PILE.PRE_RATTLE, targetActor, pileData, interactingTokenDocument);
     if (pileData.lockedSound) {
       let sound = pileData.lockedSound;
-      if (pileData.lockedSound.includes("*")) {
+      if (pileData.lockedSound.includes("*") && pileData.lockedSounds?.length) {
         sound = random_array_element(pileData.lockedSounds);
       }
-      AudioHelper.play({ src: sound }, true);
+      foundry.audio.AudioHelper.play({ src: sound }, true);
     }
     return ItemPileSocket.executeForEveryone(ItemPileSocket.HANDLERS.CALL_HOOK, CONSTANTS.HOOKS.PILE.RATTLE, getUuid(targetActor), pileData, getUuid(interactingTokenDocument));
   }
@@ -97965,8 +98167,8 @@ class API {
    * @param {Object/boolean} [data=false] data existing flags data to use
    * @return {boolean}
    */
-  static isItemPileLocked(target, data2 = false) {
-    return isItemPileLocked(target, data2);
+  static isItemPileLocked(target, data = false) {
+    return isItemPileLocked(target, data);
   }
   /**
    * Whether an item pile is closed. If it is not enabled or not a container, it is always false.
@@ -97975,8 +98177,8 @@ class API {
    * @param {Object/boolean} [data=false] data existing flags data to use
    * @return {boolean}
    */
-  static isItemPileClosed(target, data2 = false) {
-    return isItemPileClosed(target, data2);
+  static isItemPileClosed(target, data = false) {
+    return isItemPileClosed(target, data);
   }
   /**
    * Whether an item pile is a valid item pile. If it is not enabled, it is always false.
@@ -97985,8 +98187,8 @@ class API {
    * @param {Object/boolean} [data=false] data existing flags data to use
    * @return {boolean}
    */
-  static isValidItemPile(target, data2 = false) {
-    return isValidItemPile(target, data2);
+  static isValidItemPile(target, data = false) {
+    return isValidItemPile(target, data);
   }
   /**
    * Whether an item pile is a regular item pile. If it is not enabled, it is always false.
@@ -97995,8 +98197,8 @@ class API {
    * @param {Object/boolean} [data=false] data existing flags data to use
    * @return {boolean}
    */
-  static isRegularItemPile(target, data2 = false) {
-    return isRegularItemPile(target, data2);
+  static isRegularItemPile(target, data = false) {
+    return isRegularItemPile(target, data);
   }
   /**
    * Whether an item pile is a container. If it is not enabled, it is always false.
@@ -98005,8 +98207,8 @@ class API {
    * @param {Object/boolean} [data=false] data existing flags data to use
    * @return {boolean}
    */
-  static isItemPileContainer(target, data2 = false) {
-    return isItemPileContainer(target, data2);
+  static isItemPileContainer(target, data = false) {
+    return isItemPileContainer(target, data);
   }
   /**
    * Whether an item pile is a lootable. If it is not enabled, it is always false.
@@ -98015,8 +98217,8 @@ class API {
    * @param {Object/boolean} [data=false] data existing flags data to use
    * @return {boolean}
    */
-  static isItemPileLootable(target, data2 = false) {
-    return isItemPileLootable(target, data2);
+  static isItemPileLootable(target, data = false) {
+    return isItemPileLootable(target, data);
   }
   /**
    * Whether an item pile is a vault. If it is not enabled, it is always false.
@@ -98025,8 +98227,8 @@ class API {
    * @param {Object/boolean} [data=false] data existing flags data to use
    * @return {boolean}
    */
-  static isItemPileVault(target, data2 = false) {
-    return isItemPileVault(target, data2);
+  static isItemPileVault(target, data = false) {
+    return isItemPileVault(target, data);
   }
   /**
    * Whether an item pile is a merchant. If it is not enabled, it is always false.
@@ -98035,8 +98237,8 @@ class API {
    * @param {Object/boolean} [data=false] data existing flags data to use
    * @return {boolean}
    */
-  static isItemPileMerchant(target, data2 = false) {
-    return isItemPileMerchant(target, data2);
+  static isItemPileMerchant(target, data = false) {
+    return isItemPileMerchant(target, data);
   }
   /**
    * Whether an item pile is a banker. If it is not enabled, it is always false.
@@ -98045,14 +98247,14 @@ class API {
    * @param {Object/boolean} [data=false] data existing flags data to use
    * @return {boolean}
    */
-  static isItemPileBanker(target, data2 = false) {
+  static isItemPileBanker(target, data = false) {
     if (!game.modules.get("item_piles_bankers")?.active) {
       let word = "install and activate";
       if (game.modules.get("item_piles_bankers")) word = "activate";
       custom_warning(`This api method from Item Piles requires the 'item_piles_bankers' module. Please ${word} it.`, true);
       return false;
     }
-    return isItemPileBanker(target, data2);
+    return isItemPileBanker(target, data);
   }
   /**
    * Whether an item pile is a merchant. If it is not enabled, it is always false.
@@ -98061,14 +98263,14 @@ class API {
    * @param {Object/boolean} [data=false] data existing flags data to use
    * @return {boolean}
    */
-  static isItemPileAuctioneer(target, data2 = false) {
+  static isItemPileAuctioneer(target, data = false) {
     if (!game.modules.get("item_piles_auctioneer")?.active) {
       let word = "install and activate";
       if (game.modules.get("item_piles_auctioneer")) word = "activate";
       custom_warning(`This api method from Item Piles requires the 'item_piles_auctioneer' module. Please ${word} it.`, true);
       return false;
     }
-    return isItemPileAuctioneer(target, data2);
+    return isItemPileAuctioneer(target, data);
   }
   /**
    * Whether an item pile is empty pile. If it is not enabled, it is always false.
@@ -98173,7 +98375,7 @@ class API {
         throw custom_error(`getMerchantPriceModifiers | actor must be of type Actor or string (UUID)`);
       }
       if (typeof actor === "string") {
-        actor = fromUuidSync(actor) || false;
+        actor = foundry.utils.fromUuidSync(actor) || false;
       }
     }
     if (typeof absolute !== "boolean") {
@@ -98398,7 +98600,7 @@ class API {
       }
       return {
         id: item._id,
-        quantity: Math.max(itemData?.quantity ?? getItemQuantity(itemData), 0),
+        quantity: Math.max(itemData?.quantity ?? getItemQuantity(item), 0),
         flags: foundry.utils.getProperty(itemData, CONSTANTS.FLAGS.ITEM)
       };
     });
@@ -98406,12 +98608,12 @@ class API {
     if (!targetActor) throw custom_error(`transferItems | Could not determine the target, please provide a valid target`);
     const targetUuid = getUuid(targetActor);
     if (isItemPileVault(targetActor)) {
-      const itemsToFit = items.reduce((acc, data2) => {
-        const item = sourceActor.items.get(data2.id);
+      const itemsToFit = items.reduce((acc, data) => {
+        const item = sourceActor.items.get(data.id);
         if (canItemStack(item, targetActor)) {
           acc.push(item);
         } else {
-          for (let i = 0; i < data2.quantity; i++) {
+          for (let i = 0; i < data.quantity; i++) {
             acc.push(item);
           }
         }
@@ -98516,7 +98718,7 @@ class API {
     if (!targetUuid) throw custom_error(`addAttributes | Could not determine the UUID, please provide a valid target`);
     Object.entries(attributes).forEach((entry) => {
       const [attribute, quantity] = entry;
-      if (!isRealNumber(quantity) && quantity > 0) {
+      if (!isRealNumber(quantity) || quantity <= 0) {
         throw custom_error(`addAttributes | Attribute "${attribute}" must be of type number and greater than 0`);
       }
     });
@@ -98557,7 +98759,7 @@ class API {
         if (!foundry.utils.hasProperty(targetActor, attribute)) {
           throw custom_error(`removeAttributes | Could not find attribute ${attribute} on target's actor with UUID "${targetUuid}"`);
         }
-        if (!isRealNumber(quantity) && quantity > 0) {
+        if (!isRealNumber(quantity) || quantity <= 0) {
           throw custom_error(`removeAttributes | Attribute "${attribute}" must be of type number and greater than 0`);
         }
       });
@@ -98605,7 +98807,7 @@ class API {
         if (!foundry.utils.hasProperty(sourceActor, attribute)) {
           throw custom_error(`transferAttributes | Could not find attribute ${attribute} on source's actor with UUID "${targetUuid}"`);
         }
-        if (!isRealNumber(quantity) && quantity > 0) {
+        if (!isRealNumber(quantity) || quantity <= 0) {
           throw custom_error(`transferAttributes | Attribute "${attribute}" must be of type number and greater than 0`);
         }
       });
@@ -98772,7 +98974,7 @@ class API {
     }
     currencies.forEach((currency) => {
       if (typeof currency !== "object") {
-        throw custom_error("setCurrencies | each entry in inCurrencies must be of type object");
+        throw custom_error("getStringFromCurrencies | each entry in currencies must be of type object");
       }
       if (typeof currency.cost !== "number") {
         throw custom_error("getStringFromCurrencies | currency.cost must be of type number");
@@ -99049,7 +99251,7 @@ class API {
   } = {}) {
     let rollTable2 = table;
     if (typeof table === "string") {
-      let potentialTable = await fromUuid(table);
+      let potentialTable = await foundry.utils.fromUuid(table);
       if (!potentialTable) {
         potentialTable = game.tables.get(table);
       }
@@ -99059,10 +99261,10 @@ class API {
       if (!potentialTable) {
         throw custom_error(`rollItemTable | could not find table with string "${table}"`);
       }
-      if (resetTable && table.startsWith("Compendium")) {
+      rollTable2 = potentialTable;
+      if (resetTable && rollTable2.uuid?.startsWith("Compendium.")) {
         resetTable = false;
       }
-      rollTable2 = potentialTable;
     }
     if (!(rollTable2 instanceof RollTable)) {
       throw custom_error(`rollItemTable | table must be of type RollTable`);
@@ -99344,27 +99546,27 @@ class API {
       throw custom_error(`tradeItems | Could not determine the UUID of the seller, please provide a valid actor or token`, true);
     }
     const buyerActor = getActor(buyer);
-    const buyerUuid = getUuid(buyer);
+    const buyerUuid = getUuid(buyerActor);
     if (!buyerUuid) {
       throw custom_error(`tradeItems | Could not determine the UUID of the buyer, please provide a valid actor or token`, true);
     }
-    let itemsToSell = items.map((data2) => {
-      data2 = foundry.utils.mergeObject({
+    let itemsToSell = items.map((data) => {
+      data = foundry.utils.mergeObject({
         item: "",
         quantity: 1,
         paymentIndex: 0
-      }, data2);
-      if (!data2.item) {
+      }, data);
+      if (!data.item) {
         throw custom_error(`tradeItems | You must provide an item!`, true);
       }
       let actorItem;
-      if (typeof data2.item === "string") {
-        actorItem = sellerActor.items.get(data2.item) || sellerActor.items.getName(data2.item);
+      if (typeof data.item === "string") {
+        actorItem = sellerActor.items.get(data.item) || sellerActor.items.getName(data.item);
         if (!actorItem) {
-          throw custom_error(`tradeItems | Could not find item on seller with identifier "${data2.item}"`);
+          throw custom_error(`tradeItems | Could not find item on seller with identifier "${data.item}"`);
         }
       } else {
-        actorItem = sellerActor.items.get(data2.item instanceof Item ? data2.item.id : data2.item._id) || sellerActor.items.getName(data2.item.name);
+        actorItem = sellerActor.items.get(data.item instanceof Item ? data.item.id : data.item._id) || sellerActor.items.getName(data.item.name);
         if (!actorItem) {
           throw custom_error(`tradeItems | Could not find provided item on seller`);
         }
@@ -99373,30 +99575,30 @@ class API {
         item: actorItem,
         seller: sellerActor,
         buyer: buyerActor,
-        quantity: data2.quantity
+        quantity: data.quantity
       });
       if (itemPrices.length) {
-        if (data2.paymentIndex >= itemPrices.length || data2.paymentIndex < 0) {
+        if (data.paymentIndex >= itemPrices.length || data.paymentIndex < 0) {
           throw custom_error(`tradeItems | That payment index does not exist on ${actorItem.name}`, true);
         }
-        const selectedPrice = itemPrices[data2.paymentIndex];
-        if (data2.quantity > selectedPrice.maxQuantity) {
-          throw custom_error(`tradeItems | The buyer actor cannot afford ${data2.quantity} of ${actorItem.name} (max ${selectedPrice.maxQuantity})`, true);
+        const selectedPrice = itemPrices[data.paymentIndex];
+        if (data.quantity > selectedPrice.maxQuantity) {
+          throw custom_error(`tradeItems | The buyer actor cannot afford ${data.quantity} of ${actorItem.name} (max ${selectedPrice.maxQuantity})`, true);
         }
       }
       return {
         id: actorItem.id,
-        quantity: data2.quantity,
-        paymentIndex: data2.paymentIndex
+        quantity: data.quantity,
+        paymentIndex: data.paymentIndex
       };
     });
     if (isItemPileVault(buyerActor)) {
-      const items2 = itemsToSell.reduce((acc, data2) => {
-        const item = sellerActor.items.get(data2.id);
+      const items2 = itemsToSell.reduce((acc, data) => {
+        const item = sellerActor.items.get(data.id);
         if (canItemStack(item, buyerActor)) {
           acc.push(item);
         } else {
-          for (let i = 0; i < data2.quantity; i++) {
+          for (let i = 0; i < data.quantity; i++) {
             acc.push(item);
           }
         }
@@ -99511,11 +99713,7 @@ function debug(msg, args = "") {
 }
 function custom_notify(message) {
   message = `Item Piles | ${message}`;
-  if (CONSTANTS.IS_V13) {
-    ui.notifications.notify(message, "info", { console: false });
-  } else {
-    ui.notifications.notify(message, { console: false });
-  }
+  ui.notifications.notify(message, "info", { console: false });
   console.log(message.replace("<br>", "\n"));
 }
 function custom_warning(warning, notify = false, permanent = false) {
@@ -99556,32 +99754,35 @@ function isGMConnected() {
   return !!Array.from(game.users).find((user) => user.isGM && user.active);
 }
 function roundToDecimals(num, decimals) {
-  if (!decimals) return Math.floor(num);
+  if (decimals === void 0 || decimals === null) decimals = 0;
   return Number(Math.round(num + "e" + decimals) + "e-" + decimals);
 }
 function clamp(num, min2, max2) {
   return Math.max(Math.min(num, max2), min2);
 }
 function getActiveApps(id, single = false) {
-  const apps = Object.values(ui.windows).filter((app) => app.id.startsWith(id) && app._state > Application.RENDER_STATES.CLOSED);
+  const ApplicationV1 = foundry.appv1?.api?.Application ?? globalThis.Application;
+  const closedState = ApplicationV1?.RENDER_STATES?.CLOSED ?? -1;
+  const apps = Object.values(ui.windows).filter((app) => app.id.startsWith(id) && app._state > closedState);
   if (single) {
     return apps?.[0] ?? false;
   }
   return apps;
 }
 async function getFiles(inFile, { applyWildCard = false, softFail = false } = {}) {
+  const FilePickerImpl = foundry.applications.apps.FilePicker.implementation;
   let source = "data";
   const browseOptions = { wildcard: applyWildCard };
   if (/\.s3\./.test(inFile)) {
     source = "s3";
-    const { bucket, keyPrefix } = FilePicker.parseS3URL(inFile);
+    const { bucket, keyPrefix } = FilePickerImpl.parseS3URL(inFile);
     if (bucket) {
       browseOptions.bucket = bucket;
       inFile = keyPrefix;
     }
   }
   try {
-    return (await FilePicker.browse(source, inFile, browseOptions)).files;
+    return (await FilePickerImpl.browse(source, inFile, browseOptions)).files;
   } catch (err) {
     if (softFail) return false;
     throw custom_error(`Could not get files! | ${err}`);
@@ -99672,14 +99873,18 @@ function getApplicationPositions(application_1, application_2 = false) {
     application_2_position
   ];
 }
-async function openEditor(key, data2 = false) {
+async function openEditor(key, data = false) {
   const setting = SETTINGS.DEFAULTS()[key];
   const editor = editors[setting.application];
-  if (!data2) {
-    data2 = getSetting(key);
+  if (!data) {
+    data = getSetting(key);
   }
-  const result = await editor.show(data2, { ...setting.applicationOptions, onchange: setting.onchange });
-  if (setting.onchange && result) setting.onchange(result);
+  const result = await editor.show(data, {
+    id: `item-piles-editor-${key}`,
+    ...setting.applicationOptions,
+    customOnChange: setting.customOnChange
+  });
+  if (setting.customOnChange && result) setting.customOnChange(result);
   return result;
 }
 function isCoordinateWithinPosition(x, y, position) {
@@ -99732,14 +99937,12 @@ function uploadJSON() {
 }
 let fastToolTip = null;
 function registerUIOverrides() {
-  Hooks.on("renderPlayerList", addTradeButton);
-  Hooks.on("renderPlayers", addTradeButtonV13);
-  Hooks.on("getActorDirectoryEntryContext", insertActorContextMenuItems);
+  Hooks.on("renderPlayers", addTradeButton);
   Hooks.on("getActorContextOptions", insertActorContextMenuItems);
   Hooks.on("getActorSheetHeaderButtons", insertActorHeaderButtons);
   Hooks.on("getItemSheetHeaderButtons", insertItemHeaderButtons);
   Hooks.on("getHeaderControlsApplicationV2", insertHeaderButtons);
-  Hooks.on("renderSidebarTab", hideTemporaryItems);
+  Hooks.on("renderItemDirectory", hideTemporaryItems);
   Hooks.on("renderTokenHUD", renderPileHUD);
   Hooks.on("hoverToken", handleTokenBorders);
   Hooks.on("controlToken", handleTokenBorders);
@@ -99751,22 +99954,23 @@ function handleTokenBorders(token) {
   const setting = getSetting(SETTINGS.HIDE_TOKEN_BORDER);
   token.border.renderable = token.controlled || setting !== SETTINGS.HIDE_TOKEN_BORDER_OPTIONS.EVERYONE && (setting === SETTINGS.HIDE_TOKEN_BORDER_OPTIONS.SHOW || setting === SETTINGS.HIDE_TOKEN_BORDER_OPTIONS.PLAYERS && game.user.isGM);
 }
-function hideTemporaryItems(sidebar) {
-  if (sidebar.tabName !== "items") return;
+function hideTemporaryItems(sidebar, html) {
+  const root = html instanceof HTMLElement ? html : html?.[0] ?? sidebar.element;
+  const $root = $(root);
   Array.from(game.items).filter((item) => {
     return foundry.utils.getProperty(item.toObject(), CONSTANTS.FLAGS.TEMPORARY_ITEM);
   }).forEach((item) => {
-    const element2 = sidebar.element.find(`.directory-item[data-document-id="${item.id}"]`);
+    const element2 = $root.find(`.directory-item[data-document-id="${item.id}"]`);
     if (!element2.length) return;
     if (element2.parent().children().length === 1) {
       return element2.parent().empty();
     }
-    element2.find(`.directory-item[data-document-id="${item.id}"]`).remove();
+    element2.remove();
   });
 }
 function createTradeButton() {
   const minimalUI = game.modules.get("minimal-ui")?.active;
-  const classes = "item-piles-player-list-trade-button" + (minimalUI ? " item-piles-minimal-ui" : "") + (CONSTANTS.IS_V13 ? " item-piles-v13" : "");
+  const classes = "item-piles-player-list-trade-button item-piles-v13" + (minimalUI ? " item-piles-minimal-ui" : "");
   const text2 = !minimalUI ? game.i18n.localize("ITEM-PILES.ContextMenu.RequestTrade") : "";
   const button = $(`<button type="button" class="${classes}"><i class="fas fa-handshake"></i>${text2}</button>`);
   button.click(() => {
@@ -99775,10 +99979,6 @@ function createTradeButton() {
   return button;
 }
 function addTradeButton(app, html) {
-  if (!getSetting(SETTINGS.ENABLE_TRADING) || !getSetting(SETTINGS.SHOW_TRADE_BUTTON)) return;
-  html.append(createTradeButton());
-}
-function addTradeButtonV13(app, html) {
   if (!getSetting(SETTINGS.ENABLE_TRADING) || !getSetting(SETTINGS.SHOW_TRADE_BUTTON)) return;
   $(html).find("#players-active .players-list").append(createTradeButton());
 }
@@ -99852,7 +100052,7 @@ function insertItemHeaderButtons(itemSheet, buttons) {
     if (game.modules.get("item-linking")?.active && !event.ctrlKey) {
       const linkedItemUuid = foundry.utils.getProperty(obj, "flags.item-linking.baseItem") ?? false;
       if (linkedItemUuid) {
-        obj = await fromUuid(linkedItemUuid);
+        obj = await foundry.utils.fromUuid(linkedItemUuid);
         return ItemEditor.show(obj, {
           extraTitle: " - Compendium"
         });
@@ -99874,8 +100074,8 @@ function renderPileHUD(app, html) {
   if (!isValidItemPile(document2)) return;
   if (!isItemPileContainer(document2)) return;
   const pileData = getActorFlagData(document2);
-  const htmlType = CONSTANTS.IS_V13 ? "button" : "div";
-  const offset2 = CONSTANTS.IS_V13 ? "85" : "130";
+  const htmlType = "button";
+  const offset2 = "85";
   const container = $(`<div class="col right" style="right:-${offset2}px;"></div>`);
   const lock_button = $(`<${htmlType} class="control-icon item-piles" data-action="toggleControls" data-fast-tooltip="${game.i18n.localize("ITEM-PILES.HUD.ToggleLocked")}"><i inert class="fa-solid fa-lock${pileData.locked ? "" : "-open"}"></i></${htmlType}>`);
   lock_button.click(async function() {
@@ -99980,7 +100180,7 @@ class FastTooltipManager extends (foundry?.helpers?.interaction?.TooltipManager?
     this.#pending = element2;
     this.#activationTimeout = window.setTimeout(() => {
       this.activate(element2);
-    }, Number(element2?.dataset?.tooltipActivationSpeed) ?? this.constructor.TOOLTIP_ACTIVATION_MS);
+    }, Number(element2?.dataset?.tooltipActivationSpeed) || this.constructor.TOOLTIP_ACTIVATION_MS);
   }
   activate(element2, { text: text2, direction, cssClass } = {}) {
     if (!document.body.contains(element2)) return;
@@ -99996,7 +100196,15 @@ class FastTooltipManager extends (foundry?.helpers?.interaction?.TooltipManager?
     if (!direction) direction = this._determineDirection();
     this._setAnchor(direction);
   }
-  /* -------------------------------------------- */
+  deactivate() {
+    this.#active = false;
+    this.tooltip.classList.remove("active");
+    this.tooltip.innerHTML = "";
+    if (this.element) {
+      this.element.removeAttribute("aria-describedby");
+      this.element = null;
+    }
+  }
   /**
    * Handle hover events which deactivate a tooltipped element.
    * @param {PointerEvent} event    The initiating pointerleave event
@@ -100015,7 +100223,7 @@ class FastTooltipManager extends (foundry?.helpers?.interaction?.TooltipManager?
     window.clearTimeout(this.#deactivationTimeout);
     this.#deactivationTimeout = window.setTimeout(() => {
       if (!this.#pending) this.deactivate();
-    }, Number(this.element?.dataset?.tooltipDeactivationSpeed) ?? this.constructor.TOOLTIP_DEACTIVATION_MS);
+    }, Number(this.element?.dataset?.tooltipDeactivationSpeed) || this.constructor.TOOLTIP_DEACTIVATION_MS);
   }
   /* -------------------------------------------- */
   /**
@@ -100033,11 +100241,11 @@ function registerLibwrappers() {
     }
     return wrapped(...args);
   }, "MIXED");
-  const overrideMethod = CONSTANTS.IS_V13 ? `foundry.applications.sidebar.DocumentDirectory.prototype._onClickEntry` : `DocumentDirectory.prototype._onClickEntryName`;
+  const overrideMethod = `foundry.applications.sidebar.DocumentDirectory.prototype._onClickEntry`;
   libWrapper.register(CONSTANTS.MODULE_NAME, overrideMethod, function(wrapped, ...args) {
     const event = args[0];
     event.preventDefault();
-    if (!(this instanceof Compendium)) {
+    if (!(this instanceof foundry.applications.sidebar.apps.Compendium)) {
       const documentId = event.currentTarget?.parentElement?.dataset?.documentId ?? event.target?.parentElement?.dataset?.documentId ?? event.target?.parentElement?.dataset?.entryId;
       const collection = this?.constructor?.collection ?? this.collection;
       const document2 = collection.get(documentId);
@@ -100064,9 +100272,11 @@ function registerLibwrappers() {
       })
     );
   }, []).flat();
+  const ApplicationV1 = foundry.appv1?.api?.Application ?? globalThis.Application;
+  const RENDER_STATE_NONE = ApplicationV1?.RENDER_STATES?.NONE ?? 0;
   const sheetOverrideMethod = function(wrapped, forced, options, ...args) {
     const renderItemPileInterface = Hooks.call(CONSTANTS.HOOKS.PRE_RENDER_SHEET, this.document, forced, options) === false;
-    if (this.state > Application.RENDER_STATES.NONE) {
+    if (this.state > RENDER_STATE_NONE) {
       if (renderItemPileInterface) {
         wrapped(forced, options, ...args);
       } else {
@@ -100078,13 +100288,16 @@ function registerLibwrappers() {
   };
   for (const override of sheetOverrides) {
     try {
+      const prototype = override.split(".").slice(0, -1).reduce((obj, key) => obj?.[key], globalThis);
+      const isAppV2 = prototype?.constructor?.RENDER_STATES === void 0 && typeof prototype?._renderHTML === "function";
+      if (isAppV2) continue;
       libWrapper.register(CONSTANTS.MODULE_NAME, override, sheetOverrideMethod, "MIXED");
     } catch (err) {
       custom_warning(`Could not override "${override}" due to error:
 ${err}`);
     }
   }
-  const dragDrop = CONSTANTS.IS_V13 ? "foundry.applications.ux.DragDrop.implementation" : "DragDrop.prototype.callback";
+  const dragDrop = "foundry.applications.ux.DragDrop.implementation.prototype.callback";
   libWrapper.register(CONSTANTS.MODULE_NAME, dragDrop, function(wrapped, event, type) {
     const result = wrapped(event, type);
     const hookType = {
@@ -100167,7 +100380,7 @@ async function updateTokens(version, callback) {
     const scene = game.scenes.get(sceneId);
     const updates = tokens.map((token) => ({
       _id: token.id,
-      [CONSTANTS.FLAGS.PILE]: callback(getProperty(token, CONSTANTS.FLAGS.PILE)),
+      [CONSTANTS.FLAGS.PILE]: callback(foundry.utils.getProperty(token, CONSTANTS.FLAGS.PILE)),
       [CONSTANTS.FLAGS.VERSION]: version
     }));
     if (updates.length) {
@@ -100209,9 +100422,10 @@ async function updateItems(version, callback) {
   });
   if (actorItemUpdates.length) {
     debug(`Item Piles | Migrating ${actorItemUpdates.length} item pile actors' items to version ${version}...`);
+    await Actor.updateDocuments(actorItemUpdates.map((data) => data.update));
   }
-  await Actor.updateDocuments(actorItemUpdates.map((data2) => data2.update));
   for (const { actor, items } of actorItemUpdates) {
+    if (!items?.length) continue;
     await actor.updateEmbeddedDocuments("Item", items);
   }
   const { validTokensOnScenes } = getItemPileTokensOfLowerVersion(version);
@@ -100237,9 +100451,10 @@ async function updateItems(version, callback) {
     if (updates.length) {
       debug(`Item Piles | Migrating ${updates.length} tokens on scene "${sceneId}" to version ${version}...`);
     }
-    await scene.updateEmbeddedDocuments("Token", updates.map((data2) => data2.update), { animate: false });
-    for (const { token, itemUpdates } of updates) {
-      await token.actor.updateEmbeddedDocuments("Item", itemUpdates);
+    await scene.updateEmbeddedDocuments("Token", updates.map((data) => data.update), { animate: false });
+    for (const { token, items } of updates) {
+      if (!items?.length) continue;
+      await token.actor.updateEmbeddedDocuments("Item", items);
     }
   }
 }
@@ -100319,8 +100534,8 @@ const migrations = {
       for (const priceGroup of flagData?.prices ?? []) {
         for (const price of priceGroup) {
           if (price.type !== "item" || !price.data.item) continue;
-          const compendiumItemUuid = await recursivelyAddItemsToCompendium(price.data.item).uuid;
-          price.data = { uuid: compendiumItemUuid };
+          const compendiumItem = await recursivelyAddItemsToCompendium(price.data.item);
+          price.data = { uuid: compendiumItem.uuid };
         }
       }
       foundry.utils.setProperty(itemData, CONSTANTS.FLAGS.ITEM, cleanItemFlagData(flagData, { addRemoveFlag: true }));
@@ -100396,7 +100611,6 @@ const migrations = {
   }
 };
 Hooks.once("init", async () => {
-  CONSTANTS.IS_V13 = foundry.utils.isNewerVersion(game.version, 13);
   Object.freeze(CONSTANTS);
   registerSettings();
   registerHotkeysPre();
@@ -100419,38 +100633,37 @@ Hooks.once("init", async () => {
     }
   };
   window.ItemPiles = deprecate({ API }, "API", "window.ItemPiles.API has been deprecated, please use game.itempiles.API instead");
-  if (CONSTANTS.IS_V13) {
-    window.MIN_WINDOW_WIDTH = 200;
-    window.MIN_WINDOW_HEIGHT = 50;
-    Object.defineProperty(SvelteApp, "defaultOptions", {
-      get: () => {
-        return foundry.utils.mergeObject(Application.defaultOptions, {
-          // Copied directly from TRL except for minWidth and minHeight
-          defaultCloseAnimation: true,
-          draggable: true,
-          focusAuto: true,
-          focusKeep: false,
-          focusSource: void 0,
-          focusTrap: true,
-          headerButtonNoClose: false,
-          headerButtonNoLabel: false,
-          headerIcon: void 0,
-          headerNoTitleMinimized: false,
-          minHeight: 50,
-          // MIN_WINDOW_HEIGHT
-          minWidth: 200,
-          // MIN_WINDOW_WIDTH
-          positionable: true,
-          positionInitial: TJSPosition.Initial.browserCentered,
-          positionOrtho: true,
-          positionValidator: TJSPosition.Validators.transformWindow,
-          sessionStorage: void 0,
-          svelte: void 0,
-          transformOrigin: "top left"
-        }, { inPlace: false });
-      }
-    });
-  }
+  window.MIN_WINDOW_WIDTH = 200;
+  window.MIN_WINDOW_HEIGHT = 50;
+  const ApplicationV1 = foundry.appv1?.api?.Application ?? globalThis.Application;
+  Object.defineProperty(SvelteApp, "defaultOptions", {
+    get: () => {
+      return foundry.utils.mergeObject(ApplicationV1.defaultOptions, {
+        // TRL defaults reproduced verbatim with overridden minWidth/minHeight.
+        defaultCloseAnimation: true,
+        draggable: true,
+        focusAuto: true,
+        focusKeep: false,
+        focusSource: void 0,
+        focusTrap: true,
+        headerButtonNoClose: false,
+        headerButtonNoLabel: false,
+        headerIcon: void 0,
+        headerNoTitleMinimized: false,
+        minHeight: 50,
+        // MIN_WINDOW_HEIGHT
+        minWidth: 200,
+        // MIN_WINDOW_WIDTH
+        positionable: true,
+        positionInitial: TJSPosition.Initial.browserCentered,
+        positionOrtho: true,
+        positionValidator: TJSPosition.Validators.transformWindow,
+        sessionStorage: void 0,
+        svelte: void 0,
+        transformOrigin: "top left"
+      }, { inPlace: false });
+    }
+  });
 });
 Hooks.once("ready", () => {
   setTimeout(() => {
@@ -100497,7 +100710,7 @@ Hooks.once(CONSTANTS.HOOKS.READY, async () => {
   }, 500);
 });
 Hooks.on(CONSTANTS.HOOKS.RESET_SETTINGS, async () => {
-  for (let setting of game.settings.storage.get("world").filter((setting2) => setting2.key.includes("item-piles"))) {
+  for (let setting of game.settings.storage.get("world").filter((setting2) => setting2.key.startsWith(`${CONSTANTS.MODULE_NAME}.`))) {
     await setting.delete();
   }
   checkSystem();

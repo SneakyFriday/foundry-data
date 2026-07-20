@@ -18,5 +18,7 @@
   "BABELE.ShowOriginalNameHint": "在顯示翻譯後名稱的同時，也會顯示概要(compendium)中物品的未翻譯名稱。這也讓您可以在搜尋工具中，同時使用原始名稱與翻譯名稱進行篩選。",
   "BABELE.ShowTranslateOption": "顯示翻譯選項",
   "BABELE.ShowTranslateOptionHint": "切換是否在角色表單上顯示「翻譯」選項。",
+  "BABELE.SyncImportedAdventureTokenNames": "同步已匯入冒險的 Token 名稱",
+  "BABELE.SyncImportedAdventureTokenNamesHint": "匯入冒險時，只在該次匯入建立的場景中，更新同樣由該次冒險匯入之角色所對應的 Token 名稱。",
   "BABELE.requireLibWrapperMessage": "Babele 需要 'libWrapper' 模組。請安裝並啟用該模組。"
 }

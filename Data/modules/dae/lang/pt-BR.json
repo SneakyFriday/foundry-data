@@ -371,8 +371,6 @@
   "dae.DontApply.Hint": "Quando DAE (e Midi QOL) aplicar efeitos ativos, pule este.",
   "dae.DIMEditor.Name": "DIME",
   "dae.IncapacitatedDisabled": "Desativar efeito se o ator estiver Incapacitado",
-  "dae.DIMESyncItemacro.Name": "Sincronizar DIME e Itemacro",
-  "dae.DIMESyncItemacro.Hint": "Se marcado, macros no DIME e Itemacro serão sincronizadas - você pode editar com ambos. Se desmarcado, o editor DIME terá prioridade.",
   "dae.halfHealthEffectLabel": "Metade da Vida",
   "dae.DAEAddHalfHealthEffect.Name": "Adicionar Efeito de Metade da Vida",
   "dae.DAEAddHalfHealthEffect.Hint": "Adiciona um efeito de status de metade da vida para definir os pontos de vida máximos do ator para metade do máximo normal.",

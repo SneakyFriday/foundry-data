@@ -1,159 +1,172 @@
 import { debug, debugEnabled, error, i18n, warn } from "../../dae.js";
-import { applyDaeEffects, daeSystemClass, libWrapper, getToken, DAEReadyComplete, ceInterface } from "../dae.js";
-const { ArrayField, BooleanField, NumberField, StringField } = foundry.data.fields;
+import { daeApplyActiveEffects, daeApplyChange, daeSystemClass, libWrapper, getToken, DAEReadyComplete, ceInterface, actionQueue, daeMacro, daeInitMacroActors, pendingInitMacroEffects } from "../dae.js";
+const { ArrayField, BooleanField, NumberField, ObjectField, SchemaField, SetField, StringField } = foundry.data.fields;
 export let wildcardEffects = [];
 // TODO (Michael): Can this be removed entirely?
 export let _characterSpec = { data: {}, flags: {} };
 export class ValidSpec {
-    //  static specs: {allSpecs: ValidSpec[], allSpecsObj: {}, baseSpecs: ValidSpec[], baseSpecsObj: {}, derivedSpecsObj: {}, derivedSpecs: ValidSpec[]}; 
+    // Flat spec maps per actor type and "union" across all types
     static actorSpecs;
     static itemSpecs;
-    _fieldSpec;
-    get fieldSpec() { return this._fieldSpec; }
-    ;
-    set fieldSpec(spec) { this._fieldSpec = spec; }
-    _fieldType;
-    get fieldType() { return this._fieldType; }
-    set fieldType(value) { this._fieldType = value; }
-    _label;
-    get label() { return this._label; }
-    set label(label) { this._label = label; }
-    _description;
-    get description() { return this._description; }
-    set description(description) { this._description = description; }
-    _forcedMode;
-    get forcedMode() { return this._forcedMode; }
-    set forcedMode(mode) { this._forcedMode = mode; }
-    _options;
-    get options() { return this._options; }
-    set options(options) { this._options = options; }
-    constructor(fs, sv, forcedMode = -1, label, description, options) {
-        this._fieldSpec = fs;
-        this._fieldType = sv;
-        this._label = label ?? fs;
-        this._description = description ?? "";
-        this._forcedMode = forcedMode;
-        this._options = options;
+    fieldSpec;
+    fieldType;
+    label;
+    description;
+    forcedMode;
+    options;
+    phase;
+    constructor(fs, sv, forcedMode = "", label, description, phase = "initial", options) {
+        this.fieldSpec = fs;
+        this.fieldType = sv;
+        this.label = label ?? fs;
+        this.description = description ?? "";
+        this.forcedMode = forcedMode;
+        this.options = options;
+        this.phase = phase;
     }
     static createValidMods() {
         this.actorSpecs = {};
-        const ACTIVE_EFFECT_MODES = CONST.ACTIVE_EFFECT_MODES;
+        const coercionMap = { string: StringField, number: NumberField, boolean: BooleanField };
+        function coerceBaseValueField(map, label) {
+            for (const [key, entry] of Object.entries(map)) {
+                const Cls = coercionMap[typeof entry[0]];
+                if (Cls) {
+                    console.warn(`wrong ${label}`, key, entry[0]);
+                    entry[0] = new Cls({ initial: entry[0] });
+                }
+            }
+        }
+        // Walk a DataModel schema tree, producing flat "system.x.y.z" → [DataField, ""] entries (empty string = allow all types)
+        function walkSchema(prefix, schemaField, baseValues) {
+            for (const [fieldKey, field] of Object.entries(schemaField.fields)) {
+                const key = `${prefix}.${fieldKey}`;
+                if (field instanceof SchemaField) {
+                    walkSchema(key, field, baseValues);
+                }
+                else {
+                    baseValues[key] = [field, ""];
+                }
+            }
+        }
         for (let specKey of Object.keys(CONFIG.Actor.dataModels)) {
-            this.actorSpecs[specKey] = { allSpecs: [], allSpecsObj: {}, baseSpecs: [], baseSpecsObj: {}, derivedSpecsObj: {}, derivedSpecs: [] };
-            _characterSpec["system"] = game.model ? foundry.utils.duplicate(game.model.Actor[specKey] ?? {}) : {};
-            let baseValues = foundry.utils.flattenObject(_characterSpec);
-            for (let prop in baseValues) {
-                baseValues[prop] = [baseValues[prop], -1];
+            this.actorSpecs[specKey] = { allSpecs: [], allSpecsObj: {} };
+            // Build baseValues from the DataModel schema
+            let baseValues = {};
+            const dataModel = CONFIG.Actor.dataModels[specKey];
+            if (dataModel?.schema) {
+                walkSchema("system", dataModel.schema, baseValues);
             }
             daeSystemClass.modifyBaseValues(specKey, baseValues, _characterSpec);
             Hooks.callAll("dae.modifyBaseValues", specKey, baseValues, _characterSpec);
-            for (let key of Object.keys(baseValues)) {
-                const baseValue = baseValues[key];
-                if (typeof baseValue[0] === "string") {
-                    console.warn("wrong baseValue", key, baseValue[0]);
-                    baseValue[0] = new StringField({ initial: baseValue[0] });
-                }
-                if (typeof baseValue[0] === "number") {
-                    console.warn("wrong baseValue", key, baseValue[0]);
-                    baseValue[0] = new NumberField({ initial: baseValue[0] });
-                }
-                if (typeof baseValue[0] === "boolean") {
-                    console.warn("wrong baseValue", key, baseValue[0]);
-                    baseValue[0] = new BooleanField({ initial: baseValue[0] });
-                }
-            }
-            // baseValues["items"] = ""; // TODO one day work this out.
+            coerceBaseValueField(baseValues, "baseValue");
             if (game.modules.get("gm-notes")?.active) {
-                baseValues["flags.gm-notes.notes"] = [new StringField(), -1];
-                baseValues["name"] = [new StringField(), -1];
-                baseValues["system.att"];
+                baseValues["flags.gm-notes.notes"] = [new StringField(), ""];
+                baseValues["name"] = [new StringField(), ""];
             }
             let specials = {};
             if (ceInterface)
-                specials["macro.CE"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-            specials["macro.StatusEffect"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-            specials["StatusEffect"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-            //specials["StatusEffectLabel"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-            //specials["StatusEffectName"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
+                specials["macro.CE"] = [new StringField(), "custom"];
+            specials["macro.StatusEffect"] = [new StringField(), "custom"];
+            specials["StatusEffect"] = [new StringField(), "custom"];
             daeSystemClass.modifySpecials(specKey, specials, _characterSpec);
             Hooks.callAll("dae.modifySpecials", specKey, specials, _characterSpec);
-            for (let key of Object.keys(specials)) {
-                const special = specials[key];
-                if (typeof special[0] === "string") {
-                    console.warn("wrong special", key, special[0]);
-                    special[0] = new StringField({ initial: special[0] });
-                }
-                if (typeof special[0] === "number") {
-                    console.warn("wrong special", key, special[0]);
-                    special[0] = new NumberField({ initial: special[0] });
-                }
-                if (typeof special[0] === "boolean") {
-                    console.warn("wrong special", key, special[0]);
-                    special[0] = new BooleanField({ initial: special[0] });
-                }
-            }
-            specials["flags.dae.onUpdateTarget"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-            specials["flags.dae.onUpdateSource"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
+            coerceBaseValueField(specials, "special");
+            specials["flags.dae.onUpdateTarget"] = [new StringField(), "custom"];
+            specials["flags.dae.onUpdateSource"] = [new StringField(), "custom"];
             Object.keys(specials).forEach(key => {
                 if (debugEnabled > 0 && baseValues[key])
                     console.log(`DAE | specials ${key} is already defined in baseValues - removing from baseValues`);
                 delete baseValues[key];
             });
-            // baseSpecs are all those fields defined in template.json game.model and are things the user can directly change
-            this.actorSpecs[specKey].baseSpecs = Object.keys(baseValues).map(spec => {
-                let validSpec = new ValidSpec(spec, baseValues[spec][0] ?? baseValues[spec], baseValues[spec][1], baseValues[spec][0]?.label, baseValues[spec][0]?.hint);
-                validSpec = daeSystemClass.modifyValidSpec(spec, validSpec); // System specific modifations
-                this.actorSpecs[specKey].baseSpecsObj[spec] = validSpec;
-                return validSpec;
-            });
+            // Build flat spec list from baseValues (phase: "initial")
+            const allSpecsObj = {};
+            for (const spec of Object.keys(baseValues)) {
+                if (spec === "system")
+                    continue;
+                let validSpec = new ValidSpec(spec, baseValues[spec][0] ?? baseValues[spec], baseValues[spec][1], baseValues[spec][0]?.label, baseValues[spec][0]?.hint, "initial");
+                validSpec = daeSystemClass.modifyValidSpec(spec, validSpec);
+                allSpecsObj[spec] = validSpec;
+            }
             if (game.modules.get("tokenmagic")?.active) {
-                specials["macro.tokenMagic"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
+                specials["macro.tokenMagic"] = [new StringField(), "custom"];
             }
-            daeSystemClass.modifyDerivedSpecs(specKey, this.actorSpecs[specKey].derivedSpecs, _characterSpec);
-            Hooks.callAll("dae.modifyDerivedSpecs", specKey, this.actorSpecs[specKey].derivedSpecs, _characterSpec);
-            Object.entries(specials).forEach(special => {
-                let validSpec = new ValidSpec(special[0], special[1][0], special[1][1], special[1][0].label, special[1][0].hint);
-                this.actorSpecs[specKey].derivedSpecs.push(validSpec);
-            });
-            this.actorSpecs[specKey].baseSpecs = this.actorSpecs[specKey].baseSpecs.filter(m => m._fieldSpec !== "system");
-            this.actorSpecs[specKey].allSpecs = this.actorSpecs[specKey].baseSpecs.concat(this.actorSpecs[specKey].derivedSpecs);
-            // TODO come back and clean this up
-            if (["dnd5e"].includes(game.system.id ?? "")) {
-                // Special case for armor/hp which can depend on derived attributes - like dexterity mod or constitution mod
-                // and initiative bonus depends on advantage on initiative
-                this.actorSpecs[specKey].allSpecs.forEach(m => {
-                    if (["attributes.hp", "attributes.ac"].includes(m._fieldSpec)) {
-                        m._fieldType = 0;
+            // Specials and derived specs get phase "final" (applied after prepareDerivedData)
+            const derivedSpecsList = [];
+            daeSystemClass.modifyDerivedSpecs(specKey, derivedSpecsList, _characterSpec);
+            Hooks.callAll("dae.modifyDerivedSpecs", specKey, derivedSpecsList, _characterSpec);
+            for (const vs of derivedSpecsList) {
+                vs.phase = "final";
+                allSpecsObj[vs.fieldSpec] = vs;
+            }
+            for (const [key, value] of Object.entries(specials)) {
+                const validSpec = new ValidSpec(key, value[0], value[1], value[0].label, value[0].hint, "final");
+                allSpecsObj[key] = validSpec;
+            }
+            // Add token.* specs from TokenDocument schema for v14 token effect targeting
+            const tokenTargetableKeys = CONFIG.Token.documentClass._ACTIVE_EFFECT_TARGETABLE_KEYS ?? [];
+            if (tokenTargetableKeys.length > 0) {
+                const tokenSchema = CONFIG.Token.documentClass.schema;
+                function walkTokenSchema(prefix, schemaField) {
+                    for (const [fieldKey, field] of Object.entries(schemaField.fields)) {
+                        const key = `${prefix}.${fieldKey}`;
+                        if (field instanceof SchemaField) {
+                            walkTokenSchema(key, field);
+                        }
+                        else {
+                            allSpecsObj[key] = new ValidSpec(key, field, "", field.label, field.hint, "final");
+                        }
                     }
-                });
+                }
+                for (const targetKey of tokenTargetableKeys) {
+                    const field = tokenSchema.getField(targetKey);
+                    if (!field)
+                        continue;
+                    const prefixedKey = `token.${targetKey}`;
+                    if (field instanceof SchemaField) {
+                        walkTokenSchema(prefixedKey, field);
+                    }
+                    else if (field.element instanceof SchemaField) {
+                        // TypedObjectField (e.g. detectionModes) — enumerate known keys from CONFIG
+                        const elementSchema = field.element;
+                        const knownKeys = targetKey === "detectionModes"
+                            ? Object.keys(CONFIG.Canvas?.detectionModes ?? {})
+                            : [];
+                        for (const entryKey of knownKeys) {
+                            const entryPrefix = `${prefixedKey}.${entryKey}`;
+                            walkTokenSchema(entryPrefix, elementSchema);
+                        }
+                    }
+                    else {
+                        allSpecsObj[prefixedKey] = new ValidSpec(prefixedKey, field, "", field.label, field.hint, "final");
+                    }
+                }
             }
-            this.actorSpecs[specKey].allSpecs.sort((a, b) => { return a._fieldSpec.toLocaleLowerCase() < b._fieldSpec.toLocaleLowerCase() ? -1 : 1; });
-            this.actorSpecs[specKey].baseSpecs.sort((a, b) => { return a._fieldSpec.toLocaleLowerCase() < b._fieldSpec.toLocaleLowerCase() ? -1 : 1; });
-            this.actorSpecs[specKey].derivedSpecs.sort((a, b) => { return a._fieldSpec.toLocaleLowerCase() < b._fieldSpec.toLocaleLowerCase() ? -1 : 1; });
-            this.actorSpecs[specKey].allSpecs.forEach(ms => this.actorSpecs[specKey].allSpecsObj[ms._fieldSpec] = ms);
-            this.actorSpecs[specKey].baseSpecs.forEach(ms => this.actorSpecs[specKey].baseSpecsObj[ms._fieldSpec] = ms);
-            this.actorSpecs[specKey].derivedSpecs.forEach(ms => this.actorSpecs[specKey].derivedSpecsObj[ms._fieldSpec] = ms);
+            // Fire new unified hook
+            Hooks.callAll("dae.modifySpecs", specKey, allSpecsObj);
+            // Special case for armor/hp which can depend on derived attributes
+            if (["dnd5e"].includes(game.system.id ?? "")) {
+                for (const m of Object.values(allSpecsObj)) {
+                    if (["attributes.hp", "attributes.ac"].includes(m.fieldSpec)) {
+                        m.fieldType = 0;
+                    }
+                }
+            }
+            const allSpecs = Object.values(allSpecsObj);
+            allSpecs.sort((a, b) => a.fieldSpec.toLocaleLowerCase() < b.fieldSpec.toLocaleLowerCase() ? -1 : 1);
+            this.actorSpecs[specKey].allSpecs = allSpecs;
+            this.actorSpecs[specKey].allSpecsObj = allSpecsObj;
             if (this.actorSpecs[specKey].allSpecsObj.system)
                 delete this.actorSpecs[specKey].allSpecsObj.system;
         }
-        let allSpecsObj = {};
-        let baseSpecsObj = {};
-        let derivedSpecsObj = {};
+        // Build the "union" type from all actor types
+        let unionSpecsObj = {};
         for (let specKey of Object.keys(CONFIG.Actor.dataModels)) {
-            Object.keys(this.actorSpecs[specKey].allSpecsObj).forEach(key => allSpecsObj[key] = this.actorSpecs[specKey].allSpecsObj[key]);
-            Object.keys(this.actorSpecs[specKey].baseSpecsObj).forEach(key => baseSpecsObj[key] = this.actorSpecs[specKey].baseSpecsObj[key]);
-            Object.keys(this.actorSpecs[specKey].derivedSpecsObj).forEach(key => derivedSpecsObj[key] = this.actorSpecs[specKey].derivedSpecsObj[key]);
+            Object.assign(unionSpecsObj, this.actorSpecs[specKey].allSpecsObj);
         }
-        this.actorSpecs["union"] = { allSpecs: [], allSpecsObj: {}, baseSpecs: [], baseSpecsObj: {}, derivedSpecsObj: {}, derivedSpecs: [] };
-        this.actorSpecs["union"].allSpecsObj = allSpecsObj;
-        this.actorSpecs["union"].baseSpecsObj = baseSpecsObj;
-        this.actorSpecs["union"].derivedSpecsObj = derivedSpecsObj;
-        this.actorSpecs["union"].allSpecs = Object.keys(this.actorSpecs["union"].allSpecsObj).map(k => this.actorSpecs["union"].allSpecsObj[k]);
-        this.actorSpecs["union"].baseSpecs = Object.keys(this.actorSpecs["union"].baseSpecsObj).map(k => this.actorSpecs["union"].baseSpecsObj[k]);
-        this.actorSpecs["union"].derivedSpecs = Object.keys(this.actorSpecs["union"].derivedSpecsObj).map(k => this.actorSpecs["union"].derivedSpecsObj[k]);
-        this.actorSpecs["union"].allSpecs.sort((a, b) => { return a._fieldSpec.toLocaleLowerCase() < b._fieldSpec.toLocaleLowerCase() ? -1 : 1; });
-        this.actorSpecs["union"].baseSpecs.sort((a, b) => { return a._fieldSpec.toLocaleLowerCase() < b._fieldSpec.toLocaleLowerCase() ? -1 : 1; });
-        this.actorSpecs["union"].derivedSpecs.sort((a, b) => { return a._fieldSpec.toLocaleLowerCase() < b._fieldSpec.toLocaleLowerCase() ? -1 : 1; });
+        this.actorSpecs["union"] = { allSpecs: [], allSpecsObj: {} };
+        this.actorSpecs["union"].allSpecsObj = unionSpecsObj;
+        this.actorSpecs["union"].allSpecs = Object.values(unionSpecsObj);
+        this.actorSpecs["union"].allSpecs.sort((a, b) => a.fieldSpec.toLocaleLowerCase() < b.fieldSpec.toLocaleLowerCase() ? -1 : 1);
         this.itemSpecs = "getItemSpecs" in daeSystemClass ? daeSystemClass?.getItemSpecs() : {};
     }
     static localizeSpecs() {
@@ -165,91 +178,53 @@ export class ValidSpec {
             ui.notifications?.error("DAE | Initialisation failed - no specs defined");
             return;
         }
+        const fieldStart = `flags.${game.system.id}.`;
+        const deprecatedPatterns = [
+            /^system\.abilities\.\w{3}\.save$/,
+            /^system\.abilities\.\w{3}\.mod$/,
+            /^system\.skills\.\w{3}\.mod$/,
+            /^system\.skills\.\w{3}\.passive$/,
+        ];
+        const deprecatedKeys = new Set(["StatusEffectLabel", "system.attributes.ac.value"]);
+        function localizeLabel(m) {
+            m.label = m.label.replace("data.", "").replace("system.", "").replace(`{game.system.id}.`, "").replace(".value", "").split(".").map(str => i18n(`dae.${str}`).replaceAll("dae.", "")).join(" ");
+            if (m.fieldSpec.includes(`flags.${game.system.id}`)) {
+                const fieldId = m.fieldSpec.replace(fieldStart, "");
+                //@ts-expect-error no dnd5e-types
+                const characterFlags = game.system.config?.characterFlags ?? {};
+                m.label = `Flags ${i18n(characterFlags[fieldId]?.name) ?? i18n(`dae.${fieldId}`)}`;
+            }
+        }
+        function addLabelSuffix(m) {
+            if (deprecatedPatterns.some(re => re.test(m.fieldSpec)) || deprecatedKeys.has(m.fieldSpec))
+                m.label += " (Deprecated)";
+            else if (m.phase === "final")
+                m.label = `${m.label || m.fieldSpec} (*)`;
+            else if (m.phase === "none")
+                m.label = `${m.label || m.fieldSpec} (ui)`;
+        }
         for (let specKey of Object.keys(CONFIG.Actor.dataModels)) {
             if (!this.actorSpecs[specKey])
-                continue; // not all of the actor types are defined in the system
-            const fieldStart = `flags.${game.system.id}.`;
-            this.actorSpecs[specKey].allSpecs = this.actorSpecs[specKey].allSpecs.map(m => {
-                // Turns out the dnd5e field labels are not all that good.
-                // if (false && (m.fieldType?.label ?? "") !== "") m._label = i18n(m.fieldType.label);
-                // else {
-                m._label = m._label.replace("data.", "").replace("system.", "").replace(`{game.system.id}.`, "").replace(".value", "").split(".").map(str => i18n(`dae.${str}`).replaceAll("dae.", "")).join(" ");
-                if (m.fieldSpec.includes(`flags.${game.system.id}`)) {
-                    const fieldId = m.fieldSpec.replace(fieldStart, "");
-                    //@ts-expect-error no dnd5e-types
-                    const characterFlags = game.system.config?.characterFlags ?? {};
-                    const localizedString = i18n(characterFlags[fieldId]?.name) ?? i18n(`dae.${fieldId}`);
-                    m._label = `Flags ${localizedString}`;
-                }
-                // }
-                const saveBonus = m._fieldSpec.match(/^system.abilities.(\w\w\w).save$/);
-                const checkBonus = m._fieldSpec.match(/^system.abilities.(\w\w\w).mod$/);
-                const skillMod = m._fieldSpec.match(/^system.skills.(\w\w\w).mod$/);
-                const skillPassive = m._fieldSpec.match(/^system.skills.(\w\w\w).passive$/);
-                if (saveBonus)
-                    m._label = `${m._label} (Deprecated)`;
-                else if (checkBonus)
-                    m._label = `${m._label} (Deprecated)`;
-                else if (skillMod)
-                    m._label = `${m._label} (Deprecated)`;
-                else if (skillPassive)
-                    m._label = `${m._label} (Deprecated)`;
-                else if (m._fieldSpec === "StatusEffectLabel")
-                    m._label = `${m._label} (Deprecated)`;
-                else if (m._fieldSpec === "system.attributes.ac.value")
-                    m._label = `${m._label} (Deprecated)`;
-                else if (this.actorSpecs[specKey].derivedSpecsObj[m._fieldSpec])
-                    m._label = `${m._label ? m._label : m._fieldSpec} (*)`;
-                return m;
-            });
+                continue;
+            for (const m of this.actorSpecs[specKey].allSpecs) {
+                localizeLabel(m);
+                addLabelSuffix(m);
+            }
         }
         for (let specKey of Object.keys(this.itemSpecs)) {
-            for (let m of this.itemSpecs[specKey].allSpecs) {
-                const fieldStart = `flags.${game.system.id}.`;
-                // Turns out the dnd5e field labels are not all that good.
+            for (const m of this.itemSpecs[specKey].allSpecs) {
                 if (m.fieldType instanceof foundry.data.fields.DataField && (m.fieldType?.label ?? "") !== "")
                     m.label = i18n(m.fieldType.label);
-                else {
-                    m.label = m.label.replace("data.", "").replace("system.", "").replace(`{game.system.id}.`, "").replace(".value", "").split(".").map(str => i18n(`dae.${str}`).replaceAll("dae.", "")).join(" ");
-                    if (m.fieldSpec.includes(`flags.${game.system.id}`)) {
-                        const fieldId = m.fieldSpec.replace(fieldStart, "");
-                        // @ts-expect-error no dnd5e-types
-                        const characterFlags = game.system.config?.characterFlags ?? {};
-                        const localizedString = i18n(characterFlags[fieldId]?.name) ?? i18n(`dae.${fieldId}`);
-                        m.label = `Flags ${localizedString}`;
-                    }
-                }
-                const saveBonus = m.fieldSpec.match(/^system.abilities.(\w\w\w).save$/);
-                const checkBonus = m.fieldSpec.match(/^system.abilities.(\w\w\w).mod$/);
-                const skillMod = m.fieldSpec.match(/^system.skills.(\w\w\w).mod$/);
-                const skillPassive = m.fieldSpec.match(/^system.skills.(\w\w\w).passive$/);
-                if (saveBonus)
-                    m.label = `${m.label} (Deprecated)`;
-                else if (checkBonus)
-                    m.label = `${m.label} (Deprecated)`;
-                else if (skillMod)
-                    m.label = `${m.label} (Deprecated)`;
-                else if (skillPassive)
-                    m.label = `${m.label} (Deprecated)`;
-                else if (m.fieldSpec === "StatusEffectLabel")
-                    m.label = `${m.label} (Deprecated)`;
-                else if (m.fieldSpec === "system.attributes.ac.value")
-                    m.label = `${m.label} (Deprecated)`;
-                else if (this.itemSpecs[specKey].derivedSpecsObj[m.fieldSpec])
-                    m.label = `${m.label} (*)`;
-                let newOptions = m.options;
+                else
+                    localizeLabel(m);
+                addLabelSuffix(m);
                 // @ts-expect-error TODO (Michael): is this actually possible?
-                if (!newOptions && typeof m.options === "string")
-                    newOptions = i18n(m.options);
-                m.options = newOptions;
+                if (!m.options && typeof m.options === "string")
+                    m.options = i18n(m.options);
                 m.label = i18n(m.label ?? "");
             }
         }
     }
-}
-function getRollData(wrapped, ...args) {
-    // need to be careful - default foundry getRollData() returns the "live" actor.system
-    return wrapped(...args);
 }
 export class DAESystem {
     static spellAttacks;
@@ -266,9 +241,7 @@ export class DAESystem {
     static getActorDataModelFields(actorType) {
         return CONFIG.Actor.dataModels[actorType]?.schema?.fields;
     }
-    static getRollDataFunc() {
-        return getRollData;
-    }
+    static getRollDataWrapper = null;
     /**
      * accepts a string field specification, e.g. system.traits.languages.value. Used extensively in ConfigPanel.ts
      * return an object or false.
@@ -297,17 +270,15 @@ export class DAESystem {
     }
     ;
     static modifySpecials(actorType, specials, characterSpec) {
-        const ACTIVE_EFFECT_MODES = CONST.ACTIVE_EFFECT_MODES;
-        specials["macro.execute"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        specials["macro.execute.local"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        specials["macro.execute.GM"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        specials["macro.itemMacro"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        specials["macro.itemMacro.local"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        specials["macro.itemMacro.GM"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        specials["macro.actorUpdate"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        specials["macro.createItem"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        specials["macro.createItemRunMacro"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        // specials["macro.createToken"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
+        specials["macro.execute"] = [new StringField(), "custom"];
+        specials["macro.execute.local"] = [new StringField(), "custom"];
+        specials["macro.execute.GM"] = [new StringField(), "custom"];
+        specials["macro.itemMacro"] = [new StringField(), "custom"];
+        specials["macro.itemMacro.local"] = [new StringField(), "custom"];
+        specials["macro.itemMacro.GM"] = [new StringField(), "custom"];
+        specials["macro.actorUpdate"] = [new StringField(), "custom"];
+        specials["macro.createItem"] = [new StringField(), "custom"];
+        specials["macro.createItemRunMacro"] = [new StringField(), "custom"];
     }
     ;
     static modifyDerivedSpecs(actorType, derivedSpecs, characterSpec) {
@@ -317,15 +288,6 @@ export class DAESystem {
     }
     static modifyValidSpec(spec, validSpec) {
         return validSpec;
-    }
-    // TODO (Michael): Is this used anywhere?
-    static doCustomValue(actor, current, change, validValues) {
-        if ((current || []).includes(change.value))
-            return true;
-        if (!validValues.includes(change.value))
-            return true;
-        foundry.utils.setProperty(actor, change.key, current.concat([change.value]));
-        return true;
     }
     static doCustomArrayValue(actor, current, change, validValues) {
         if (current instanceof Array) {
@@ -360,10 +322,9 @@ export class DAESystem {
                 foundry.utils.setProperty(actor, change.key, returnValue);
             }
             else {
-                // if ((current ?? new Set()).has(change.value)) return true;
+                // Always create a new Set to ensure reference inequality in _applyChangeCustom
+                // (avoids undefined return when postHook === preHook by value)
                 let returnValue = new Set(current ?? []);
-                // Avoid problem with current custom changes setting return value to undefined if no changes made
-                // if (validValues && !validValues.includes(change.value)) return true;
                 returnValue.add(change.value);
                 foundry.utils.setProperty(actor, change.key, returnValue);
             }
@@ -487,8 +448,8 @@ export class DAESystem {
                     stack.push(`${this.safeEval(this.safeEvalExpression(temp, context, depth + 1), context)}`);
                 else if (funcName === "dae.roll") {
                     try {
-                        error(`%c dae.roll in ${input} is not supported in expression ${input} in foundry version 12 and has been discarded`, "color: red", context.name, context.actorUuid);
-                        stack.push(this.safeEval("0", context)); // v12 does not support synchronous dice rolling)
+                        error(`%c dae.roll in ${input} is not supported and has been discarded`, "color: red", context.name, context.actorUuid);
+                        stack.push(this.safeEval("0", context)); // Foundry does not support synchronous dice rolling
                     }
                     catch (err) {
                         console.warn(`dae | dae.roll bad dice expression ${temp}`, err);
@@ -537,18 +498,18 @@ export class DAESystem {
         }
         return true;
     }
-    /*
-    * replace the default actor prepareData
-    * call applyDaeEffects
-    * add an additional pass after derivfed data
-    */
     static initActions() {
         Hooks.callAll("dae.addFieldMappings", this.fieldMappings);
-        // We will call this in prepareData
-        libWrapper.register("dae", "CONFIG.Actor.documentClass.prototype.applyActiveEffects", applyBaseActiveEffects, "OVERRIDE");
-        // Might have to be tailored to other systems.
+        // WRAPPER on applyActiveEffects — DAE extends core + system effect application.
+        // Core handles: phase validation, change collection, sorting, applyChange, overrides.
+        // DAE adds: phase correction for missed changes (ValidSpec), showIcon deprecation.
+        libWrapper.register("dae", "CONFIG.Actor.documentClass.prototype.applyActiveEffects", daeApplyActiveEffects, "WRAPPER");
+        // MIXED on ActiveEffect.applyChange — handles per-change DAE transformations:
+        // field mappings, dae.eval, @data rewrite, @stackCount, OverTime suffix, stacks.
+        libWrapper.register("dae", "CONFIG.ActiveEffect.documentClass.applyChange", daeApplyChange, "MIXED");
+        // WRAPPER on prepareData for DAE-specific pre/post work
         libWrapper.register("dae", "CONFIG.Actor.documentClass.prototype.prepareData", prepareData, "WRAPPER");
-        // This supplies DAE custom effects
+        // This supplies DAE custom effects via the applyActiveEffect hook
         // @ts-expect-error our custom stuff in the change data makes types angry
         Hooks.on("applyActiveEffect", daeSystemClass.daeCustomEffect.bind(daeSystemClass));
     }
@@ -556,87 +517,80 @@ export class DAESystem {
     }
     static setupActions() {
     }
-}
-// this function replaces applyActiveEffects in Actor
-function applyBaseActiveEffects() {
-    applyDaeEffects.bind(this)({ specList: ValidSpec.actorSpecs[this.type].baseSpecsObj, excludeSpecs: ValidSpec.actorSpecs[this.type].derivedSpecsObj, allowAllSpecs: true, wildCardsInclude: wildcardEffects, wildCardsExclude: [], doStatusEffects: true });
+    static async preCreateActiveEffect(effect) {
+    }
 }
 /*
-* replace the default actor prepareData
-* call applyDaeEffects
-* add an additional pass after derivfed data
+* WRAPPER on prepareData for DAE-specific pre/post work.
+* Ensures ValidSpec is initialized, resets onUpdateTarget flags,
+* and fires "init" macros on first preparation after world load.
 */
 function prepareData(wrapped) {
+    const initMacrosOnLoad = game.settings.get("dae", "initMacrosOnLoad");
     if (!ValidSpec.actorSpecs) {
         ValidSpec.createValidMods();
     }
-    this.statuses ??= new Set();
-    // Identify which special statuses had been active
-    const specialStatuses = new Map();
-    for (const statusId of Object.values(CONFIG.specialStatusEffects)) {
-        specialStatuses.set(statusId, this.statuses.has(statusId));
-    }
-    this.statuses.clear(); // need to do this here since core foundry does this in applyActiveEffects, but we do multiple calls to applyEffects
     foundry.utils.setProperty(this, "flags.dae.onUpdateTarget", foundry.utils.getProperty(this._source, "flags.dae.onUpdateTarget"));
     debug("prepare data: before passes", this.name, this._source);
-    this.overrides = {};
     wrapped();
-    // Add an extra pass after prepareData has completed for "specials" to be applied
-    applyDaeEffects.bind(this)({ specList: ValidSpec.actorSpecs[this.type].derivedSpecsObj, excludeSpecs: ValidSpec.actorSpecs[this.type].baseSpecsObj, allowAllSpecs: true, wildCardsInclude: [], wildCardsExclude: wildcardEffects, doStatusEffects: true });
-    let tokens;
-    for (const [statusId, wasActive] of specialStatuses) {
-        const isActive = this.statuses.has(statusId);
-        if (isActive === wasActive)
-            continue;
-        if (!tokens)
-            tokens = this.getActiveTokens();
-        // @ts-expect-error protected - do we need this?
-        for (const token of tokens)
-            token._onApplyStatusEffect(statusId, isActive);
+    // On first prepareData for each actor, fire "init" for
+    // macro.itemMacro/macro.activityMacro/macro.execute so macros that register hooks can re-initialize after world load
+    if (initMacrosOnLoad && !daeInitMacroActors.has(this.uuid)) {
+        daeInitMacroActors.add(this.uuid);
+        const initEffects = [];
+        for (const ef of this.allApplicableEffects()) {
+            if (ef.disabled || ef.isSuppressed)
+                continue;
+            // @ts-expect-error v14 system.changes
+            if (ef.system.changes.some(c => c.key.startsWith("macro.itemMacro") || c.key.startsWith("macro.activityMacro") || c.key.startsWith("macro.execute"))) {
+                initEffects.push(ef);
+            }
+        }
+        for (const effect of initEffects) {
+            if (game.ready)
+                actionQueue.add(daeMacro, "init", this, effect, { effectUuid: effect.uuid });
+            else
+                pendingInitMacroEffects.push({ effectUuid: effect.uuid, actorUuid: this.uuid });
+        }
     }
-    //TODO find another way to tdo this
-    // this._prepareOwnedItems(this.items)
     debug("prepare data: after passes", this);
 }
 foundry.utils.setProperty(globalThis, "CONFIG.DAE.systemClass", DAESystem);
-Hooks.on("dae.modifySpecials", (specKey, specials, characterSpec) => {
-    const ACTIVE_EFFECT_MODES = CONST.ACTIVE_EFFECT_MODES;
+Hooks.on("dae.modifySpecs", (specKey, allSpecsObj) => {
     if (game.modules.get("ATL")?.active) {
         for (let label of ["dimSight", "brightSight"]) {
-            specials[`ATL.${label}`] = [new NumberField(), -1];
+            allSpecsObj[`ATL.${label}`] = new ValidSpec(`ATL.${label}`, new NumberField(), "", undefined, undefined, "final");
         }
-        specials["ATL.alpha"] = [new NumberField(), -1];
-        specials["ATL.elevation"] = [new NumberField(), -1];
-        specials["ATL.height"] = [new NumberField(), -1];
-        specials["ATL.width"] = [new NumberField(), -1];
-        specials["ATL.hidden"] = [new BooleanField(), -1];
-        specials["ATL.rotation"] = [new NumberField(), -1];
-        specials["ATL.light.animation"] = [new StringField(), -1]; //{intensity: 1:10, reverse: true/false, speed: 1:10, type: "X"}	Light Animation settings, see below for Animation Types
-        specials["ATL.light.alpha"] = [new NumberField(), -1];
-        specials["ATL.light.angle"] = [new NumberField(), -1];
-        specials["ATL.light.attenuation"] = [new NumberField(), -1];
-        specials["ATL.light.bright"] = [new NumberField(), -1];
-        specials["ATL.light.color"] = [new NumberField(), -1];
-        specials["ATL.light.coloration"] = [new NumberField(), -1];
-        specials["ATL.light.contrast"] = [new NumberField(), -1];
-        specials["ATL.light.dim"] = [new NumberField(), -1];
-        specials["ATL.light.luminosity"] = [new NumberField(), -1];
-        specials["ATL.light.saturation"] = [new NumberField(), -1];
-        specials["ATL.light.shadows"] = [new NumberField(), -1];
-        specials["ATL.light.darkness.max"] = [new NumberField(), -1];
-        specials["ATL.light.darkness.min"] = [new NumberField(), -1];
+        allSpecsObj["ATL.alpha"] = new ValidSpec("ATL.alpha", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.elevation"] = new ValidSpec("ATL.elevation", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.height"] = new ValidSpec("ATL.height", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.width"] = new ValidSpec("ATL.width", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.hidden"] = new ValidSpec("ATL.hidden", new BooleanField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.rotation"] = new ValidSpec("ATL.rotation", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.animation"] = new ValidSpec("ATL.light.animation", new StringField(), "", undefined, undefined, "final"); // json string
+        allSpecsObj["ATL.light.alpha"] = new ValidSpec("ATL.light.alpha", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.angle"] = new ValidSpec("ATL.light.angle", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.attenuation"] = new ValidSpec("ATL.light.attenuation", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.bright"] = new ValidSpec("ATL.light.bright", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.color"] = new ValidSpec("ATL.light.color", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.coloration"] = new ValidSpec("ATL.light.coloration", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.contrast"] = new ValidSpec("ATL.light.contrast", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.dim"] = new ValidSpec("ATL.light.dim", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.luminosity"] = new ValidSpec("ATL.light.luminosity", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.saturation"] = new ValidSpec("ATL.light.saturation", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.shadows"] = new ValidSpec("ATL.light.shadows", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.darkness.max"] = new ValidSpec("ATL.light.darkness.max", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.light.darkness.min"] = new ValidSpec("ATL.light.darkness.min", new NumberField(), "", undefined, undefined, "final");
         // detection modes are set in "ready" hook to allow for detection mode configuration
-        specials["ATL.sight.visionMode"] = [new StringField(), 0]; // selection list
-        specials["ATL.light.animation"] = [new StringField(), -1]; // json string
-        specials["ATL.preset"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
-        specials["ATL.sight.angle"] = [new NumberField(), -1];
-        specials["ATL.sight.attenuation"] = [new NumberField(), -1];
-        specials["ATL.sight.brightness"] = [new NumberField(), -1];
-        specials["ATL.sight.contrast"] = [new NumberField(), -1];
-        specials["ATL.sight.enabled"] = [new NumberField(), -1];
-        specials["ATL.sight.range"] = [new NumberField(), -1];
-        specials["ATL.sight.saturation"] = [new NumberField(), -1];
-        specials["ATL.sight.color"] = [new StringField(), 0 - 1];
-        specials["ATL.preset"] = [new StringField(), ACTIVE_EFFECT_MODES.CUSTOM];
+        allSpecsObj["ATL.sight.visionMode"] = new ValidSpec("ATL.sight.visionMode", new StringField(), "custom", undefined, undefined, "final"); // selection list
+        allSpecsObj["ATL.preset"] = new ValidSpec("ATL.preset", new StringField(), "custom", undefined, undefined, "final");
+        allSpecsObj["ATL.sight.angle"] = new ValidSpec("ATL.sight.angle", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.sight.attenuation"] = new ValidSpec("ATL.sight.attenuation", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.sight.brightness"] = new ValidSpec("ATL.sight.brightness", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.sight.contrast"] = new ValidSpec("ATL.sight.contrast", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.sight.enabled"] = new ValidSpec("ATL.sight.enabled", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.sight.range"] = new ValidSpec("ATL.sight.range", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.sight.saturation"] = new ValidSpec("ATL.sight.saturation", new NumberField(), "", undefined, undefined, "final");
+        allSpecsObj["ATL.sight.color"] = new ValidSpec("ATL.sight.color", new StringField(), "", undefined, undefined, "final");
     }
 });

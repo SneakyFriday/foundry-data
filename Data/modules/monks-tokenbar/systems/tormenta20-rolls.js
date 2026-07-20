@@ -8,7 +8,7 @@ export class Tormenta20Rolls extends BaseRolls {
 
         this._requestoptions = [
             { id: "ability", text: i18n("MonksTokenBar.Ability"), groups: this.config.atributos },
-            { id: "save", text: i18n("MonksTokenBar.SavingThrow"), groups: this.config.resistencias },
+            { id: "save", text: i18n("T20.ActionSave"), groups: this.config.resistencias },
             { id: "skill", text: i18n("MonksTokenBar.Skill"), groups: this.config.pericias }
         ].concat(this._requestoptions);
     }
@@ -84,10 +84,10 @@ export class Tormenta20Rolls extends BaseRolls {
         });
 
         if (setting("send-levelup-whisper") && actor.system.attributes.nivel.xp.value >= actor.system.attributes.nivel.xp.proximo) {
-            ChatMessage.create({
+            foundry.documents.ChatMessage.implementation.create({
                 user: game.user.id,
                 content: i18n("MonksTokenBar.Levelup"),
-                whisper: ChatMessage.getWhisperRecipients(actor.name)
+                whisper: foundry.documents.ChatMessage.implementation.getWhisperRecipients(actor.name)
             }).then(() => { });
         }
     }

@@ -1,0 +1,145 @@
+<section class="tab scrollable{{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+
+    {{!-- DAE Details fields --}}
+    <fieldset>
+        <legend>{{localize "EFFECT.TABS.details"}}</legend>
+
+        {{#unless transfer}}
+            <div class="form-group stacked">
+                <label>{{ localize "dae.EnableCondition" }}</label>
+                <div class="form-fields value">
+                    <textarea rows="1" name="flags.dae.enableCondition">{{source.flags.dae.enableCondition}}</textarea>
+                </div>
+            </div>
+        {{/unless}}
+
+        <div class="form-group stacked">
+            <label>{{ localize "dae.DisableCondition" }}</label>
+            <div class="form-fields value">
+                <textarea rows="1" name="flags.dae.disableCondition">{{source.flags.dae.disableCondition}}</textarea>
+            </div>
+        </div>
+
+        {{#if isItemEffect}}
+            <div class="form-group">
+                <label>{{localize "dae.Stackable"}}</label>
+                <div class="form-fields">
+                    <select name="flags.dae.stackable" data-dtype="String">
+                        {{selectOptions stackableOptions selected=source.flags.dae.stackable localize=true}}
+                    </select>
+                </div>
+            </div>
+        {{/if}}
+        <div class="form-group">
+            <label>{{ localize "dae.IconOverlay.Name" }}</label>
+            <input type="checkbox" name="flags.core.overlay" {{ checked source.flags.core.overlay }} />
+            <p class="hint" style="margin-bottom:1em">
+                {{ localize "dae.IconOverlay.Hint" }}
+            </p>
+        </div>
+    </fieldset>
+
+    {{!-- DAE Duration fields --}}
+    <fieldset>
+        <legend>{{localize "EFFECT.TABS.duration"}}</legend>
+
+        <div class="form-group">
+            <label>{{localize "dae.expiryMode.Name"}}</label>
+            <div class="form-fields">
+                <select name="flags.dae.expiryMode" data-dtype="String">
+                    {{selectOptions expiryModeOptions selected=source.flags.dae.expiryMode}}
+                </select>
+            </div>
+            <p class="hint">{{localize "dae.expiryMode.Hint"}}</p>
+        </div>
+
+        {{#if isItemEffect}}
+            <div class="form-group">
+                <label>{{ localize "dae.DurationExpression" }}</label>
+                <div class="form-fields">
+                    <input type="text" name="flags.dae.durationExpression" value="{{ source.flags.dae.durationExpression }}"/>
+                </div>
+            </div>
+        {{/if}}
+
+        {{#if macroRepeats}}
+            <div class="form-group">
+                <label>{{localize "dae.macroRepeat"}}</label>
+                <div class="form-fields">
+                    <select name="flags.dae.macroRepeat" data-dtype="String">
+                        {{selectOptions macroRepeats selected=source.flags.dae.macroRepeat}}
+                    </select>
+                </div>
+            </div>
+        {{/if}}
+
+        {{#if showSpecialDurations}}
+            <div class="dae-special-duration-container">
+                <div class="effect-special-duration flexrow">
+                    <div class="dae-special-duration-title">
+                        {{localize "dae.specialDuration"}}
+                    </div>
+                    <div class="effect-controls dae-effect-controls">
+                        <a class="effect-control dae-effect-control" data-action="addSpecialDuration">
+                            <i class="far fa-plus-square"></i>
+                        </a>
+                    </div>
+                </div>
+                <ol class="special-duration-list">
+                    {{#each source.flags.dae.specialDuration}}
+                        <li class="effect-special-duration flexrow" data-index="{{@key}}">
+                            <div class="form-group">
+                                <select name="flags.dae.specialDuration.{{@key}}" data-dtype="string">
+                                    {{selectOptions ../specialDuration selected=this}}
+                                </select>
+                                <a class="effect-controls effect-control"
+                                data-action="deleteSpecialDuration"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </li>
+                    {{/each}}
+                </ol>
+            </div>
+        {{/if}}
+    </fieldset>
+
+    {{!-- Midi-QOL fields --}}
+    {{#if midiActive}}
+    {{#unless isEnchantment}}
+        <fieldset>
+            <legend>Midi-QOL</legend>
+            <div class="form-group">
+                <label>{{ localize "dae.IncapacitatedDisabled" }}</label>
+                <input type="checkbox" name="flags.dae.disableIncapacitated" {{ checked source.flags.dae.disableIncapacitated }} />
+            </div>
+            {{#unless transfer}}
+                {{#if (and isItemEffect (not isConditionalActivationEffect))}}
+                    <div class="form-group">
+                        <label>{{ localize "dae.SelfTarget.Name" }}</label>
+                        <input type="checkbox" name="flags.dae.selfTarget" {{ checked source.flags.dae.selfTarget }} />
+                        <p class="hint" style="margin-bottom:1em">
+                            {{ localize "dae.SelfTarget.Hint" }}
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ localize "dae.SelfTargetAlways.Name" }}</label>
+                        <input type="checkbox" name="flags.dae.selfTargetAlways" {{ checked source.flags.dae.selfTargetAlways }} />
+                        <p class="hint" style="margin-bottom:1em">
+                            {{ localize "dae.SelfTargetAlways.Hint" }}
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ localize "dae.DontApply.Name" }}</label>
+                        <input type="checkbox" name="flags.dae.dontApply" {{ checked source.flags.dae.dontApply }} />
+                        <p class="hint" style="margin-bottom:1em">
+                            {{ localize "dae.DontApply.Hint" }}
+                        </p>
+                    </div>
+                {{/if}}
+            {{/unless}}
+        </fieldset>
+    {{/unless}}
+    {{/if}}
+
+</section>

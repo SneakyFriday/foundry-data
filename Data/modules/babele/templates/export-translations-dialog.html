@@ -1,19 +1,80 @@
-<form id="export-translation-form">
+<form class="babele-export-dialog standard-form" autocomplete="off">
+    <section class="babele-export-card">
+        <header class="babele-export-header">
+            <p class="hint">{{texts.notes}}</p>
+        </header>
 
-    <p>{{localize "BABELE.ExportTranslationNotes"}}</p>
+        <div class="form-group stacked">
+            <label>{{texts.format}}</label>
+            <div class="form-fields babele-export-options">
+                <label class="babele-export-option">
+                    <input type="radio" name="format" value="compatible" {{#if isCompatible}}checked{{/if}}>
+                    <span class="babele-export-option__body">
+                        <span class="babele-export-option__label">{{texts.formatCompatible}}</span>
+                        <small class="hint">{{texts.compatibleHint}}</small>
+                    </span>
+                </label>
 
-    <div class="form-group">
-        <label>{{localize "BABELE.ExportTranslationFormat"}}</label>
-        <div class="form-fields" style="justify-content: flex-end">
-            <label class="checkbox">
-                <input type="radio" name="format" value="legacy" checked="">
-                {{localize "BABELE.ExportTranslationFormatLegacy"}}
-            </label>
-            <label class="checkbox">
-                <input type="radio" name="format" value="compatible">
-                {{localize "BABELE.ExportTranslationFormatCompatible"}}
-            </label>
+                <label class="babele-export-option babele-export-option--deprecated">
+                    <input type="radio" name="format" value="legacy" {{#if isLegacy}}checked{{/if}}>
+                    <span class="babele-export-option__body">
+                        <span class="babele-export-option__label">{{texts.formatLegacy}}</span>
+                        <small class="hint">{{texts.legacyDeprecation}}</small>
+                    </span>
+                </label>
+            </div>
         </div>
-    </div>
 
+        {{#if hasTranslations}}
+        <section class="babele-export-divider" aria-label="{{texts.translationFileDetected}}">
+            <div class="babele-export-divider__rule"></div>
+            <div class="babele-export-divider__body">
+                <strong>{{texts.translationFileDetected}}</strong>
+                <p class="hint">{{texts.translationFileDetectedHint}}</p>
+            </div>
+        </section>
+
+        <div class="form-group stacked">
+            <label>{{texts.selection}}</label>
+            <div class="form-fields babele-export-options">
+                <label class="babele-export-option">
+                    <input type="radio" name="selection" value="all" {{#if isAll}}checked{{/if}}>
+                    <span class="babele-export-option__body">
+                        <span class="babele-export-option__label">{{texts.selectionAll}}</span>
+                        <small class="hint">{{texts.selectionAllHint}}</small>
+                        <small class="hint">{{counts.all}}</small>
+                    </span>
+                </label>
+
+                <label class="babele-export-option">
+                    <input type="radio" name="selection" value="source" {{#if isSource}}checked{{/if}}>
+                    <span class="babele-export-option__body">
+                        <span class="babele-export-option__label">{{texts.selectionSource}}</span>
+                        <small class="hint">{{texts.selectionSourceHint}}</small>
+                        <small class="hint">{{counts.all}}</small>
+                    </span>
+                </label>
+
+                <label class="babele-export-option">
+                    <input type="radio" name="selection" value="present" {{#if isPresent}}checked{{/if}} {{#unless hasPresentEntries}}disabled{{/unless}}>
+                    <span class="babele-export-option__body">
+                        <span class="babele-export-option__label">{{texts.selectionPresent}}</span>
+                        <small class="hint">{{counts.present}}</small>
+                    </span>
+                </label>
+
+                <label class="babele-export-option">
+                    <input type="radio" name="selection" value="missing" {{#if isMissing}}checked{{/if}} {{#unless hasMissingEntries}}disabled{{/unless}}>
+                    <span class="babele-export-option__body">
+                        <span class="babele-export-option__label">{{texts.selectionMissing}}</span>
+                        <small class="hint">{{counts.missing}}</small>
+                    </span>
+                </label>
+            </div>
+        </div>
+        {{else}}
+        <p class="hint babele-export-empty">{{texts.noTranslations}}</p>
+        <input type="hidden" name="selection" value="all">
+        {{/if}}
+    </section>
 </form>

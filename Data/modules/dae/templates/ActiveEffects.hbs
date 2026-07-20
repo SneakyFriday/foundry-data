@@ -60,10 +60,10 @@
                                 <a class="effect-delete dae-effect-delete" data-action="deleteEffect" title={{localize dae.Delete}}><i class="fas fa-trash"></i></a>
                             </div>
                         </li>
-                        {{#each effect.changes as |change cid|}}
+                        {{#each effect.system.changes as |change cid|}}
                             <li class="flexrow dae-change-list" effect-id="{{effect._id}}" change-id="{{cid}}">
                                 <div class="effect-name dae-effect-name">{{change.label}}</div>
-                                <div class="effect-mode dae-effect-mode">{{lookup ../../modes @change.mode}}</div>
+                                <div class="effect-mode dae-effect-mode">{{lookup ../../typeLabels change.type}}</div>
                                 <div class="effect-value-value dae-effect-value-value">{{change.value}}</div>
                             </li>
                         {{/each}}

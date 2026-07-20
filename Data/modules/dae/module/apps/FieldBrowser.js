@@ -81,8 +81,11 @@ export class DAEFieldBrowser {
                 : (typeof description === "string" && description !== "" && !description.startsWith("dae.genericSuffixes"))
                     ? description
                     : '';
-            if (daeSystemClass.fieldMappings[key])
-                finalDescription += ` deprecated: use ${daeSystemClass.fieldMappings[key]} instead`;
+            if (daeSystemClass.fieldMappings[key]) {
+                const mapping = daeSystemClass.fieldMappings[key];
+                const displayMapping = typeof mapping === "string" ? mapping : `${mapping.key}${mapping.value !== undefined ? ` ${mapping.value}` : ""}`;
+                finalDescription += ` deprecated: use ${displayMapping} instead`;
+            }
             return {
                 key,
                 name: finalName,
@@ -113,10 +116,7 @@ export class DAEFieldBrowser {
         const fullBrowserClass = DAEFieldBrowser.isFullBrowser ? 'active' : '';
         const descriptionsClass = DAEFieldBrowser.showDescriptions ? 'active' : '';
         const browserClasses = DAEFieldBrowser.isFullBrowser ? ['dae-fb-browser', 'dae-fb-full-browser'] : ['dae-fb-browser'];
-        if ((game.release?.generation ?? 12) < 13)
-            browserClasses.push('dae-v12');
-        else
-            browserClasses.push('application');
+        browserClasses.push('application');
         this.browserElement = document.createElement('div');
         this.browserElement.id = 'dae-fb-browser';
         this.browserElement.classList.add(...browserClasses);

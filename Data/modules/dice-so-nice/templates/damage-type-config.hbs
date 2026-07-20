@@ -1,0 +1,80 @@
+<section class="damage-type-config-body">
+    <p class="hint">{{localize "DICESONICE.DamageTypeConfigHint"}}</p>
+
+    <div class="damage-type-config-table-wrap">
+        <table class="damage-type-config-table">
+            <thead>
+                <tr>
+                    <th class="col-label">{{localize "DICESONICE.DamageTypeColumnName"}}</th>
+                    <th class="col-preset">{{localize "DICESONICE.DamageTypeColumnPreset"}}</th>
+                    <th class="col-theme">{{localize "DICESONICE.DamageTypeColumnTheme"}}</th>
+                    <th class="col-save">{{localize "DICESONICE.DamageTypeColumnSave"}}</th>
+                    <th class="col-actions"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each rows as |row|}}
+                <tr class="damage-type-row" data-key="{{row.key}}">
+                    <td class="col-label">
+                        {{#if row.isCustom}}
+                            <input type="text" name="label-{{row.key}}" value="{{row.label}}" placeholder="{{localize 'DICESONICE.DamageTypeLabelPlaceholder'}}" />
+                        {{else}}
+                            <span class="builtin-label">{{row.label}}</span>
+                            <span class="damage-type-id">{{row.id}}</span>
+                        {{/if}}
+                    </td>
+                    <td class="col-preset">
+                        <select name="preset-{{row.key}}">
+                            {{#each row.presets as |p|}}
+                            <option value="{{p.id}}" {{#if p.selected}}selected{{/if}}>{{p.name}}</option>
+                            {{/each}}
+                        </select>
+                    </td>
+                    <td class="col-theme">
+                        <select name="colorset-{{row.key}}">
+                            <option value="" {{#if row.colorsetBlankSelected}}selected{{/if}}>{{localize "DICESONICE.DamageTypeInherit"}}</option>
+                            {{#each row.colorsetGroups as |grp|}}
+                            <optgroup label="{{localize grp.group}}">
+                                {{#each grp.items as |cs|}}
+                                <option value="{{cs.id}}" {{#if cs.selected}}selected{{/if}}>{{cs.label}}</option>
+                                {{/each}}
+                            </optgroup>
+                            {{/each}}
+                        </select>
+                    </td>
+                    <td class="col-save">
+                        {{#if row.saveIsBroken}}
+                            <span class="broken-ref" title="{{localize 'DICESONICE.DamageTypeSaveBroken'}}">
+                                <i class="fa-solid fa-triangle-exclamation"></i> {{row.saveName}}
+                            </span>
+                        {{/if}}
+                        <select name="save-{{row.key}}">
+                            <option value="">{{localize "DICESONICE.DamageTypeSaveNone"}}</option>
+                            {{#each row.saves as |s|}}
+                            <option value="{{s.name}}" {{#if s.selected}}selected{{/if}}>{{s.name}}</option>
+                            {{/each}}
+                        </select>
+                    </td>
+                    <td class="col-actions">
+                        {{#if row.showReset}}
+                            <button type="button" data-action="resetRow" data-key="{{row.key}}" data-tooltip="{{localize 'DICESONICE.DamageTypeReset'}}" aria-label="{{localize 'DICESONICE.DamageTypeReset'}}" {{#if row.resetDisabled}}disabled{{/if}}>
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                        {{else}}
+                            <button type="button" data-action="deleteRow" data-key="{{row.key}}" data-tooltip="{{localize 'DICESONICE.DamageTypeDelete'}}" aria-label="{{localize 'DICESONICE.DamageTypeDelete'}}">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        {{/if}}
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="damage-type-config-actions">
+        <button type="button" data-action="addRow">
+            <i class="fa-solid fa-plus"></i> {{localize "DICESONICE.DamageTypeAdd"}}
+        </button>
+    </div>
+</section>

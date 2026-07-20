@@ -1,0 +1,23 @@
+<section id="ddb-importer-muncher-maps" class="tab ddb-muncher {{ tab.cssClass }} {{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+  <fieldset>
+    <legend>Information</legend>
+    <div>
+      <p>This utility allows you to import Maps from DDB Maps, and stickers as well. This feature is available to Undying and higher tier Patreon Supporters.</p>
+    </div>
+    <div>
+      <h4>What's the difference between this and Adventure Muncher/Import?</h3>
+      <p>This uses the scene images on DDB Maps. You will need to select a campaign on DDB to access your maps.</p>
+      <p>It will try and use metadata from Adventure Muncher when available to add walls/grids/lights/notes. If it can find a book on DDB it will try to import the journals and tables.</p>
+      <p><i>If you don't use the meta data, it does some analysis to try and determine the grids, and if Quickplay is enabled for the map on DDB it will try to add stickers and tokens.</i></p>
+      <p>This does allow access to a large number of maps that are not available outside of DDB Maps.</p>
+      <p>It imports the maps directly into your world, not a compendium. Remember - large numbers of things in your world will impact performance.</p>
+    </div>
+  </fieldset>
+
+  <button data-action="openMapBrowser" type="button" id="munch-maps-open" class="munch-button" {{#if tiers.experimentalMid}}{{else}}disabled{{/if}}>
+    <i class="fas fa-map"></i> {{#if tiers.experimentalMid}}Open Map Browser{{else}}Available for higher tiers{{/if}}
+  </button>
+  <button data-action="openStickerBrowser" type="button" id="munch-stickers-open" class="munch-button" {{#if tiers.experimentalMid}}{{else}}disabled{{/if}}>
+    <i class="fas fa-shapes"></i> {{#if tiers.experimentalMid}}Open Sticker Browser{{else}}Available for higher tiers{{/if}}
+  </button>
+</section>

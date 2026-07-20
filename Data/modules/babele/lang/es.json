@@ -21,5 +21,7 @@
   "BABELE.ShowOriginalNameHint": "Muestra el nombre sin traducir del objeto del compendio además de la traducción. Esto le permitirá filtrar por el nombre original además de por la traducción en la herramienta de búsqueda",
   "BABELE.ShowTranslateOption": "Mostrar opción de traducción",
   "BABELE.ShowTranslateOptionHint": "Conmuta la opción de tradución en las hojas de los actores",
+  "BABELE.SyncImportedAdventureTokenNames": "Sincronizar nombres de tokens de aventuras importadas",
+  "BABELE.SyncImportedAdventureTokenNamesHint": "Al importar una aventura, actualiza los nombres de los tokens solo en las escenas importadas y solo para los tokens cuyos actores fueron importados por esa misma aventura.",
   "BABELE.requireLibWrapperMessage": "Babele necesita el módulo 'libWrapper'. Por favor, instálelo y actívelo"
 }

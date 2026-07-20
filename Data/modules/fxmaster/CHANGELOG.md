@@ -1,5 +1,126 @@
 # Changelog
 
+## [v8.2.4] - 2026-06-23
+- Secondary update to the scene flag-wipe bug to prevent un-migrated scenes from being effected. Make sure to update to this version if on a build between 8.2.0 - 8.2.3
+
+## [v8.2.3] - 2026-06-20
+- Resolved a nasty bug that would wipe all scene flags instead of only the FXMaster scene flags that needed normalization migration.
+- Updated rain splashes to use a small delta in size ranges so that the splashes feel more natural.
+
+## [v8.2.2] - 2026-06-20
+- Resolved a nasty bug that would wipe all scene flags instead of only the FXMaster scene flags that needed normalization migration
+- Updated rain splashes to use a small delta in size ranges so that the splashes feel more natural
+
+## [v8.2.1] - 2026-06-20
+- Added new animated spritesheets for the Rain particle's rain drops option. On top of being animated, rain drops also now have a dedicated top-down version while in top-down mode along with a side-view version
+- Updated pt-br localizations, thanks Kharmans!
+- Resolved region initialization issue in the SWADE system that prevented a world from starting while fxmaster was active
+
+## [v8.2.0] - 2026-06-19
+Welcome to FXMaster V8.2.0!
+- Added new core filter effect, Screen Shake! This has a persistent or timed mode, along with an audio aware mode to allow activating based on audio bass level for things like integrating cleanly with Lightning if desired.
+- Added new Orbit mode to all Animal particles, along with Bubbles, Embers, Autumn Leaves, and Stars. This mode rotates the particles in a band around the center point of the scene or the region container with modifiable distance from center. Should allow some fun implementations for things like crows circling a battlefield or birds circling a seaside port.
+- Added new setting to allow playing effects over Fog of War/Token Vision. This is a request I've received a few times to allow effect visibility when players cannot see the area the effect is taking place in.
+- Added new api's for stopping all scene level effects on a scene, stopping all region level effects on a scene, and starting all regions level effects on a scene
+- Added right click option to the Clear Particle and Filter Effects button which will disable all region particle and filter effects for a given scene. This will not delete the behaviors.
+- Added new splash parameter to the presets api to allow turning Rain's splash option on/off
+- Updated compatability with V14 regions so that fxmaster effects respect Foundrys Wall Restrictions optionals
+- Updated effect direction normalization. Took a pass at modifying the direction parameter for all effects to respect geometric definitions. 0 should face right on the x-axis for all effects, with the angle increasing counterclockwise.
+- Updated effect normalization for many parameters to provide a 0-1 range instead of the arbitrary numeric values previously used in various places. This should be more consistent from a usability standpoint as non-numeric specific effects now effectively act on a 0-100% scale.
+- Updated Crows, Birds, and Eagles particle effects to have a higher cap for max density
+- Update Spiders particle effect to have a lower available minimum density
+- Updated Lightning, Lightning Bolt, and Screen Shake filter effects audio aware api parameter name from 'Thunder Aware' to 'Audio Aware' for more clarity. Tooltip now contains a reference to Thunder audio being a common use case for this parameter.
+- Resolved mask placement issue when Restricts Weather or FXMaster Restricts Particle/Filter was enabled for an overhead Tile with a mode other than Fade Entire Tile.
+- Resolved Embers, Stars, Fireflies, and Magic Crystals particle effects not displaying over top of Foundry darkness. When those effects are active in a scene with darkness, they will play outside of FXMaster's layers constructor and so will not be order-able against other effects - playing on top by default.
+- Resolved filter effects not fully displaying if a scene did not have a background applied.
+- Added localizations for the new Orbit mode and the new FXMaster+ Fire particle and filter effects!
+
+## [v8.1.4] - 2026-06-01
+- Resolved an edge case bug where a region with no shape data could cause a scene crash under certain circumstances
+
+## [v8.1.3] - 2026-05-31
+- Resolved token vision becoming black and white while effects were active
+
+## [v8.1.2] - 2026-05-30
+- Resolved effects appearing over-top of Foundry Darkness, and in concert resolved some mask sliding inconcistencies surrounding Adjust Darkness Level behaviors
+- Tweaked and improved some scene hooks and compositor behavior to improve performance and frame time consistency
+- Updated pt-br localizations, thanks Kharmans!
+
+## [v8.1.1] - 2026-05-24
+Welcome to FXMaster V8.1! I highly recommend updating to this version if you previously updated to FXMaster V8.0. Many improvements and bugfixes were implemented in relation to FXMaster's new layers compositor that should resolve a number of performance regressions and visual oddities on canvas.
+- Many many... many tweaks to the new V8 compositor for effects, specifically around improving performance and frame-time consistency
+- Added two new parameters to the Tiles Overhead menu. The new parameters are 'FXMaster: Restricts Particles' and 'FXMaster: Restricts Filters'. These can be used to restrict either particles or filters, while the native 'Restricts Weather' option can still be used to restrict both.
+- Added new functionality to the FXMaster Layers menu. Suppression regions are now included in the layers menu and can be ordered against scene effects to determine if an effect is suppressed by a given region or not.
+- Added new FXMaster setting 'Include Foundry Grid in FX Stack'. This option will allow particles and filters to play overtop of the grid (if enabled) without interfering with other Interface level components. This setting is disabled by default to mirror how FXMaster currently functions, but I recommend enabling it for more realistic looking effects if you play with a grid.
+- Added new FXMaster setting 'Apply Region Behaviors to Overhead Levels'. This option will display region suppression or addition behaviors realistically, ex: A suppression region on Level 2 will display that suppression while the user is on Level 1 and hovers to view the 2nd level. This can have a large impact on performance so it is defaulted off, if you would like to enable it make sure to test thoroughly before using it in live play.
+- Removed FXMaster setting 'Reset Particle and Filter Parameters'. This setting would not always act in a straightforward way from the users perspective. It has instead been replaced by:
+- Added right click menu for particle and filter effects toggle buttons. Right clicking will now allow you to reset individual effects to their default settings on a per-scene basis.
+- Added new Shadow parameter options to the Bats, Birds, Crows, and Eagles particle effects. These options are functionally equivalent to the Clouds shadow option and allow additional flexibility for birds to cast shadows
+- Updated region behaviors to modify effects in real-time when making adjustments. This means enabling effects, modifying parameters, etc will be viewable on screen as adjustments are made. Saving the region will confirm these updates while hitting close window will cancel them. This should allow tweaking region effects MUCH easier compared to previous versions
+- Added localizations for FXMaster+ Aurora Borealis and some new functionality
+- Re-added the small specials layer removed in V8.0. At least one module was using it which was one more than I was aware of
+- Bugfix for the Old Film filter not updating parameters properly
+- Bugfix for scene Particles not applying properly to Levels when individual levels were selected
+
+## [v8.1.0] - 2026-05-23
+Welcome to FXMaster V8.1! I highly recommend updating to this version if you previously updated to FXMaster V8.0. Many improvements and bugfixes were implemented in relation to FXMaster's new layers compositor that should resolve a number of performance regressions and visual oddities on canvas.
+- Many many... many tweaks to the new V8 compositor for effects, specifically around improving performance and frame-time consistency
+- Added two new parameters to the Tiles Overhead menu. The new parameters are 'FXMaster: Restricts Particles' and 'FXMaster: Restricts Filters'. These can be used to restrict either particles or filters, while the native 'Restricts Weather' option can still be used to restrict both.
+- Added new functionality to the FXMaster Layers menu. Suppression regions are now included in the layers menu and can be ordered against scene effects to determine if an effect is suppressed by a given region or not.
+- Added new FXMaster setting 'Include Foundry Grid in FX Stack'. This option will allow particles and filters to play overtop of the grid (if enabled) without interfering with other Interface level components. This setting is disabled by default to mirror how FXMaster currently functions, but I recommend enabling it for more realistic looking effects if you play with a grid.
+- Added new FXMaster setting 'Apply Region Behaviors to Overhead Levels'. This option will display region suppression or addition behaviors realistically, ex: A suppression region on Level 2 will display that suppression while the user is on Level 1 and hovers to view the 2nd level. This can have a large impact on performance so it is defaulted off, if you would like to enable it make sure to test thoroughly before using it in live play.
+- Removed FXMaster setting 'Reset Particle and Filter Parameters'. This setting would not always act in a straightforward way from the users perspective. It has instead been replaced by:
+- Added right click menu for particle and filter effects toggle buttons. Right clicking will now allow you to reset individual effects to their default settings on a per-scene basis.
+- Added new Shadow parameter options to the Bats, Birds, Crows, and Eagles particle effects. These options are functionally equivalent to the Clouds shadow option and allow additional flexibility for birds to cast shadows
+- Updated region behaviors to modify effects in real-time when making adjustments. This means enabling effects, modifying parameters, etc will be viewable on screen as adjustments are made. Saving the region will confirm these updates while hitting close window will cancel them. This should allow tweaking region effects MUCH easier compared to previous versions
+- Added localizations for FXMaster+ Aurora Borealis and some new functionality
+- Re-added the small specials layer removed in V8.0. At least one module was using it which was one more than I was aware of
+- Bugfix for the Old Film filter not updating parameters properly
+- Bugfix for scene Particles not applying properly to Levels when individual levels were selected
+
+## [v8.0.5] - 2026-04-26
+- Bugfix for Region behaviors elevation constraints not working to hide particle or filter Effects
+- Bugfix for Foundry's native Suppress Weather handling not always covering all regions if multiple regions with the behavior were present
+- Updated the FXMaster Tools button to FXMaster Tools Overview. This is now a clickable button and opens an overview window of the various functionality you can expect in FXMaster (and FXMaster+ if present). Also contains video popouts for specific examples on how to accomplish some common tasks in FXMaster.
+
+## [v8.0.4] - 2026-04-26
+- Bugfix for Region behaviors elevation constraints not working to hide particle or filter Effects
+- Bugfix for Foundry's native Suppress Weather handling not always covering all regions if multiple regions with the behavior were present
+- Updated the FXMaster Tools button to FXMaster Tools Overview. This is now a clickable button and opens an overview window of the various functionality you can expect in FXMaster (and FXMaster+ if present). Also contains video popouts for specific examples on how to accomplish some common tasks in FXMaster.
+
+## [v8.0.3] - 2026-04-26
+- Bugfix #2 for V13 where certain Particle Effects would render with a full white overlay
+
+## [v8.0.3] - 2026-04-26
+- Bugfix #2 for V13 where certain Particle Effects would render with a full white overlay
+
+## [v8.0.2] - 2026-04-26
+- Bugfix #2 for V13 where certain Particle Effects would render with a full white overlay
+
+## [v8.0.2] - 2026-04-26
+- Bugfix #2 for V13 where certain Particle Effects would render with a full white overlay
+
+## [v8.0.1] - 2026-04-25
+- Bugfix for V13 where certain Particle Effects would render with a full white overlay
+
+## [v8.0.0] - 2026-04-25
+Welcome to FXMaster V8.0.0! This can be considered the full release for Foundry V14. A few things to note, as noted the Animation Effects functionality in FXMaster has been removed in this build. Additionally, support for V12 has been removed, FXMaster now contains compatability for V13+.
+- Complete revamp for V14's Levels. Filters and Particles can be placed on specific levels for a scene with a new Scene multi-select. Regions now also respect multi-level placement for effects, and region suppression can be applied to specific levels. This update should allow a ton of flexibility when setting up your scenes, hope everyone enjoys!
+- Complete revamp of Particle and Filter layering. There is now a dedicated 'Manage Layers' button in FXMaster controls that allows placing particles and filters above or beneath other particles and filters for Scene, Region, and API effects
+- Added new API under FXMASTER.api.effects. Newly created macros in V8 will use this API. It accepts play, stop, and toggle along with a Skip Fading parameter if you wish to create the macro effects without a fade in/fade out for additional api flexibility.
+- Added a new dialog when saving macros on a scene. This dialog allows you to name the macro, and toggle optionals for a Play or Toggle macro as well as Skip Fading true/false parameter
+- Improved Manage API Effects window with additional detail for whether the API is a preset or effect type. Also includes the Macro name if present to easily identify different particle/filter sets
+- Added new Below Tiles parameter for both Particles and Filters. This will cause Particle or Filter effects to not apply overtop of Tiles on a map. If the Tile is set as an overhead with occlusion, the effect will display beneath the Tile unless the Tiles Restricts Weather option is enabled.
+- Added new Below Foreground parameter for both Particles and Filters. This will cause Particle or Filter effects to not apply to the Foreground of a Scene or Level.
+- Added new Darkness Activation parameter to allow playing Particle or Filter effects only within a specified darkness range.
+- Tiles 'Restricts Weather' parameter now suppresses Filters when beneath the tile elevation, previously only supported Particles.
+- New presets API parameters for belowTiles, belowForeground, darknessActivationEnabled, darknessActivationMin, darknessActivationMax, and levels
+- Fix range sliders moving with mouse scrollwheel while not focused in V14 and some other oddities
+- Added Blend mode to Color filter (Normal, Multiply, Color Burn, Darken, etc)
+- Reduced Fog Filters max brightness blend
+- Updated Tooltips to also display when hovering parameter tooltips, instead of only on the parameters themselves
+- Resolved power icon css placement issues in V14
+
 ## [v7.5.2] - 2026-04-01
 - Official compatability with V14! (It was already compatible, but now with extra compatability)
 - Resolved Hail, Rain, and Snow Particle Effects not generating in regions correctly due to the wrong origin spawn

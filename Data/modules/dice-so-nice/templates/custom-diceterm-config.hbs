@@ -1,0 +1,127 @@
+<section class="custom-diceterm-config-body">
+    {{#unless editingTerm}}{{#unless terms.length}}
+    <p class="hint">{{localize "DICESONICE.CustomDiceTermConfigHint"}}</p>
+    {{/unless}}{{/unless}}
+
+    {{#if editingTerm}}
+    <div class="custom-diceterm-editor">
+        <h3>
+            {{#if editingTerm.isNew}}
+                {{localize "DICESONICE.CustomDiceTermCreateTitle"}}
+            {{else}}
+                {{localize "DICESONICE.CustomDiceTermEditTitle"}} — d{{editingTerm.denomination}}
+            {{/if}}
+        </h3>
+
+        <div class="form-group">
+            <label>{{localize "DICESONICE.CustomDiceTermShape"}}</label>
+            <select name="shape" {{#unless editingTerm.isNew}}disabled{{/unless}}>
+                {{#each shapes as |s|}}
+                <option value="{{s.value}}" {{#if s.selected}}selected{{/if}}>{{s.label}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>{{localize "DICESONICE.CustomDiceTermDenomination"}}</label>
+            <div class="denomination-input-wrap">
+                <span class="denomination-prefix">d</span>
+                <input type="text" name="denomination" value="{{editingTerm.denomination}}"
+                    placeholder="{{localize 'DICESONICE.CustomDiceTermDenominationPlaceholder'}}"
+                    {{#unless editingTerm.isNew}}readonly{{/unless}} />
+            </div>
+            {{#if denominationError}}
+            <p class="notes warning">{{denominationError}}</p>
+            {{/if}}
+        </div>
+
+        <div class="custom-diceterm-face-table-wrap">
+            <table class="custom-diceterm-face-table">
+                <thead>
+                    <tr>
+                        <th class="col-face">#</th>
+                        <th class="col-value">{{localize "DICESONICE.CustomDiceTermFaceValue"}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each editingTerm.faces as |face|}}
+                    <tr>
+                        <td class="col-face">{{face.num}}</td>
+                        <td class="col-value"><input type="number" name="face-value-{{face.num}}" value="{{face.value}}" step="1" /></td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-group {{#if editingTerm.isNew}}disabled{{/if}}">
+            <label>{{localize "DICESONICE.CustomDiceTermDefaultAppearance"}}</label>
+            <div class="form-fields">
+                <select name="defaultDieId" {{#if editingTerm.isNew}}disabled{{/if}}>
+                    <option value="">{{localize "DICESONICE.None"}}</option>
+                    {{#each libraryDice}}
+                    <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.name}}</option>
+                    {{/each}}
+                </select>
+                <a class="library-control" data-action="openLibrary" title="{{localize 'DICESONICE.diceLibrary'}}" {{#if editingTerm.isNew}}inert{{/if}}><i class="fas fa-book"></i></a>
+            </div>
+            <p class="hint">{{localize "DICESONICE.CustomDiceTermDefaultAppearanceHint"}}</p>
+        </div>
+
+        <div class="custom-diceterm-editor-actions">
+            <button type="button" data-action="saveEditing">
+                <i class="fa-solid fa-save"></i> {{localize "DICESONICE.Save"}}
+            </button>
+            <button type="button" data-action="cancelEditing">
+                <i class="fa-solid fa-ban"></i> {{localize "DICESONICE.Cancel"}}
+            </button>
+        </div>
+    </div>
+    {{else}}
+    <div class="custom-diceterm-list-wrap">
+        {{#if terms.length}}
+        <table class="custom-diceterm-list">
+            <thead>
+                <tr>
+                    <th class="col-denomination">{{localize "DICESONICE.CustomDiceTermDenomination"}}</th>
+                    <th class="col-shape">{{localize "DICESONICE.CustomDiceTermShape"}}</th>
+                    <th class="col-faces">{{localize "DICESONICE.CustomDiceTermFaces"}}</th>
+                    <th class="col-actions"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each terms as |term|}}
+                <tr data-denomination="{{term.denomination}}">
+                    <td class="col-denomination">d{{term.denomination}}</td>
+                    <td class="col-shape">{{term.shape}}</td>
+                    <td class="col-faces">{{term.faceCount}}</td>
+                    <td class="col-actions">
+                        <button type="button" data-action="editTerm" data-denomination="{{term.denomination}}" data-tooltip="{{localize 'DICESONICE.editorEdit'}}">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button type="button" data-action="deleteTerm" data-denomination="{{term.denomination}}" data-tooltip="{{localize 'DICESONICE.Delete'}}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        {{else}}
+        <p class="empty-message">{{localize "DICESONICE.CustomDiceTermNone"}}</p>
+        {{/if}}
+    </div>
+
+    <div class="custom-diceterm-config-actions">
+        <button type="button" data-action="createTerm">
+            <i class="fa-solid fa-plus"></i> {{localize "DICESONICE.editorCreateNew"}}
+        </button>
+        <button type="button" data-action="exportAll" {{#unless terms.length}}disabled{{/unless}}>
+            <i class="fa-solid fa-file-export"></i> {{localize "DICESONICE.CustomDiceTermExportAll"}}
+        </button>
+        <button type="button" data-action="importTerms">
+            <i class="fa-solid fa-file-import"></i> {{localize "DICESONICE.CustomDiceTermImport"}}
+        </button>
+    </div>
+    {{/if}}
+</section>

@@ -354,8 +354,6 @@
     "dae.DontApply.Hint": "DAE（またはMidi-QOL）がアクティブ効果を自動適用するときスキップします。",
     "dae.DIMEditor.Name": "DIME",
     "dae.IncapacitatedDisabled": "アクターが無力状態なら効果を無効にする",
-    "dae.DIMESyncItemacro.Name": "DIMEとItemacroを同期する",
-    "dae.DIMESyncItemacro.Hint": "DIMEとItemacroによるマクロを同期させ、どちらでも編集できるようにします（無効の場合はDIME優先）。",
 
     "dae.preset": "プリセット",
     "dae.appearance": "外見",

@@ -124,6 +124,8 @@
     --dnd5e-notable-decor: no-repeat url("ui/notable-right-corner.svg") 0%/contain,
     no-repeat url("ui/notable-left-corner.svg") 100%/contain;
     --dnd5e-statblock-column-width: 400px;
+    /* Font Awesome */
+    --fa-width: auto;
   }
   .mixin-variables-light {
     /* Applications */
@@ -312,19 +314,27 @@
   }
   .mixin-variables-light input,
   .mixin-variables-light textarea,
+  .mixin-variables-light file-picker,
   .mixin-variables-light formula-input {
     --input-placeholder-color: var(--color-text-light-6);
   }
   .mixin-variables-light input,
   .mixin-variables-light textarea,
   .mixin-variables-light select,
+  .mixin-variables-light file-picker,
   .mixin-variables-light formula-input {
     --input-background-color: rgba(0, 0, 0, 0.1);
     --input-disabled-background-color: rgba(0, 0, 0, 0.2);
   }
+  .mixin-variables-light file-picker > input,
+  .mixin-variables-light formula-input > input {
+    --input-background-color: transparent;
+    --input-disabled-background-color: transparent;
+  }
   .mixin-variables-light input:not([type=range]),
   .mixin-variables-light textarea,
   .mixin-variables-light select,
+  .mixin-variables-light file-picker,
   .mixin-variables-light formula-input {
     --input-border-color: transparent;
     --input-hover-border-color: var(--dnd5e-color-gold);
@@ -541,19 +551,27 @@
     }
     body.theme-light .dnd5e2 input,
     body.theme-light .dnd5e2 textarea,
+    body.theme-light .dnd5e2 file-picker,
     body.theme-light .dnd5e2 formula-input {
       --input-placeholder-color: var(--color-text-light-6);
     }
     body.theme-light .dnd5e2 input,
     body.theme-light .dnd5e2 textarea,
     body.theme-light .dnd5e2 select,
+    body.theme-light .dnd5e2 file-picker,
     body.theme-light .dnd5e2 formula-input {
       --input-background-color: rgba(0, 0, 0, 0.1);
       --input-disabled-background-color: rgba(0, 0, 0, 0.2);
     }
+    body.theme-light .dnd5e2 file-picker > input,
+    body.theme-light .dnd5e2 formula-input > input {
+      --input-background-color: transparent;
+      --input-disabled-background-color: transparent;
+    }
     body.theme-light .dnd5e2 input:not([type=range]),
     body.theme-light .dnd5e2 textarea,
     body.theme-light .dnd5e2 select,
+    body.theme-light .dnd5e2 file-picker,
     body.theme-light .dnd5e2 formula-input {
       --input-border-color: transparent;
       --input-hover-border-color: var(--dnd5e-color-gold);
@@ -801,6 +819,9 @@
     .themed.theme-light.dnd5e2 textarea,
     .themed.theme-light.dnd5e2-journal textarea,
     .themed.theme-light .dnd5e2.chat-message textarea,
+    .themed.theme-light.dnd5e2 file-picker,
+    .themed.theme-light.dnd5e2-journal file-picker,
+    .themed.theme-light .dnd5e2.chat-message file-picker,
     .themed.theme-light.dnd5e2 formula-input,
     .themed.theme-light.dnd5e2-journal formula-input,
     .themed.theme-light .dnd5e2.chat-message formula-input {
@@ -815,11 +836,23 @@
     .themed.theme-light.dnd5e2 select,
     .themed.theme-light.dnd5e2-journal select,
     .themed.theme-light .dnd5e2.chat-message select,
+    .themed.theme-light.dnd5e2 file-picker,
+    .themed.theme-light.dnd5e2-journal file-picker,
+    .themed.theme-light .dnd5e2.chat-message file-picker,
     .themed.theme-light.dnd5e2 formula-input,
     .themed.theme-light.dnd5e2-journal formula-input,
     .themed.theme-light .dnd5e2.chat-message formula-input {
       --input-background-color: rgba(0, 0, 0, 0.1);
       --input-disabled-background-color: rgba(0, 0, 0, 0.2);
+    }
+    .themed.theme-light.dnd5e2 file-picker > input,
+    .themed.theme-light.dnd5e2-journal file-picker > input,
+    .themed.theme-light .dnd5e2.chat-message file-picker > input,
+    .themed.theme-light.dnd5e2 formula-input > input,
+    .themed.theme-light.dnd5e2-journal formula-input > input,
+    .themed.theme-light .dnd5e2.chat-message formula-input > input {
+      --input-background-color: transparent;
+      --input-disabled-background-color: transparent;
     }
     .themed.theme-light.dnd5e2 input:not([type=range]),
     .themed.theme-light.dnd5e2-journal input:not([type=range]),
@@ -830,6 +863,9 @@
     .themed.theme-light.dnd5e2 select,
     .themed.theme-light.dnd5e2-journal select,
     .themed.theme-light .dnd5e2.chat-message select,
+    .themed.theme-light.dnd5e2 file-picker,
+    .themed.theme-light.dnd5e2-journal file-picker,
+    .themed.theme-light .dnd5e2.chat-message file-picker,
     .themed.theme-light.dnd5e2 formula-input,
     .themed.theme-light.dnd5e2-journal formula-input,
     .themed.theme-light .dnd5e2.chat-message formula-input {
@@ -1075,12 +1111,14 @@
   }
   .mixin-variables-dark input:not([type=range]),
   .mixin-variables-dark select,
+  .mixin-variables-dark file-picker,
   .mixin-variables-dark formula-input {
     --input-border-color: var(--dnd5e-color-blue-gray-1);
     --input-hover-border-color: transparent;
   }
   .mixin-variables-dark fieldset.card input:not([type=range]),
   .mixin-variables-dark fieldset.card select,
+  .mixin-variables-dark fieldset.card file-picker,
   .mixin-variables-dark fieldset.card formula-input {
     --input-background-color: var(--dnd5e-background-25);
   }
@@ -1311,12 +1349,14 @@
     }
     body.theme-dark .dnd5e2 input:not([type=range]),
     body.theme-dark .dnd5e2 select,
+    body.theme-dark .dnd5e2 file-picker,
     body.theme-dark .dnd5e2 formula-input {
       --input-border-color: var(--dnd5e-color-blue-gray-1);
       --input-hover-border-color: transparent;
     }
     body.theme-dark .dnd5e2 fieldset.card input:not([type=range]),
     body.theme-dark .dnd5e2 fieldset.card select,
+    body.theme-dark .dnd5e2 fieldset.card file-picker,
     body.theme-dark .dnd5e2 fieldset.card formula-input {
       --input-background-color: var(--dnd5e-background-25);
     }
@@ -1548,12 +1588,14 @@
     }
     .themed.theme-dark.dnd5e2 input:not([type=range]),
     .themed.theme-dark.dnd5e2 select,
+    .themed.theme-dark.dnd5e2 file-picker,
     .themed.theme-dark.dnd5e2 formula-input {
       --input-border-color: var(--dnd5e-color-blue-gray-1);
       --input-hover-border-color: transparent;
     }
     .themed.theme-dark.dnd5e2 fieldset.card input:not([type=range]),
     .themed.theme-dark.dnd5e2 fieldset.card select,
+    .themed.theme-dark.dnd5e2 fieldset.card file-picker,
     .themed.theme-dark.dnd5e2 fieldset.card formula-input {
       --input-background-color: var(--dnd5e-background-25);
     }
@@ -2996,6 +3038,9 @@ h5 {
   text-align: left;
   font-style: italic;
 }
+:is(.dnd5e, .dnd5e2, .dnd5e2-journal) .roll-table-embed th h4 {
+  margin: 0;
+}
 :is(.dnd5e, .dnd5e2, .dnd5e2-journal) .double-column .statblock.npc {
   max-width: calc(var(--dnd5e-statblock-column-width) * 2);
 }
@@ -3276,6 +3321,9 @@ h5 {
   padding: 0 0 0 20px;
   border-left: 3px solid var(--color-border-light-tertiary);
 }
+:is(.dnd5e, .dnd5e2, .dnd5e2-journal) enriched-content {
+  display: inline;
+}
 /* ---------------------------------- */
 /*  All DnD5e Apps                    */
 /* ---------------------------------- */
@@ -3384,6 +3432,9 @@ h5 {
   z-index: -1;
   background: var(--dnd5e-color-black);
   border: 1px solid var(--dnd5e-color-gold);
+}
+.dnd5e2.vertical-tabs nav.tabs:empty {
+  display: none;
 }
 .dnd5e2.vertical-tabs nav.tabs > .item {
   --icon-size: 14px;
@@ -5851,6 +5902,7 @@ dialog.dnd5e2.application {
 .dnd5e2 input[type="number"],
 .dnd5e2 input[type="search"],
 .dnd5e2 input[type="file"],
+.dnd5e2 file-picker,
 .dnd5e2 formula-input {
   --input-box-shadow: none;
   --input-text-color: var(--color-text-primary);
@@ -5864,6 +5916,7 @@ dialog.dnd5e2.application {
 .dnd5e2 input[type="number"]:focus,
 .dnd5e2 input[type="search"]:focus,
 .dnd5e2 input[type="file"]:focus,
+.dnd5e2 file-picker:focus,
 .dnd5e2 formula-input:focus {
   outline: none;
 }
@@ -5873,6 +5926,7 @@ dialog.dnd5e2.application {
 .dnd5e2 input[type="number"]:enabled:focus-visible,
 .dnd5e2 input[type="search"]:enabled:focus-visible,
 .dnd5e2 input[type="file"]:enabled:focus-visible,
+.dnd5e2 file-picker:enabled:focus-visible,
 .dnd5e2 formula-input:enabled:focus-visible,
 .dnd5e2 textarea:enabled:hover,
 .dnd5e2 select:enabled:hover,
@@ -5880,6 +5934,7 @@ dialog.dnd5e2.application {
 .dnd5e2 input[type="number"]:enabled:hover,
 .dnd5e2 input[type="search"]:enabled:hover,
 .dnd5e2 input[type="file"]:enabled:hover,
+.dnd5e2 file-picker:enabled:hover,
 .dnd5e2 formula-input:enabled:hover {
   border-color: var(--input-hover-border-color);
   box-shadow: 0 0 6px var(--dnd5e-color-gold);
@@ -5890,8 +5945,13 @@ dialog.dnd5e2.application {
 .dnd5e2 input[type="number"]:disabled,
 .dnd5e2 input[type="search"]:disabled,
 .dnd5e2 input[type="file"]:disabled,
+.dnd5e2 file-picker:disabled,
 .dnd5e2 formula-input:disabled {
   background: var(--input-disabled-background-color);
+}
+.dnd5e2 file-picker {
+  /* Temp fix for V13 */
+  background: var(--input-background-color);
 }
 .dnd5e2 select,
 .dnd5e2 input[type="text"],
@@ -5926,9 +5986,6 @@ dialog.dnd5e2.application {
 .dnd5e2 formula-input:enabled > button:hover {
   box-shadow: none;
   text-shadow: 0 0 5px var(--color-shadow-primary);
-}
-.dnd5e2 formula-input > input[type="text"] {
-  background: none;
 }
 .dnd5e2 formula-input > button {
   background: none;
@@ -7212,6 +7269,9 @@ body.detached .activity.sheet {
 }
 .dnd5e2.advancement.flow .items-section .gold-icon {
   --gold-icon-size: 24px;
+}
+.dnd5e2.advancement.flow input.error {
+  outline: 1px solid var(--dnd5e-color-failure);
 }
 /* ----------------------------------------- */
 /*  Visualizer                               */

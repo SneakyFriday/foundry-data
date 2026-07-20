@@ -72,6 +72,7 @@
   "dae.failure": "Failure",
   "dae.sr": "Short Rest",
   "dae.lr": "Long Rest",
+  "dae.joinCombat": "Joins Combat",
   "dae.primary": "Primary",
   "dae.secondary": "Secondary",
   "dae.tertiary": "Tertiary",
@@ -236,8 +237,6 @@
   "dae.walk": "Walk",
   "dae.diamondSoul": "Diamond Soul",
   "dae.noGM": "No GM Client connected",
-  "dae.expireRealTime.Name": "Expire timed effects in real time",
-  "dae.expireRealTime.Hint": "If enabled and about-time/times-up are not installed timed effects will expire in real time.",
   "dae.isAttacked": "Is Attacked: Expires if the character is attacked",
   "dae.isMoved": "Moved: expires when the token is moved",
   "dae.isDamaged": "is Damaged: Expires if the character is damaged",
@@ -289,8 +288,30 @@
   "dae.StatusEffect": "Status Effect",
   "dae.ShowDeprecation.Name": "Show Deprecation Errors",
   "dae.ShowDeprecation.Hint": "Show Deprecation Errors in console",
-  "dae.maxShortDuration.Name": "Max Short Duration",
-  "dae.maxShortDuration.Hint": "Maximum duration in rounds for short duration effects",
+  "dae.expireRoundEffectsOnCombatEnd.Name": "Expire Round Effects on Combat End",
+  "dae.expireRoundEffectsOnCombatEnd.Hint": "When enabled, effects with round/turn durations are expired when combat ends or a combatant is removed",
+  "dae.expiryEvent.updateWorldTime": "Elapsed Time",
+  "dae.expiryEvent.sourceStart": "Source Turn Start",
+  "dae.expiryEvent.sourceEnd": "Source Turn End",
+  "dae.expiryEvent.targetStart": "Target Turn Start",
+  "dae.expiryEvent.targetEnd": "Target Turn End",
+  "dae.deleteExpiredEffects": "Delete Expired Effects",
+  "dae.expiryAction.Name": "Special Duration Expiry Action",
+  "dae.expiryAction.Hint": "Controls what happens when special durations (1Hit, 1Action, DamageDealt, etc.) expire an effect. 'Default' uses the core Foundry expiry action setting. 'Delete' always removes the effect. 'Mark Expired' always suppresses the effect but keeps it on the actor.",
+  "dae.expiryAction.default": "Default (Use Core Setting)",
+  "dae.expiryAction.delete": "Delete",
+  "dae.expiryAction.update": "Mark Expired (Suppress)",
+  "dae.coreExpiryAction.Name": "Effect Expiry Action",
+  "dae.coreExpiryAction.Hint": "Controls what happens when effects expire due to time or combat. 'Mark Expired' suppresses the effect but keeps it on the actor. 'Delete' removes the effect entirely.",
+  "dae.coreExpiryAction.update": "Mark Expired (Suppress)",
+  "dae.coreExpiryAction.delete": "Delete",
+  "dae.coreExpiryAction.none": "Do Nothing",
+  "dae.expiryMode.Name": "Expiry Mode",
+  "dae.expiryMode.Hint": "Controls what happens when this effect expires. Default uses the global setting.",
+  "dae.expiryMode.default": "Default (Use Global Setting)",
+  "dae.expiryMode.delete": "Delete",
+  "dae.expiryMode.suppress": "Suppress (Mark Expired)",
+  "dae.resetStartTime": "Reset Start to Now",
   "dae.CE": "Convenient Effects",
   "dae.ShowInline.Name": "Display results of inline rolls",
   "dae.ShowInline.Hint": "Effects with an inline roll will display the roll results if set",
@@ -341,6 +362,13 @@
   "dae.forceToHud.Name": "Force display on token",
   "dae.forceToHud.Hint": "If non empty set the icon for the effect will be displayed on the token regardless of duration",
   "dae.DurationExpression": "Roll expression in seconds for the effect duration",
+  "dae.combatActorOverride": "Expiry Combatant",
+  "dae.combatActorDefault": "Default (Active Combatant)",
+  "dae.combatActorSource": "Source Combatant",
+  "dae.combatActorTarget": "Target Combatant",
+  "dae.durationExpiry": "Expiry",
+  "dae.expiryTurnStart": "Turn Start",
+  "dae.expiryTurnEnd": "Turn End",
   "dae.not-reflected": "Item Effect Saved. These changes will not be reflected in the originally transferred Effect.",
   "dae.not-transferred": "Item Effect Saved. Setting an owned item's effect to Transfer will not automatically transfer the Effect.",
   "dae.ATLHint": "Note for translators these are only required for Active Token Lighting",
@@ -373,8 +401,6 @@
   "dae.DontApply.Hint": "When Dae (and midi) applies active effects, skip this one",
   "dae.DIMEditor.Name": "DIME",
   "dae.IncapacitatedDisabled": "Effect disabled if actor incapacitated",
-  "dae.DIMESyncItemacro.Name": "Sync DIME and Itemacro",
-  "dae.DIMESyncItemacro.Hint": "Checked means the DIME macro and Itemacro macro will be kept in sync - you can edit with either. Uncheck DIME editor will take priority.",
   "dae.halfHealthEffectLabel": "Half Health",
   "dae.DAEAddHalfHealthEffect.Name": "Add Half Health Effect",
   "dae.DAEAddHalfHealthEffect.Hint": "Add a half health status effect to set the actor's max hit points to half its normal max",
@@ -387,6 +413,8 @@
   "dae.IconOverlay.Hint": "Display the effect status icon as an overlay",
   "dae.DependentConditions.Name": "Dependent Conditions",
   "dae.DependentConditions.Hint": "Status effects (poisoned/paralysed) will also add dependent conditions like incapacitated.",
+  "dae.InitMacrosOnLoad.Name": "Init Macros on World Load",
+  "dae.InitMacrosOnLoad.Hint": "Fire macro.itemMacro/macro.activityMacro effects with an 'init' action on world load so macros can re-register hooks.",
   "__Comment__": "The following strings are for the DAE system. Translation is optional",
   "dae.fieldData": {
     "fieldCategories.All": "All",
@@ -2103,23 +2131,23 @@
   "dae.Unknown.fieldData": {
     "system.ability": {
       "name": "Attack Ability",
-      "description": "Note: Should use \"activities[attack].attack.ability\" instead."
+      "description": "Note: Equivalent to \"activities[attack].attack.ability\"."
     },
     "system.attack.bonus": {
       "name": "Attack Bonus",
-      "description": "Note: Should use \"activities[attack].attack.bonus\" instead."
+      "description": "Note: Equivalent to \"activities[attack].attack.bonus\"."
     },
     "system.attack.flat": {
       "name": "Attack Flat To-Hit",
-      "description": "True or false. Note: Should use \"activities[attack].attack.flat\" instead."
+      "description": "True or false. Note: Equivalent to \"activities[attack].attack.flat\"."
     },
     "system.damage.bonus": {
       "name": "Damage Bonus",
-      "description": "Note: Should use \"system.damageBonus\" instead."
+      "description": "Bonus to all damage-dealing activities."
     },
     "system.damageBonus": {
       "name": "Damage Bonus",
-      "description": "Bonus to all damage-dealing activities."
+      "description": "Note: Should use \"system.damage.bonus\" instead."
     },
     "system.damage.parts": {
       "name": "Damage Parts",
@@ -2567,5 +2595,17 @@
       "name": "Profiles",
       "description": ""
     }
-  }
+  },
+  "EFFECT.TABS.dae": "DAE",
+  "dae.EnableAutoMigration.Name": "Auto-migrate on update",
+  "dae.EnableAutoMigration.Hint": "Automatically migrate deprecated DAE effect data when DAE is updated. Recommended for large worlds to run manually via the Migrate Now button instead.",
+  "dae.MigrateNow.Name": "Migrate DAE Data",
+  "dae.MigrateNow.Label": "Migrate Now",
+  "dae.MigrateNow.Hint": "Scan all world actors and items for deprecated DAE effect data and update it. Back up your world first.",
+  "dae.AtlCompatibility.Name": "ATL → token.* migration policy",
+  "dae.AtlCompatibility.Hint": "How to handle legacy ATL.* effect keys on Foundry v14. Foundry v14 natively supports token.* effect keys; ATL.* is deprecated. Pick 'Legacy' to keep current behavior (ATL module handles ATL.* keys). 'Runtime only' rewrites at apply time without touching saved data. 'Migrate' rewrites world data once and normalises any new edits. 'Full' adds runtime fallback for unmigrated content and auto-unlocks locked compendiums during migration. Requires reload.",
+  "dae.AtlCompatibility.legacy": "Legacy — ATL.* keys passed to the ATL module",
+  "dae.AtlCompatibility.runtime": "Runtime only — rewrite at apply time, disk untouched",
+  "dae.AtlCompatibility.migrate": "Migrate — one-shot world migration + pre-write normalisation",
+  "dae.AtlCompatibility.full": "Full — Migrate + runtime fallback + auto-unlock compendiums"
 }

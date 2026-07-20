@@ -19,5 +19,7 @@
   "BABELE.ShowOriginalNameHint": "Zeige zusätzlich zum übersetzten Namen den unübersetzten Namen des Kompendium Eintrags. Dadurch kannst du sowohl nach dem übersetzten, als auch nach dem originalen Namen filtern, wenn du die Suche verwendest.",
   "BABELE.ShowTranslateOption": "Zeige Übersetzen Option",
   "BABELE.ShowTranslateOptionHint": "Zeige die Übersetzen Option in der Titel Leiste des Akteur Bogens.",
+  "BABELE.SyncImportedAdventureTokenNames": "Namen importierter Abenteuer-Token synchronisieren",
+  "BABELE.SyncImportedAdventureTokenNamesHint": "Beim Import eines Abenteuers werden Tokennamen nur in importierten Szenen und nur für Token aktualisiert, deren Akteure durch dasselbe Abenteuer importiert wurden.",
   "BABELE.requireLibWrapperMessage": "Babele erfordert das 'libWrapper' modul. Bitte installiere und aktiviere es."
 }

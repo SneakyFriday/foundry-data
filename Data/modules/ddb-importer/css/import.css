@@ -1,5 +1,5 @@
 .ddbimporter .window-app .window-content {
-  background: url(../../../systems/dnd5e/ui/parchment.jpg) repeat !important;
+  background: url(systems/dnd5e/ui/parchment.jpg) repeat !important;
 }
 
 div.ddbCharacterName {
@@ -41,6 +41,12 @@ div.ddbCharacterName {
 .ddbimporter div.form-description {
   flex: 0 1 100%;
   font-size: 0.9rem;
+}
+
+.adventure-import-selection .form-description,
+.adventure-import-updates .form-description {
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .ddbimporter .inline-image {
@@ -131,4 +137,18 @@ header.ddbcharacter {
 
 dialog.ddb-monster-select-dialog > section {
   overflow: scroll !important;
+}
+
+.ddb-monster-select-dialog .ddb-monster-filter-selects {
+  display: flex;
+  gap: 8px;
+}
+
+.ddb-monster-select-dialog .ddb-monster-filter-selects .form-group {
+  flex: 1;
+}
+
+.ddb-monster-select-dialog .ddb-monster-checklist {
+  max-height: 400px;
+  overflow-y: auto;
 }

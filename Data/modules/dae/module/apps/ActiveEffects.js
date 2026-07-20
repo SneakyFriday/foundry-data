@@ -1,4 +1,4 @@
-import { effectIsTransfer, simpleCalendarInstalled } from "../dae.js";
+import { effectIsTransfer, getStatusEffectsArray, simpleCalendarInstalled } from "../dae.js";
 import { i18n, daeSpecialDurations } from "../../dae.js";
 import { ValidSpec } from "../Systems/DAESystem.js";
 var DocumentSheetV2 = foundry.applications.api.DocumentSheetV2;
@@ -38,40 +38,46 @@ export class ActiveEffects extends WeirdIntermediate {
     }
     get filters() { return ActiveEffects.filters; }
     async _prepareContext(options) {
-        const modeKeys = Object.keys(CONST.ACTIVE_EFFECT_MODES);
+        // v14: build type label map for display in the list view
+        // @ts-expect-error v14 ActiveEffect.CHANGE_TYPES not in fvtt-types yet
+        const changeTypesRaw = ActiveEffect.CHANGE_TYPES ?? {};
+        const typeLabels = {};
+        for (const [type, config] of Object.entries(changeTypesRaw)) {
+            typeLabels[type] = i18n(config.label);
+        }
         function* effectsGenerator() { for (const effect of this.effects)
             yield effect; }
         ;
         let effects = effectsGenerator.bind(this.document);
-        if (this.document instanceof CONFIG.Actor.documentClass && CONFIG.ActiveEffect.legacyTransferral === false) {
+        if (this.document instanceof CONFIG.Actor.documentClass) {
             effects = this.document.allApplicableEffects.bind(this.document);
         }
         let actives = [];
         for (const ae of effects()) {
+            // @ts-expect-error v14 toObject() type mismatch with ActivesEntry
             const newAe = ae.toObject();
             newAe.uuid = ae.uuid;
             newAe.isSuppressed = ae.isSuppressed;
             newAe.duration = foundry.utils.duplicate(ae.duration);
             const aeDuration = ae.updateDuration();
-            if (simpleCalendarInstalled && aeDuration.type === "seconds") {
+            // @ts-expect-error v14 duration.units
+            if (simpleCalendarInstalled && aeDuration.units === "seconds") {
                 const simpleCalendar = globalThis.SimpleCalendar?.api;
                 newAe.duration.label = simpleCalendar.formatTimestamp(aeDuration.remaining).time;
             }
             else if (aeDuration.label) {
                 newAe.duration.label = aeDuration.label.replace("Seconds", "s").replace("Rounds", "R").replace("Turns", "T");
             }
-            let specialDuration = ae.flags?.dae?.specialDuration || [daeSpecialDurations["None"]];
-            if (typeof specialDuration === "string")
-                specialDuration = [specialDuration];
+            const specialDuration = ae.flags?.dae?.specialDuration ?? [daeSpecialDurations["None"]];
             newAe.duration.label += ", " + `[${specialDuration.map(dur => (daeSpecialDurations[dur], dur))}]`;
             newAe.isTemporary = ae.isTemporary;
             newAe.sourceName = `(${ae.sourceName ?? "Unknown"})`;
             if (this.filters.has("summary")) {
-                newAe.changes = [];
+                newAe.system.changes = [];
                 actives.push(newAe);
                 continue;
             }
-            newAe.changes.map(change => {
+            newAe.system.changes.map(change => {
                 if (this.document instanceof CONFIG.Item.documentClass)
                     change.label = ValidSpec.actorSpecs["union"].allSpecsObj[change.key]?.label || change.key;
                 else
@@ -103,6 +109,7 @@ export class ActiveEffects extends WeirdIntermediate {
             else {
                 foundry.utils.setProperty(e, "flags.dae.itemName", "????");
             }
+            // @ts-expect-error v14 ActivesEntry/Source type mismatch
             e.transfer = effectIsTransfer(e) ?? true;
         });
         this.effectList = { "new": "new" };
@@ -119,7 +126,7 @@ export class ActiveEffects extends WeirdIntermediate {
             isItem,
             isOwned: this.document instanceof Item && this.document.isOwned,
             flags: this.document.flags,
-            modes: modeKeys,
+            typeLabels,
             validSpecs: isItem ? ValidSpec.actorSpecs["union"].allSpecsObj : ValidSpec.actorSpecs[this.document.type],
             // canEdit: game.user.isGM || (playersCanSeeEffects === "edit" && game.user.isTrusted),
             canEdit: true,
@@ -136,9 +143,10 @@ export class ActiveEffects extends WeirdIntermediate {
     async _processSubmitData(_event, _form, submitDataOrig) {
         const document = this.document;
         const submitData = foundry.utils.expandObject(submitDataOrig);
-        submitData.changes ??= [];
-        submitData.changes = Object.values(submitData.changes);
-        for (const c of submitData.changes) {
+        submitData.system ??= {};
+        submitData.system.changes ??= [];
+        submitData.system.changes = Object.values(submitData.system.changes);
+        for (const c of submitData.system.changes) {
             if (Number.isNumeric(c.value))
                 c.value = parseFloat(c.value);
         }
@@ -176,7 +184,7 @@ export class ActiveEffects extends WeirdIntermediate {
         if (id === "new") {
             const AEData = {
                 name: this.document.name,
-                changes: [],
+                system: { changes: [] },
                 transfer: false,
                 img: this.document.img || "icons/svg/mystery-man.svg"
             };
@@ -184,7 +192,7 @@ export class ActiveEffects extends WeirdIntermediate {
             await this.document.createEmbeddedDocuments("ActiveEffect", [AEData]);
         }
         else {
-            const statusEffect = CONFIG.statusEffects.find(se => se.id === id);
+            const statusEffect = getStatusEffectsArray().find(se => se.id === id);
             if (statusEffect && id) {
                 if (!statusEffect._id)
                     statusEffect._id = foundry.utils.randomID();

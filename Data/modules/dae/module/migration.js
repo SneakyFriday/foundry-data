@@ -1,331 +1,405 @@
-import { effectIsTransfer } from "./dae.js";
-export async function cleanDAEArmorWorld() {
-    await removeAllActorArmorItems();
-    await removeAllTokenArmorItems();
-}
-export async function removeAllActorArmorItems() {
-    let promises = [];
-    if (game.actors)
-        for (let actor of game.actors) {
-            await removeActorArmorItems(actor);
+import { MODULE_ID } from "../dae.js";
+import { deprecatedKeyPatterns } from "./dae.js";
+import { getDeprecatedSpecialDurMap } from "./specialDurations.js";
+import { rewriteAtlChanges, coerceOverrideOnlyChangeTypes } from "./atlMigration.js";
+const fieldMappings = {
+    "StatusEffect": "macro.StatusEffect",
+    "system.traits.di.all": { key: "system.traits.di.value", value: "ALL", type: "add" },
+    "system.traits.dr.all": { key: "system.traits.dr.value", value: "ALL", type: "add" },
+    "system.traits.dv.all": { key: "system.traits.dv.value", value: "ALL", type: "add" },
+};
+/**
+ * Compute a migration delta for a single effect's data object.
+ * Returns null if no migration is needed.
+ * This is the core function — usable for testing individual effects.
+ *
+ * @param options.atl  If true, also rewrite ATL.* change keys to native v14 token.*
+ *                     (driven by the "dae.atlCompatibility" setting being "migrate" or "full").
+ */
+export function migrateEffectData(effectData, options = {}) {
+    const update = {};
+    // 1. flags.dae.showIcon → ActiveEffect.showIcon
+    if (effectData.flags?.dae?.showIcon) {
+        update["showIcon"] = 2;
+        update["flags.dae.-=showIcon"] = null;
+    }
+    // 2. Deprecated special durations → duration.expiry
+    const specialDurs = effectData.flags?.dae?.specialDuration ?? [];
+    const deprecatedSpecialDurMap = getDeprecatedSpecialDurMap();
+    const deprecatedDurs = specialDurs.filter(sd => sd in deprecatedSpecialDurMap);
+    if (deprecatedDurs.length > 0) {
+        const expiry = deprecatedSpecialDurMap[deprecatedDurs[0]];
+        update["flags.dae.specialDuration"] = specialDurs.filter(sd => !(sd in deprecatedSpecialDurMap));
+        update["duration.expiry"] = expiry;
+    }
+    // 3-5. Change key migrations
+    const changes = effectData.system?.changes ?? effectData.changes ?? [];
+    let changesModified = false;
+    const newChanges = changes.map((c) => {
+        const change = foundry.utils.deepClone(c);
+        let modified = false;
+        // 3. Field mappings
+        const mapping = fieldMappings[change.key];
+        if (mapping) {
+            if (typeof mapping === "string") {
+                change.key = mapping;
+            }
+            else {
+                change.key = mapping.key;
+                if (mapping.value !== undefined)
+                    change.value = mapping.value;
+                if (mapping.type !== undefined)
+                    change.type = mapping.type;
+            }
+            modified = true;
         }
-}
-export async function removeAllTokenArmorItems() {
-    let promises = [];
-    if (game.scenes)
-        for (let scene of game.scenes) {
-            for (let tokenDocument of scene.tokens) {
-                if (!tokenDocument.isLinked && tokenDocument.actor) {
-                    await removeActorArmorItems(tokenDocument.actor);
+        // 4. Old data. prefix patterns
+        if (!modified) {
+            for (const { pattern, replacement } of deprecatedKeyPatterns) {
+                const match = change.key.match(pattern);
+                if (match) {
+                    change.key = replacement(match[1]);
+                    modified = true;
+                    break;
                 }
             }
         }
-}
-export async function removeActorArmorItems(actor) {
-    let promises = [];
-    for (let item of actor.items) {
-        let toDelete = [];
-        if (!item.effects)
-            continue;
-        for (let effect of item.effects) {
-            for (let change of effect.changes) {
-                if (change.key === "data.attributes.ac.value" && change.value === "AutoCalc") {
-                    console.warn("Removing DAE Item ", actor.name, item.name, item.id);
-                    if (item.id)
-                        toDelete.push(item.id);
-                }
+        // 5. midi-qol optional missing .all suffix
+        if (!modified && change.key.startsWith("flags.midi-qol.optional")) {
+            const parts = change.key.split(".");
+            if (parts.length === 5 && ["save", "check", "skill", "damage", "attack"].includes(parts[4])) {
+                change.key = `${change.key}.all`;
+                modified = true;
             }
         }
-        if (toDelete.length > 0) {
-            await actor.deleteEmbeddedDocuments("Item", toDelete);
+        if (modified)
+            changesModified = true;
+        return change;
+    });
+    // ATL → token.* rewriting. Done after the existing transformations so it operates on the
+    // already-normalised key list (e.g. won't double-rewrite if an earlier mapping changed the key).
+    let finalChanges = newChanges;
+    if (options.atl) {
+        const rewritten = rewriteAtlChanges(newChanges);
+        if (rewritten !== newChanges) {
+            finalChanges = rewritten;
+            changesModified = true;
         }
     }
-}
-export async function cleanEffectOrigins(processItems = false) {
-    await cleanAllActorEffectOrigins();
-    await cleanAllTokenEffectOrigins();
-    if (processItems) {
-        await cleanAllActorItemsEffectOrigins();
-        await cleanAllTokenEffectOrigins();
+    // Coerce picker-only keys (e.g. token.sight.visionMode) to type "override". Runs always —
+    // v14's default change type "add" concatenates strings and silently breaks these fields.
+    const coerced = coerceOverrideOnlyChangeTypes(finalChanges);
+    if (coerced !== finalChanges) {
+        finalChanges = coerced;
+        changesModified = true;
     }
+    if (changesModified) {
+        // v14 effects use system.changes, older use changes
+        const changesKey = effectData.system?.changes ? "system.changes" : "changes";
+        update[changesKey] = finalChanges;
+    }
+    return Object.keys(update).length > 0 ? update : null;
 }
-export async function cleanAllActorEffectOrigins() {
-    for (let actor of game.actors?.contents ?? []) {
-        let ownedItemEffects = actor.effects.filter(ef => ef.origin?.includes("OwnedItem"));
-        let updates = ownedItemEffects.map(ef => { return { _id: ef.id, origin: ef.origin?.replace("OwnedItem", "Item") }; });
-        if (updates.length > 0) {
-            await actor.updateEmbeddedDocuments("ActiveEffect", updates);
-            console.warn("Updates are ", actor.name, updates);
+/**
+ * Migrate all effects on a single actor (both direct effects and item-embedded effects).
+ * Returns a summary of what was migrated.
+ */
+export async function migrateActor(actor, options = {}) {
+    let effectsMigrated = 0;
+    const errors = [];
+    // Migrate actor's direct effects
+    const effectUpdates = [];
+    for (const effect of actor.effects) {
+        try {
+            const effectData = effect.toObject();
+            const delta = migrateEffectData(effectData, options);
+            if (delta) {
+                delta._id = effect.id;
+                effectUpdates.push(delta);
+                console.log(`dae | migration | Actor "${actor.name}" effect "${effect.name}": ${Object.keys(delta).filter(k => k !== "_id").join(", ")}`);
+            }
         }
-        const itemChanges = [];
-        for (let item of actor.items) {
-            if (!(item.effects.some(ef => ef.origin?.includes("OwnedItem"))))
+        catch (err) {
+            errors.push(`Effect "${effect.name}" on actor "${actor.name}": ${err.message}`);
+        }
+    }
+    if (effectUpdates.length > 0) {
+        try {
+            await actor.updateEmbeddedDocuments("ActiveEffect", effectUpdates, { render: false });
+            effectsMigrated += effectUpdates.length;
+        }
+        catch (err) {
+            errors.push(`Actor "${actor.name}" effect batch update: ${err.message}`);
+        }
+    }
+    // Migrate effects on actor's items
+    for (const item of actor.items) {
+        const itemEffectUpdates = [];
+        for (const effect of item.effects) {
+            try {
+                const effectData = effect.toObject();
+                const delta = migrateEffectData(effectData, options);
+                if (delta) {
+                    delta._id = effect.id;
+                    itemEffectUpdates.push(delta);
+                    console.log(`dae | migration | Actor "${actor.name}" item "${item.name}" effect "${effect.name}": ${Object.keys(delta).filter(k => k !== "_id").join(", ")}`);
+                }
+            }
+            catch (err) {
+                errors.push(`Effect "${effect.name}" on item "${item.name}" (actor "${actor.name}"): ${err.message}`);
+            }
+        }
+        if (itemEffectUpdates.length > 0) {
+            try {
+                await item.updateEmbeddedDocuments("ActiveEffect", itemEffectUpdates, { render: false });
+                effectsMigrated += itemEffectUpdates.length;
+            }
+            catch (err) {
+                errors.push(`Item "${item.name}" (actor "${actor.name}") effect batch update: ${err.message}`);
+            }
+        }
+    }
+    return { effectsMigrated, errors };
+}
+/**
+ * Migrate all effects on a single world item.
+ */
+export async function migrateItem(item, options = {}) {
+    let effectsMigrated = 0;
+    const errors = [];
+    const effectUpdates = [];
+    for (const effect of item.effects) {
+        try {
+            const effectData = effect.toObject();
+            const delta = migrateEffectData(effectData, options);
+            if (delta) {
+                delta._id = effect.id;
+                effectUpdates.push(delta);
+                console.log(`dae | migration | Item "${item.name}" effect "${effect.name}": ${Object.keys(delta).filter(k => k !== "_id").join(", ")}`);
+            }
+        }
+        catch (err) {
+            errors.push(`Effect "${effect.name}" on item "${item.name}": ${err.message}`);
+        }
+    }
+    if (effectUpdates.length > 0) {
+        try {
+            await item.updateEmbeddedDocuments("ActiveEffect", effectUpdates, { render: false });
+            effectsMigrated += effectUpdates.length;
+        }
+        catch (err) {
+            errors.push(`Item "${item.name}" effect batch update: ${err.message}`);
+        }
+    }
+    return { effectsMigrated, errors };
+}
+/**
+ * Check whether a compendium pack should be migrated.
+ * World compendiums always, system never, module only if no download/manifest URL (local dev).
+ */
+function shouldMigrateCompendium(pack) {
+    if (!["Actor", "Item", "ActiveEffect"].includes(pack.documentName))
+        return false;
+    if (pack.metadata.packageType === "world")
+        return true;
+    if (pack.metadata.packageType === "system")
+        return false;
+    const module = game.modules.get(pack.metadata.packageName);
+    return !module?.download && !module?.manifest;
+}
+/**
+ * Run the full world migration — all actors, world items, scene tokens, and compendium packs.
+ *
+ * Reads `dae.atlCompatibility` to decide whether to also rewrite ATL.* keys to native v14
+ * token.* keys ("migrate" or "full" enables the rewrite; "full" additionally unlocks locked
+ * compendiums for migration).
+ */
+export async function migrateWorld() {
+    // Only the active GM should run the migration. Foundry designates one GM as "active" for
+    // write operations; if two GMs are logged in, isGM returns true on both, but isActiveGM
+    // identifies the single client that should own world-mutating tasks.
+    if (!game.user?.isActiveGM) {
+        if (game.user?.isGM) {
+            console.log(`dae | migration | Skipping on non-active GM "${game.user.name}"; the active GM will run it.`);
+        }
+        else {
+            ui.notifications?.error("DAE | Only a GM can run the migration.");
+        }
+        return { actorsMigrated: 0, itemsMigrated: 0, effectsMigrated: 0, errors: ["Not active GM"] };
+    }
+    const atlCompat = game.settings.get(MODULE_ID, "atlCompatibility") ?? "legacy";
+    const atl = atlCompat === "migrate" || atlCompat === "full";
+    const unlockLockedCompendiums = atlCompat === "full";
+    const migrateOptions = { atl };
+    const result = { actorsMigrated: 0, itemsMigrated: 0, effectsMigrated: 0, errors: [] };
+    const packsToMigrate = game.packs.filter(p => shouldMigrateCompendium(p));
+    const unlinkedTokenCount = game.scenes.reduce((n, s) => n + s.tokens.filter(t => !t.actorLink && !!t.actor).length, 0);
+    const packDocCount = packsToMigrate.reduce((n, p) => n + p.index.size, 0);
+    const totalDocuments = game.actors.size + game.items.size + unlinkedTokenCount + packDocCount;
+    let migrated = 0;
+    const progress = ui.notifications?.info("DAE | Migration started...", {
+        console: false, permanent: true, progress: true
+    });
+    // Migrate world actors
+    for (const actor of game.actors) {
+        try {
+            const { effectsMigrated, errors } = await migrateActor(actor, migrateOptions);
+            if (effectsMigrated > 0) {
+                result.actorsMigrated++;
+                result.effectsMigrated += effectsMigrated;
+            }
+            result.errors.push(...errors);
+        }
+        catch (err) {
+            result.errors.push(`Actor "${actor.name}": ${err.message}`);
+        }
+        migrated++;
+        progress?.update({ pct: migrated / totalDocuments });
+    }
+    // Migrate world items
+    for (const item of game.items) {
+        try {
+            const { effectsMigrated, errors } = await migrateItem(item, migrateOptions);
+            if (effectsMigrated > 0) {
+                result.itemsMigrated++;
+                result.effectsMigrated += effectsMigrated;
+            }
+            result.errors.push(...errors);
+        }
+        catch (err) {
+            result.errors.push(`Item "${item.name}": ${err.message}`);
+        }
+        migrated++;
+        progress?.update({ pct: migrated / totalDocuments });
+    }
+    // Migrate unlinked token actors in scenes
+    for (const scene of game.scenes) {
+        for (const token of scene.tokens) {
+            if (token.actorLink || !token.actor) {
                 continue;
-            const itemData = item.toObject(true);
-            for (let effectData of itemData.effects)
-                if (typeof effectData.origin === "string")
-                    effectData.origin = effectData.origin.replace("OwnedItem", "Item");
-            itemChanges.push(itemData);
-        }
-        if (itemChanges.length > 0) {
-            await actor.updateEmbeddedDocuments("Item", itemChanges);
-            console.warn("Item changes are", actor.name, itemChanges);
+            }
+            try {
+                const { effectsMigrated, errors } = await migrateActor(token.actor, migrateOptions);
+                if (effectsMigrated > 0) {
+                    result.actorsMigrated++;
+                    result.effectsMigrated += effectsMigrated;
+                }
+                result.errors.push(...errors);
+            }
+            catch (err) {
+                result.errors.push(`Scene "${scene.name}" token "${token.name}": ${err.message}`);
+            }
+            migrated++;
+            progress?.update({ pct: migrated / totalDocuments });
         }
     }
-}
-export async function cleanAllTokenItemEffectOrigins() {
-    if (game.scenes)
-        for (let scene of game.scenes) {
-            if (scene.tokens)
-                for (let tokenDocument of (scene.tokens)) {
-                    if (!tokenDocument.isLinked && tokenDocument.actor) {
-                        const actor = tokenDocument.actor;
-                        cleanActorItemsEffectOrigins(actor);
+    // Migrate compendium packs
+    for (const pack of packsToMigrate) {
+        let packEffectsMigrated = 0;
+        let lockedHere = false;
+        // For "full" mode, auto-unlock locked compendiums so writes succeed; relock when done.
+        if (unlockLockedCompendiums && pack.locked) {
+            try {
+                await pack.configure({ locked: false });
+                lockedHere = true;
+            }
+            catch (err) {
+                result.errors.push(`Compendium "${pack.metadata.label}" unlock: ${err.message}`);
+            }
+        }
+        else if (pack.locked) {
+            // "migrate" mode — skip locked compendiums silently (they need user action or "full").
+            console.log(`dae | migration | Compendium "${pack.metadata.label}": skipped (locked; set atlCompatibility="full" to auto-unlock)`);
+            // Advance progress so the bar reflects skipped packs.
+            migrated += pack.index.size;
+            progress?.update({ pct: migrated / totalDocuments });
+            continue;
+        }
+        try {
+            const docs = await pack.getDocuments();
+            for (const doc of docs) {
+                try {
+                    if (doc instanceof CONFIG.Actor.documentClass) {
+                        const { effectsMigrated, errors } = await migrateActor(doc, migrateOptions);
+                        if (effectsMigrated > 0) {
+                            result.actorsMigrated++;
+                            result.effectsMigrated += effectsMigrated;
+                            packEffectsMigrated += effectsMigrated;
+                        }
+                        result.errors.push(...errors);
+                    }
+                    else if (doc instanceof CONFIG.Item.documentClass) {
+                        const { effectsMigrated, errors } = await migrateItem(doc, migrateOptions);
+                        if (effectsMigrated > 0) {
+                            result.itemsMigrated++;
+                            result.effectsMigrated += effectsMigrated;
+                            packEffectsMigrated += effectsMigrated;
+                        }
+                        result.errors.push(...errors);
+                    }
+                    else if (doc instanceof CONFIG.ActiveEffect.documentClass) {
+                        const effectData = doc.toObject();
+                        const delta = migrateEffectData(effectData, migrateOptions);
+                        if (delta) {
+                            console.log(`dae | migration | Compendium "${pack.metadata.label}" effect "${doc.name}": ${Object.keys(delta).join(", ")}`);
+                            await doc.update(delta, { render: false });
+                            result.effectsMigrated++;
+                            packEffectsMigrated++;
+                        }
                     }
                 }
+                catch (err) {
+                    result.errors.push(`Compendium "${pack.metadata.label}" doc "${doc.name}": ${err.message}`);
+                }
+                migrated++;
+                progress?.update({ pct: migrated / totalDocuments });
+            }
         }
-}
-export async function cleanAllActorItemsEffectOrigins() {
-    if (game.actors)
-        for (let actor of game.actors)
-            await cleanActorItemsEffectOrigins(actor);
-}
-export async function cleanActorItemsEffectOrigins(actor) {
-    const itemChanges = [];
-    for (let item of actor.items) {
-        if (!(item.effects.some(ef => !!ef.origin?.includes("OwnedItem"))))
-            continue;
-        const itemData = item.toObject(true);
-        for (let effectData of itemData.effects)
-            if (typeof effectData.origin === "string")
-                effectData.origin = effectData.origin.replace("OwnedItem", "Item");
-        itemChanges.push(itemData);
-    }
-    if (itemChanges.length > 0) {
-        await actor.updateEmbeddedDocuments("Item", itemChanges);
-        console.warn("Item changes are", actor.name, itemChanges);
-    }
-}
-export async function cleanAllTokenEffectOrigins() {
-    if (game.scenes)
-        for (let scene of game.scenes) {
-            for (let tokenDocument of scene.tokens) {
-                if (!tokenDocument.isLinked && tokenDocument.actor) {
-                    const actor = tokenDocument.actor;
-                    let ownedItemEffects = actor.effects.filter(ef => !!ef.origin?.includes("OwnedItem"));
-                    let updates = ownedItemEffects.map(ef => { return { _id: ef.id, origin: ef.origin?.replace("OwnedItem", "Item") }; });
-                    if (updates.length > 0) {
-                        await actor.updateEmbeddedDocuments("ActiveEffect", updates);
-                    }
+        catch (err) {
+            result.errors.push(`Compendium "${pack.metadata.label}": ${err.message}`);
+        }
+        finally {
+            // Re-lock if we unlocked it ourselves.
+            if (lockedHere) {
+                try {
+                    await pack.configure({ locked: true });
+                }
+                catch (err) {
+                    result.errors.push(`Compendium "${pack.metadata.label}" relock: ${err.message}`);
                 }
             }
         }
-}
-export async function tobMapper(iconsPath = "icons/TOBTokens") {
-    const pack = game.packs?.get("tome-of-beasts.beasts");
-    await pack?.getDocuments();
-    if (!pack)
-        return;
-    let details = pack?.contents.map(a => a._source);
-    let detailNames = foundry.utils.duplicate(details).map(detail => {
-        let name = detail.name
-            .replace(/[_\-,'"]/g, "")
-            .replace(" of", "")
-            .replace(" the", "")
-            .replace(/\(.*\)/, "")
-            .replace(/\s\s*/g, " ")
-            .replace("Adult", "")
-            .replace("Chieftain", "Chieftan")
-            .toLocaleLowerCase();
-        name = name.split(" ");
-        detail.splitName = name;
-        return detail;
-    });
-    detailNames = detailNames.sort((a, b) => b.splitName.length - a.splitName.length);
-    let fields = details.map(a => { return { "name": a.name, "id": a._id, "tokenimg": a.prototypeToken.texture.src }; });
-    let count = 0;
-    game.socket?.emit("manageFiles", { action: "browseFiles", storage: "data", target: iconsPath }, {}, async (result) => {
-        for (let fileEntry of result.files) {
-            let fileNameParts = fileEntry.split("/");
-            const name = fileNameParts[fileNameParts.length - 1]
-                .replace(".png", "")
-                .replace(/['",\-_,]/g, "")
-                .replace(/-/g, "")
-                .toLocaleLowerCase();
-            detailNames.filter(dtname => {
-                if (!dtname.splitName)
-                    return false;
-                for (let namePart of dtname.splitName) {
-                    if (!name.includes(namePart))
-                        return false;
-                }
-                dtname.prototypeToken.texture.src = fileEntry;
-                // dtname.img = fileEntry;
-                delete dtname.splitName;
-                // dtname.img = fileEntry;
-                count += 1;
-                return true;
-            });
-        }
-        console.log("Matched ", count, "out of", detailNames.length, detailNames);
-        console.log("Unmatched ", detailNames.filter(dt => dt.splitName));
-        if (pack) {
-            for (let actorData of detailNames) {
-                if (actorData.splitName)
-                    continue;
-                let actor = pack.get(actorData._id);
-                if (actor)
-                    await actor.update(actorData);
-            }
-        }
-    });
-}
-export async function fixTransferEffects(actor) {
-    if (!actor) {
-        return;
-    }
-    let items = Array.from(actor.items) || [];
-    return await _fixTransferEffects(actor, items);
-}
-async function _fixTransferEffects(actor, itemsToCheck) {
-    let items = itemsToCheck.filter(i => i.effects.some(e => effectIsTransfer(e)));
-    let transferEffects = actor.effects.filter(e => (!e.isTemporary || effectIsTransfer(e)) && !!e.origin?.includes("Item."));
-    console.warn("Deleting effects", transferEffects);
-    await actor.deleteEmbeddedDocuments("ActiveEffect", transferEffects.map(e => e.id));
-    const toCreate = items.map(i => i.toObject());
-    console.warn("Deleting items ", items.map(i => i.id));
-    await actor.deleteEmbeddedDocuments("Item", items.map(i => i.id));
-    console.warn("Creating items ", toCreate);
-    await actor.createEmbeddedDocuments("Item", toCreate);
-}
-export async function fixTransferEffect(actor, item) {
-    if (!item) {
-        return;
-    }
-    let items = [item];
-    return await _fixTransferEffects(actor, items);
-}
-async function removeDaePassiveEffectsActor(actor, skipOrigins = false) {
-    if (CONFIG.ActiveEffect.legacyTransferral === true) {
-        ui.notifications?.error("Must be run in a world with legacy transferral false");
-        return;
-    }
-    if (!actor)
-        return;
-    const effectsToDelete = actor.effects.filter(ef => foundry.utils.getProperty(ef, "flags.dae.transfer"));
-    if (effectsToDelete?.length > 0) {
-        console.log("Actor ", actor.name, "removing legacy effects", effectsToDelete.map(ef => ef.name));
-        await actor.deleteEmbeddedDocuments("ActiveEffect", effectsToDelete.map(ef => ef.id));
-    }
-    if (!skipOrigins) {
-        for (let item of actor.items) {
-            for (let effect of item.effects) {
-                const effectsToUpdate = item.effects.filter(ef => ef.transfer && ef.origin !== item.uuid);
-                if (effectsToUpdate?.length > 0) {
-                    console.log("Actor", actor.name, "updating origin for ", item.name, effectsToUpdate.map(ef => ef.name));
-                    await item.updateEmbeddedDocuments("ActiveEffect", effectsToUpdate.map(ef => ({ _id: effect.id, origin: item.uuid })));
-                }
-            }
+        if (packEffectsMigrated === 0) {
+            console.log(`dae | migration | Compendium "${pack.metadata.label}": no deprecated data found`);
         }
     }
+    // Update migration version
+    await game.settings.set(MODULE_ID, "migrationVersion", game.modules.get(MODULE_ID).version);
+    progress?.remove();
+    if (result.errors.length > 0) {
+        console.warn("dae | Migration completed with errors:", result.errors);
+        ui.notifications?.warn(`DAE | Migration complete. ${result.effectsMigrated} effects migrated, ${result.errors.length} errors (see console).`);
+    }
+    else if (result.effectsMigrated > 0) {
+        ui.notifications?.info(`DAE | Migration complete. ${result.effectsMigrated} effects migrated across ${result.actorsMigrated} actors and ${result.itemsMigrated} items.`);
+    }
+    else {
+        ui.notifications?.info("DAE | Migration complete. No deprecated data found.");
+    }
+    return result;
 }
-export async function removeScenePassiveEffects() {
-    if (CONFIG.ActiveEffect.legacyTransferral === true) {
-        ui.notifications?.error("Must be run in a world with legacy transferral false");
-        return;
-    }
-    for (let token of canvas?.scene?.tokens ?? []) {
-        try {
-            if (token.actor)
-                await removeDaePassiveEffectsActor(token.actor, false);
-        }
-        catch (err) {
-            console.warn("error when removing legacy passive effects for", token?.actor?.name, err);
-        }
-    }
-    ui.notifications?.notify("Scene Token legacy passive effects removed");
-}
-export async function removeActorsPassiveEffects() {
-    if (CONFIG.ActiveEffect.legacyTransferral === true) {
-        ui.notifications?.error("Must be run in a world with legacy transferral false");
-        return;
-    }
-    for (let actor of game.actors ?? []) {
-        try {
-            await removeDaePassiveEffectsActor(actor, false);
-        }
-        catch (err) {
-            console.warn("error when removing legacy passive effects for", actor?.name, err);
-        }
-    }
-    ui.notifications?.notify("Actor legacy passive effects removed");
-}
-export async function migrateCompendium(pack) {
-    if (CONFIG.ActiveEffect.legacyTransferral === true) {
-        ui.notifications?.error("Must be run in a world with legacy transferral false");
-        return;
-    }
-    const documentName = pack.documentName;
-    if (!["Actor"].includes(documentName))
-        return;
-    // Unlock the pack for editing
-    const wasLocked = pack.locked;
-    await pack.configure({ locked: false });
-    //@ts-expect-error no dnd5e-types
-    game.dnd5e.moduleArt.suppressArt = true;
-    const documents = await pack.getDocuments();
-    // Iterate over compendium entries - applying fine-tuned migration functions
-    for (let doc of documents) {
-        try {
-            switch (documentName) {
-                case "Actor":
-                    console.log(`Checking ${documentName} document ${doc.name} in Compendium ${pack.collection}`);
-                    await removeDaePassiveEffectsActor(doc, true);
-                    break;
-                default:
-                    break;
-            }
-        }
-        // Handle migration failures
-        catch (err) {
-            err.message = `Legacy passive wEffect removal for document ${doc.name} in pack ${pack.collection} failed: ${err.message}`;
-            console.error(err);
-        }
-    }
-    // Apply the original locked status for the pack
-    await pack.configure({ locked: wasLocked });
-    //@ts-expect-error no dnd5e-types
-    game.dnd5e.moduleArt.suppressArt = false;
-    ui.notifications?.notify(`Removed Passive effects for all ${documentName} documents from Compendium ${pack.collection}`);
-}
-;
-export async function removeCompendiaPassiveEffects() {
-    if (CONFIG.ActiveEffect.legacyTransferral === true) {
-        ui.notifications?.error("Must be run in a world with legacy transferral false");
-        return;
-    }
-    // Migrate World Compendium Packs
-    for (let p of game.packs ?? []) {
-        // if (p.metadata.packageType !== "world") continue;
-        if (!["Actor"].includes(p.documentName))
-            continue;
-        console.log("doing compendium", p.collection);
-        await migrateCompendium(p);
-    }
-    ui.notifications?.notify("Finsihed compendium clean up");
-}
-export async function removeAllScenesPassiveEffects() {
-    if (CONFIG.ActiveEffect.legacyTransferral === true) {
-        ui.notifications?.error("Must be run in a world with legacy transferral false");
-        return;
-    }
-    if (game.scenes)
-        for (let scene of game.scenes) {
-            for (let token of scene.tokens) {
-                if (token.actorLink || !token.actor)
-                    continue;
-                await removeDaePassiveEffectsActor(token.actor, true);
-            }
-        }
-    ui.notifications?.notify("All Scene Token legacy passive effects removed");
+/**
+ * Check whether auto-migration should run on ready. Only the active GM runs it to avoid
+ * concurrent writes when multiple GMs are logged in.
+ */
+export function shouldAutoMigrate() {
+    if (!game.user?.isActiveGM)
+        return false;
+    if (!game.settings.get(MODULE_ID, "enableAutoMigration"))
+        return false;
+    const lastVersion = game.settings.get(MODULE_ID, "migrationVersion");
+    const currentVersion = game.modules.get(MODULE_ID).version;
+    if (!lastVersion)
+        return true;
+    return foundry.utils.isNewerVersion(currentVersion, lastVersion);
 }

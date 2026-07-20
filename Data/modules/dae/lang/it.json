@@ -371,8 +371,6 @@
   "dae.DontApply.Hint": "When Dae (and midi) applies active effects, skip this one",
   "dae.DIMEditor.Name": "DIME",
   "dae.IncapacitatedDisabled": "Effect disabled if actor incapacitated",
-  "dae.DIMESyncItemacro.Name": "Sincronizza DIME e Itemacro",
-  "dae.DIMESyncItemacro.Hint": "Selezionato significa che DIME e Itemacro saranno mantenute sincronizzate: puoi modificare con entrambe. Deseleziona e DIME editor avrà la priorità.",
   "dae.halfHealthEffectLabel": "Metà Salute",
   "dae.DAEAddHalfHealthEffect.Name": "Aggiungi effetto metà salute",
   "dae.DAEAddHalfHealthEffect.Hint": "Aggiungi un effetto di stato di salute dimezzato per impostare i punti ferita massimi dell'attore a metà del loro massimo normale",

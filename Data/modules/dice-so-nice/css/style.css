@@ -28,8 +28,8 @@
     flex: 1;
 }
 
-dialog.dice-so-nice .form-group label {
-    flex: 2;
+.dice-so-nice .form-group label {
+    flex: 1.5;
 }
 
 .dice-so-nice .setting-timeBeforeHide input {
@@ -47,8 +47,30 @@ dialog.dice-so-nice .form-group label {
     padding-right: 0.5em;
 }
 
-.dice-so-nice .settings-list .form-group {
+.dice-so-nice .settings-list .form-group,
+.dice-so-nice.dialog .form-group {
     margin: 3px 0;
+}
+
+#dice-configuration-canvas-container {
+    position: relative;
+}
+
+#dice-configuration-canvas-container.loading #dice-configuration-canvas {
+    visibility: hidden;
+}
+
+#dice-configuration-canvas-container.loading::after {
+    content: "Rendering…";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    pointer-events: none;
 }
 
 #dice-configuration-canvas {
@@ -94,9 +116,11 @@ dialog.dice-so-nice .form-group label {
 
 .dice-so-nice .sfxs-list .sfx-controls {
     -webkit-box-flex: 0;
-    flex: 0 0 32px;
-    margin-top: 3px;
-    text-align: right;
+    flex: 0 0 50px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 3px;
+    align-items: center;
 }
 
 .dice-so-nice .dsn-hidden {
@@ -104,19 +128,60 @@ dialog.dice-so-nice .form-group label {
 }
 
 .dice-so-nice .sfx-flex-2 {
-    flex: 2;
+    flex: 0 0 80px;
 }
 
 .dice-so-nice .sfx-flex-5 {
-    flex: 5;
+    flex: 1 1 0%;
+    min-width: 0;
 }
 
 .dice-so-nice .sfx-flex-3 {
-    flex: 3;
+    flex: 0 0 190px;
+    min-width: 0;
+}
+
+.dice-so-nice .sfx-flex-7 {
+    flex: 1 1 0%;
+    min-width: 0;
 }
 
 .dice-so-nice .sfx-data select {
     width: 100%;
+    min-width: 0;
+}
+
+.dice-so-nice .sfx-formula-container {
+    position: relative;
+}
+
+.dice-so-nice .sfx-data input[data-sfx-formula] {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    font-family: monospace;
+    padding-right: 24px;
+}
+
+.dice-so-nice .sfx-data input.sfx-formula-invalid {
+    border-color: #cc3333;
+    outline-color: #cc3333;
+}
+
+.dice-so-nice .sfx-formula-error-icon {
+    display: none;
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #cc3333;
+    font-size: 14px;
+    cursor: help;
+    pointer-events: auto;
+}
+
+.dice-so-nice .sfx-formula-error-icon.visible {
+    display: block;
 }
 
 .dice-so-nice .dice-more-theme {
@@ -180,7 +245,7 @@ dialog.dice-so-nice .form-group label {
 }
 
 .dice-so-nice .dsn-appearance-tabs span.active::before {
-    font-family: "Font Awesome 6 Pro","Font Awesome 5 Free";
+    font-family: "Font Awesome 7 Pro","Font Awesome 5 Free";
     font-weight: 900;
     content: "\f140";
 }
@@ -231,7 +296,7 @@ dialog.dice-so-nice .form-group label {
     gap: 0.3rem;
 }
 
-.dice-so-nice .tabAppearance a.system-control {
+.dice-so-nice .tabAppearance a.system-control, .dice-so-nice .tabAppearance a.library-control {
     flex: 0;
     background: rgba(0, 0, 0, 0.05);
     border: 1px solid var(--color-border-light-tertiary);
@@ -261,6 +326,10 @@ dialog.dice-so-nice .form-group label {
 .dice-so-nice .dsn-warning::before {
     content: "⚠️";
     font-weight: normal;
+}
+
+.rollable-area-config {
+    z-index: 10001 !important;
 }
 
 .dice-so-nice.rollable-area {
@@ -339,4 +408,1066 @@ dialog.dice-so-nice .form-group label {
 /************** DICE EDITOR ************/
 .dice-so-nice .dsn-dice-editor-button {
     flex: 1;
+}
+
+.dice-so-nice .library-control {
+    cursor: pointer;
+    font-size: 1.1em;
+}
+
+.dice-so-nice .library-control:hover {
+    color: var(--color-text-hyperlink);
+}
+
+.dice-editor-app {
+    max-height: calc(100vh - 20px);
+}
+
+.dice-editor-app .dice-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.dice-editor-app .dice-editor-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.dice-editor-app .dice-editor-properties {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.dice-editor-app .dice-editor-header {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.dice-editor-app .dice-editor-header .form-group {
+    flex: 1;
+    margin: 0;
+}
+
+.dice-editor-app .die-type-label {
+    font-weight: bold;
+    font-size: 1.2em;
+    text-transform: uppercase;
+}
+
+.dice-editor-app .dice-editor-preview {
+    width: 100%;
+    height: 250px;
+    min-height: 250px;
+    border: 1px solid var(--color-border-light-2);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    background: #1a1a2e;
+}
+
+.dice-editor-app .dice-editor-preview canvas {
+    display: block;
+    margin: 0 auto;
+}
+
+.dice-editor-app .dice-editor-preview .hint {
+    position: absolute;
+    bottom: 4px;
+    left: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85em;
+    pointer-events: none;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.dice-editor-app .dice-editor-face-indicator {
+    text-align: center;
+    font-weight: bold;
+    padding: 4px;
+    background: var(--color-border-light-2);
+    color: var(--color-text-primary);
+    border-radius: 3px;
+}
+
+.dice-editor-app .dice-editor-properties h3 {
+    font-size: 1em;
+    font-weight: bold;
+    margin: 8px 0 4px;
+    padding: 0;
+    border: none;
+}
+
+.dice-editor-app .dice-editor-properties h3:first-child {
+    margin-top: 0;
+}
+
+.dice-editor-app .dice-editor-properties .form-group {
+    margin: 3px 0;
+}
+
+.dice-editor-app .dice-editor-face-props,
+.dice-editor-app .face-props-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.dice-editor-app .custom-texture-fields {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.dice-editor-app .custom-texture-fields input[type="text"] {
+    flex: 1;
+}
+
+.dice-editor-app .custom-texture-clear {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    line-height: 28px;
+    text-align: center;
+}
+
+.dice-library-dialog-app .window-content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dice-library-dialog-app .dice-library-dialog {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.dice-library-dialog-app .dice-library-list {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.dice-library-dialog-app .dice-library-empty {
+    flex: 1;
+}
+
+.dice-library-dialog-app .dice-library-section {
+    margin-bottom: 4px;
+    border: 1px solid var(--color-border-light-tertiary);
+    border-radius: 4px;
+}
+
+.dice-library-dialog-app .dice-library-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--color-cool-5);
+    cursor: pointer;
+    user-select: none;
+}
+
+.dice-library-dialog-app .dice-library-section-header:hover {
+    background: var(--color-cool-4);
+}
+
+.dice-library-dialog-app .section-chevron {
+    transition: transform 0.15s ease;
+    font-size: 0.8em;
+    width: 12px;
+}
+
+.dice-library-dialog-app .dice-library-section.collapsed .section-chevron {
+    transform: rotate(-90deg);
+}
+
+.dice-library-dialog-app .dice-library-section.collapsed .dice-library-section-body {
+    display: none;
+}
+
+.dice-library-dialog-app .die-type-badge {
+    display: inline-block;
+    background: var(--color-cool-4);
+    border: 1px solid var(--color-border-light-tertiary);
+    border-radius: 3px;
+    padding: 1px 8px;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.dice-library-dialog-app .section-create-btn {
+    margin-left: auto;
+    font-size: 0.8em;
+    padding: 2px 8px;
+    line-height: 1.4;
+}
+
+.dice-library-dialog-app .dice-library-section-body {
+    padding: 4px 0;
+}
+
+.dice-library-dialog-app .dice-library-subsection {
+    padding: 0 10px;
+}
+
+.dice-library-dialog-app .dice-library-subsection-header {
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-dark-secondary);
+    padding: 4px 0 2px;
+}
+
+.dice-library-dialog-app .dice-library-other-user {
+    border-top: 1px solid var(--color-border-light-tertiary);
+    margin-top: 2px;
+    padding-top: 2px;
+}
+
+.dice-library-dialog-app .dice-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.dice-library-dialog-app .dice-list-entry {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-bottom: 1px;
+}
+
+.dice-library-dialog-app .dice-list-entry:hover {
+    background: var(--color-cool-5);
+}
+
+.dice-library-dialog-app .other-user-entry {
+    opacity: 0.8;
+}
+
+.dice-library-dialog-app .die-name {
+    flex: 1;
+    font-weight: bold;
+    font-size: 0.95em;
+}
+
+.dice-library-dialog-app .die-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.dice-library-dialog-app .die-actions a {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+}
+
+.dice-library-dialog-app .die-actions a:hover {
+    opacity: 1;
+    color: var(--color-text-hyperlink);
+}
+
+.dice-library-dialog-app .die-actions [data-action=deleteDie]:hover {
+    color: var(--color-level-error);
+}
+
+.dice-library-dialog-app .dice-library-empty,
+.dice-library-dialog-app .dice-library-empty-sub {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-dark-secondary);
+    text-align: center;
+}
+
+.dice-library-dialog-app .dice-library-empty {
+    padding: 40px 20px;
+}
+
+.dice-library-dialog-app .dice-library-empty i {
+    font-size: 2.5em;
+    margin-bottom: 12px;
+    opacity: 0.3;
+}
+
+.dice-library-dialog-app .dice-library-empty p {
+    margin: 0;
+    font-style: italic;
+}
+
+.dice-library-dialog-app .dice-library-empty-sub {
+    padding: 6px 0;
+    font-size: 0.85em;
+    font-style: italic;
+}
+
+.dice-library-dialog-app .dice-library-footer {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 8px 0 0;
+    border-top: 1px solid var(--color-border-light-tertiary);
+    margin-top: 4px;
+}
+
+.dice-library-dialog-app .dice-library-footer select {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+.dice-library-dialog-app .dice-library-footer button {
+    flex: 0 0 auto;
+    font-size: 0.85em;
+    padding: 4px 10px;
+}
+
+/* sidebar tab: hidden by default in rail, .active or popout reveals it */
+#sidebar .dsn-sidebar-tab {
+    display: none;
+    color: var(--color-text-primary);
+}
+
+#sidebar .dsn-sidebar-tab.active,
+.application.dsn-sidebar-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    overflow-y: auto;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-dice-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-dice-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.dsn-sidebar-tab .dsn-sidebar-title {
+    margin: 0;
+    padding: 0;
+    font-size: 0.95em;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0.8;
+    border-bottom: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.15));
+    padding-bottom: 0.125rem;
+    margin-bottom: 0.125rem;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-dice-label {
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    min-width: 2.5rem;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-dice-count {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.75;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-dice-buttons {
+    display: flex;
+    gap: 0.375rem;
+}
+
+/* override Foundry's 32px button floor so rows stay tight */
+.dsn-sidebar-tab .dsn-toolbox-btn {
+    flex: 0 0 auto;
+    min-width: 1rem;
+    padding: 0 0.25rem;
+    border: none;
+    background: transparent;
+    font-weight: bold;
+    font-size: 1em;
+    line-height: 1.2;
+    height: auto;
+    min-height: 0;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-btn:hover {
+    opacity: 1;
+    text-shadow: 0 0 6px var(--color-shadow-highlight, #ff6400);
+}
+
+.dsn-sidebar-tab .dsn-toolbox-disclosure {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-disclosure:hover {
+    text-shadow: 0 0 6px var(--color-shadow-highlight, #ff6400);
+}
+
+.dsn-sidebar-tab .dsn-toolbox-visibility {
+    border-top: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.15));
+    padding-top: 0.5rem;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-label {
+    font-size: 0.85em;
+    opacity: 0.8;
+    margin-bottom: 0.25rem;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-select {
+    width: 100%;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-protect-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.85em;
+    cursor: pointer;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-protect-row input[type="checkbox"] {
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-notice {
+    margin: 0;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-clear {
+    display: flex;
+    flex-direction: row;
+    gap: 0.25rem;
+    border-top: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.15));
+    padding-top: 0.5rem;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-clear-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-clear-btn.dsn-toolbox-clear-all {
+    color: var(--color-level-error, #b94a48);
+}
+
+.dsn-sidebar-tab .dsn-sidebar-quick-actions {
+    border-bottom: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.15));
+    padding-bottom: 0.5rem;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-help-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9em;
+    opacity: 0.85;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-help-list li::before {
+    content: "\2022";
+    margin-right: 0.4rem;
+    opacity: 0.5;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-footer {
+    margin-top: auto;
+    border-top: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.15));
+    padding-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-stats {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-stat {
+    font-variant-numeric: tabular-nums;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9em;
+    padding: 0.15rem 0;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-toggle input[type="checkbox"] {
+    margin: 0;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-saves-row {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-saves-row .dsn-toolbox-select {
+    flex: 1;
+    min-width: 0;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-saves-row .dsn-toolbox-clear-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.dsn-sidebar-tab .dsn-toolbox-issue-link {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Damage type mapping config window */
+.damage-type-config .damage-type-config-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.damage-type-config .damage-type-config-table-wrap {
+    max-height: 55vh;
+    overflow-y: auto;
+    border: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.2));
+    border-radius: 4px;
+}
+
+.damage-type-config .damage-type-config-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-14, 14px);
+}
+
+.damage-type-config .damage-type-config-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--color-bg-alt, rgba(0, 0, 0, 0.05));
+    text-align: left;
+    padding: 0.4rem 0.5rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.2));
+}
+
+.damage-type-config .damage-type-config-table td {
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.08));
+    vertical-align: middle;
+}
+
+.damage-type-config .damage-type-config-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.damage-type-config .col-label {
+    width: 26%;
+}
+
+.damage-type-config .col-label .builtin-label {
+    font-weight: 600;
+}
+
+.damage-type-config .col-label .damage-type-id {
+    display: block;
+    font-size: 0.8em;
+    opacity: 0.6;
+    font-family: var(--font-mono, monospace);
+}
+
+.damage-type-config .col-label input[type=text] {
+    width: 100%;
+    margin-bottom: 2px;
+}
+
+.damage-type-config .col-label .damage-type-id-input {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+    opacity: 0.85;
+}
+
+.damage-type-config .col-preset,
+.damage-type-config .col-theme,
+.damage-type-config .col-save {
+    width: 21%;
+}
+
+.damage-type-config .col-preset select,
+.damage-type-config .col-theme select,
+.damage-type-config .col-save select {
+    width: 100%;
+}
+
+.damage-type-config .col-save .broken-ref {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--color-level-warning, #e0a020);
+    font-size: 0.85em;
+    margin-bottom: 2px;
+}
+
+.damage-type-config .col-actions {
+    width: 2.5rem;
+    text-align: center;
+}
+
+.damage-type-config .col-actions button {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    line-height: 1;
+}
+
+.damage-type-config .damage-type-config-actions {
+    display: flex;
+    justify-content: flex-start;
+    padding-top: 0.3rem;
+}
+
+.damage-type-config .damage-type-config-actions button {
+    padding: 0.35rem 0.75rem;
+}
+
+.damage-type-config select:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.damage-type-config .col-actions button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* mask initiative cells while the 3D roll is still animating */
+.combatant.dsn-initiative-pending .token-initiative {
+    position: relative;
+}
+
+.combatant.dsn-initiative-pending .token-initiative > *:not(.dsn-initiative-pending-icon) {
+    visibility: hidden;
+}
+
+.dsn-initiative-pending-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* glyph picker - FA icons + emoji tabs, launched from the dice editor face panel */
+.dsn-glyph-picker .window-content {
+    padding: 0;
+    overflow: hidden;
+}
+
+.dsn-glyph-picker-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.dsn-glyph-picker-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--color-border-light-tertiary, rgba(255,255,255,0.15));
+    flex: 0 0 auto;
+}
+
+.dsn-glyph-picker-tabs button {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    color: inherit;
+    border-bottom: 2px solid transparent;
+    font-size: 0.95em;
+}
+
+.dsn-glyph-picker-tabs button:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.dsn-glyph-picker-tabs button.active {
+    border-bottom-color: var(--color-text-hyperlink, #c00);
+    font-weight: bold;
+}
+
+.dsn-glyph-picker-inner .dsn-glyph-search {
+    margin: 0.5em;
+    flex: 0 0 auto;
+}
+
+.dsn-glyph-picker-grid {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5em;
+    min-height: 0;
+}
+
+.dsn-glyph-picker-grid[hidden] {
+    display: none;
+}
+
+.dsn-glyph-picker-inner .dsn-glyph-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(2.5em, 1fr));
+    gap: 0.25em;
+}
+
+.dsn-emoji-category,
+.dsn-icon-category {
+    margin-bottom: 0.75em;
+}
+
+.dsn-emoji-category h4,
+.dsn-icon-category h4 {
+    margin: 0.25em 0;
+    font-size: 0.85em;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dsn-glyph {
+    aspect-ratio: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.4em;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    padding: 0;
+    /* native virtualization for the ~1500-icon FA grid */
+    content-visibility: auto;
+    contain-intrinsic-size: 2.5em 2.5em;
+}
+
+.dsn-glyph:hover {
+    background: rgba(255,255,255,0.15);
+    border-color: var(--color-text-hyperlink, #c00);
+}
+
+.dsn-glyph[hidden] {
+    display: none;
+}
+
+.dsn-glyph-hint {
+    flex: 0 0 auto;
+    padding: 0.5em 1em;
+    font-size: 0.85em;
+    border-top: 1px solid var(--color-border-light-tertiary, rgba(255,255,255,0.15));
+    opacity: 0.8;
+}
+
+.dsn-glyph-hint kbd {
+    font-family: monospace;
+    background: rgba(255,255,255,0.1);
+    padding: 0 0.3em;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.2);
+    font-size: 0.9em;
+}
+
+.dice-editor-app .glyph-pick-btn {
+    flex: 0 0 auto;
+    width: 2em;
+    padding: 0;
+    margin-left: 0.25em;
+}
+
+/* Custom DiceTerm Config */
+
+.custom-diceterm-config .custom-diceterm-list {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-diceterm-config .custom-diceterm-list th,
+.custom-diceterm-config .custom-diceterm-list td {
+    padding: 4px 6px;
+    text-align: left;
+}
+
+.custom-diceterm-config .custom-diceterm-list .col-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.custom-diceterm-config .custom-diceterm-list .col-actions button {
+    display: inline-flex;
+    width: auto;
+    padding: 2px 6px;
+    margin-left: 2px;
+}
+
+.custom-diceterm-config .custom-diceterm-config-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.custom-diceterm-config .custom-diceterm-config-actions button {
+    flex: 1;
+}
+
+.custom-diceterm-config .custom-diceterm-editor .form-group label {
+    flex: 3;
+}
+
+.custom-diceterm-config .custom-diceterm-editor .form-group > select,
+.custom-diceterm-config .custom-diceterm-editor .denomination-input-wrap {
+    flex: 1;
+}
+
+.custom-diceterm-config .denomination-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.custom-diceterm-config .denomination-prefix {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.custom-diceterm-config .denomination-input-wrap input {
+    flex: 1;
+}
+
+.custom-diceterm-config .custom-diceterm-face-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-diceterm-config .custom-diceterm-face-table tbody tr:nth-child(even) {
+    background: transparent;
+}
+
+.custom-diceterm-config .custom-diceterm-face-table th,
+.custom-diceterm-config .custom-diceterm-face-table td {
+    padding: 2px 4px;
+}
+
+.custom-diceterm-config .custom-diceterm-face-table .col-face {
+    width: 30px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.custom-diceterm-config .custom-diceterm-face-table .col-value {
+    width: 80px;
+}
+
+.custom-diceterm-config .custom-diceterm-face-table .col-value input {
+    width: 100%;
+}
+
+.custom-diceterm-config .form-group.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.custom-diceterm-config .form-fields {
+    flex: 3;
+}
+
+.custom-diceterm-config .form-fields select {
+    flex: 1;
+}
+
+.custom-diceterm-config .library-control {
+    flex: 0;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--color-border-light-tertiary);
+    border-radius: 3px;
+    padding: 4px;
+}
+
+.custom-diceterm-config .custom-diceterm-editor-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.custom-diceterm-config .custom-diceterm-editor-actions button {
+    flex: 1;
+}
+
+.custom-diceterm-config .empty-message {
+    text-align: center;
+    font-style: italic;
+    opacity: 0.7;
+    padding: 12px 0;
+}
+
+.custom-diceterm-config .custom-diceterm-face-table-wrap {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+
+.dice-so-nice {
+    --ss-bg-color: var(--table-header-bg-color);
+    --ss-font-color: var(--color-text-primary);
+    --ss-border-color: var(--content-link-border-color);
+    --ss-border-radius: 4px;
+    --ss-primary-color: var(--table-row-color-highlight);
+    --ss-focus-color: var(--table-row-color-highlight);
+    --ss-disabled-color: var(--color-text-subtle);
+    --ss-highlight-color: var(--table-row-color-highlight);
+}
+
+.dice-so-nice .ss-main {
+    min-height: 32px;
+    height: auto;
+    border: 1px solid var(--content-link-border-color);
+    border-radius: 4px;
+    background: var(--table-header-bg-color);
+    font-size: 12px;
+    width: 100%;
+    color: var(--color-text-primary);
+    padding: 0 4px;
+    box-sizing: border-box;
+}
+
+.dice-so-nice .ss-main .ss-values {
+    padding: 3px 2px;
+    gap: 3px;
+    align-items: center;
+}
+
+.dice-so-nice .ss-main .ss-values .ss-value {
+    background: var(--content-link-background);
+    border: 1px solid var(--content-link-border-color);
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 11px;
+    gap: 2px;
+    color: var(--color-text-emphatic);
+    animation: none;
+    margin: 0;
+}
+
+.dice-so-nice .ss-main .ss-values .ss-value .ss-value-text {
+    color: var(--color-text-emphatic);
+}
+
+.dice-so-nice .ss-main .ss-values .ss-value .ss-value-delete {
+    width: 10px;
+    height: 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+}
+
+.dice-so-nice .ss-main .ss-values .ss-value .ss-value-delete svg path {
+    stroke: var(--color-text-emphatic);
+}
+
+.dice-so-nice .ss-content {
+    border: 1px solid var(--content-link-border-color);
+    border-radius: 4px;
+    background: var(--table-header-bg-color);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.dice-so-nice .ss-content .ss-list .ss-option {
+    padding: 4px 8px;
+    font-size: 12px;
+    color: var(--color-text-primary);
+}
+
+.dice-so-nice .ss-content .ss-list .ss-option:hover {
+    background: var(--table-row-color-highlight);
+}
+
+.dice-so-nice .ss-content .ss-list .ss-option.ss-selected {
+    background: var(--table-row-color-even);
+    color: var(--color-text-emphatic);
+}
+
+.dice-so-nice .sfx-line {
+    gap: 6px;
+    flex-wrap: nowrap;
 }

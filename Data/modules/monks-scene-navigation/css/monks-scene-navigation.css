@@ -130,6 +130,20 @@
     content: "";
 }
 
+#scene-navigation.monks-navigation .scene-navigation-menu .folder.expanded:after {
+    display: flex;
+    height: 100%;
+    position: absolute;
+    right: -7px;
+    top: 0;
+    justify-content: center;
+    align-items: center;
+    content: "\f0da";
+    font-family: var(--font-awesome);
+    font-size: var(--font-size-14);
+    color: var(--control-bg-color);
+}
+
 #scene-navigation.monks-navigation .scene-navigation-menu .folder > menu {
     display: none;
     position: relative;
@@ -334,4 +348,47 @@
 #navigation .nav-item-container #nav-back {
     line-height: 24px;
     text-align: center;
+}
+
+#scene-navigation menu#scene-navigation-levels {
+    position: absolute;
+    left: 205px;
+    flex-direction: row-reverse;
+    gap: 1px;
+    height: calc(3 * (var(--control-size) + 0.5rem));
+    padding: 0px;
+    margin-left: 5px;
+    min-width: calc(100vw - 700px);
+    max-width: calc(100vw - 700px);
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    row-gap: 5px;
+    align-content: flex-start;
+}
+
+#scene-navigation menu#scene-navigation-levels li.level-row {
+    padding-left: 0px;
+}
+
+#scene-navigation menu#scene-navigation-levels li.level-row > div {
+    border-radius: 2px;
+    width: unset;
+}
+
+#scene-navigation menu#scene-navigation-levels li.level-row:first-child > div {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+#scene-navigation menu#scene-navigation-levels li.level-row:last-child > div {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+#scene-navigation #scene-navigation-active {
+    gap: 0.15rem;
+}
+
+#scene-navigation #scene-navigation-active.scene-navigation-menu .scene-players {
+    bottom: -2px;
 }

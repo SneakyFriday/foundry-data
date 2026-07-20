@@ -1,0 +1,108 @@
+<div class="face-props-inner">
+    <div class="form-group">
+        <label>{{localize "DICESONICE.editorLabelText"}}</label>
+        <div class="form-fields">
+            <textarea name="faceLabelText" rows="3" placeholder="{{localize 'DICESONICE.editorDefaultLabel'}}">{{faceLabelText}}</textarea>
+            <button type="button" class="glyph-pick-btn" data-action="openGlyphPicker" title="{{localize 'DICESONICE.glyphPicker.openButton'}}">
+                <i class="fa-solid fa-icons"></i>
+            </button>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.font"}}</label>
+        <div class="form-fields">
+            <select name="faceFont">
+                <option value="">{{localize "DICESONICE.editorInheritBase"}}</option>
+                {{selectOptions fontList selected=faceFont}}
+            </select>
+            <input type="hidden" name="faceFontOverride" value="" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.editorFontScale"}}</label>
+        <div class="form-fields">
+            <input type="range" name="faceFontScale" min="20" max="200" step="5" value="{{faceFontScale}}" data-dtype="Number" />
+            <span class="range-value">{{faceFontScale}}%</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.labelColor"}}</label>
+        <div class="form-fields">
+            <input type="text" name="faceForeground" value="{{faceForeground}}" data-dtype="String" placeholder="{{localize 'DICESONICE.editorInheritBase'}}" />
+            <input type="color" name="faceForegroundSelector" value="{{#if faceForeground}}{{faceForeground}}{{else}}#FFFFFF{{/if}}" data-edit="faceForeground" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.diceColor"}}</label>
+        <div class="form-fields">
+            <input type="text" name="faceBackground" value="{{faceBackground}}" data-dtype="String" placeholder="{{localize 'DICESONICE.editorInheritBase'}}" />
+            <input type="color" name="faceBackgroundSelector" value="{{#if faceBackground}}{{faceBackground}}{{else}}#000000{{/if}}" data-edit="faceBackground" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.outlineColor"}}</label>
+        <div class="form-fields">
+            <input type="text" name="faceOutline" value="{{faceOutline}}" data-dtype="String" placeholder="{{localize 'DICESONICE.editorInheritBase'}}" />
+            <input type="color" name="faceOutlineSelector" value="{{#if faceOutline}}{{faceOutline}}{{else}}#000000{{/if}}" data-edit="faceOutline" />
+        </div>
+        <p class="hint">{{localize "DICESONICE.editorOutlineHint"}}</p>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.editorLabelImage"}}</label>
+        <div class="form-fields">
+            <input type="text" name="faceLabelImage" value="{{faceLabelImage}}" placeholder="" />
+            <button type="button" class="file-picker" data-face-filepicker><i class="fas fa-file-import"></i></button>
+        </div>
+    </div>
+    <div class="label-image-controls" hidden>
+        <div class="form-group">
+            <label>{{localize "DICESONICE.editorImageScale"}}</label>
+            <div class="form-fields">
+                <input type="range" name="faceLabelImageScale" min="10" max="200" step="1" value="{{faceLabelImageScale}}" data-dtype="Number" />
+                <span class="range-value">{{faceLabelImageScale}}</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>{{localize "DICESONICE.editorImageFlip"}}</label>
+            <input type="checkbox" name="faceLabelImageFlip" {{#if faceLabelImageFlip}}checked{{/if}} />
+        </div>
+        <div class="form-group">
+            <label>{{localize "DICESONICE.editorImagePosition"}}</label>
+            <div class="form-fields">
+                <input type="range" name="faceLabelImagePosition" min="0" max="100" step="1" value="{{faceLabelImagePosition}}" data-dtype="Number" />
+                <span class="range-value">{{faceLabelImagePosition}}</span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.texture"}}</label>
+        <div class="form-fields">
+            <select name="faceTexture" {{#if isFaceCustomTexture}}disabled{{/if}}>
+                <option value="">{{localize "DICESONICE.editorInheritBase"}}</option>
+                {{selectOptions textureList selected=faceTexture}}
+            </select>
+        </div>
+    </div>
+    <input type="hidden" name="faceTextureEffective" value="{{faceTextureEffective}}" />
+    <div class="form-group">
+        <label>{{localize "DICESONICE.editorCustomTexture"}}</label>
+        <div class="form-fields custom-texture-fields">
+            <input type="text" name="faceCustomTexturePath" value="{{faceCustomTexturePath}}" readonly placeholder="" />
+            <button type="button" class="file-picker" data-face-texture-filepicker><i class="fas fa-file-import"></i></button>
+            <button type="button" class="custom-texture-clear" data-face-texture-clear title="{{localize 'DICESONICE.editorClearCustomTexture'}}" {{#unless isFaceCustomTexture}}hidden{{/unless}}><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+    <div class="form-group face-texture-composite" {{#unless hasFaceTexture}}hidden{{/unless}}>
+        <label>{{localize "DICESONICE.editorBlendMode"}}</label>
+        <div class="form-fields">
+            <select name="faceTextureComposite">
+                <option value="">{{localize "DICESONICE.editorInheritBase"}}</option>
+                {{selectOptions compositeOptions selected=faceTextureComposite}}
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.editorGlow"}}</label>
+        <input type="checkbox" name="faceEmissive" {{#if faceEmissive}}checked{{/if}} />
+    </div>
+</div>

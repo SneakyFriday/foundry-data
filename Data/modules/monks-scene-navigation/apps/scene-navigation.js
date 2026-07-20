@@ -1,5 +1,5 @@
 
-import { log, setting, i18n, patchFunc } from '../monks-scene-navigation.js';
+import { MonksSceneNavigation, log, setting, i18n, patchFunc } from '../monks-scene-navigation.js';
 export class MonksNavigation extends CONFIG.ui.nav {
     constructor(folder, options = {}) {
         super(options);
@@ -26,8 +26,21 @@ export class MonksNavigation extends CONFIG.ui.nav {
     };
 
     async _onFirstRender(_context, _options) {
-        await super._onFirstRender(_context, _options);
+        game.scenes.apps.push(this);
+
         if (!game.user.isGM) return;
+
+        this._createContextMenu(this._getContextMenuOptions, ".scene:not(.scene-level)", {
+            fixed: true,
+            hookName: "getSceneContextOptions",
+            parentClassHooks: false
+        });
+        this._createContextMenu(this._getLevelContextMenuOptions, ".scene.scene-level", {
+            fixed: true,
+            hookName: "getSceneLevelContextOptions",
+            parentClassHooks: false
+        });
+
         // Set the previous scene to the current viewed scene
         this._createContextMenu(this._getFolderContextMenuOptions, ".folder", {
             fixed: true,
@@ -40,7 +53,10 @@ export class MonksNavigation extends CONFIG.ui.nav {
         this.setCollapseTooltip(`SCENE_NAVIGATION.${this.expanded ? "COLLAPSE" : "EXPAND"}`);
 
         // Set the previous tooltip to empty if no scene is active
-        this.setPreviousTooltip(this._lastScene ? `Return to: ${this._lastScene.navName || this._lastScene.name}` : "No previous scene");
+        this.setPreviousTooltip(this._lastScene
+            ? game.i18n.format("MonksSceneNavigation.ReturnLastScene", { lastScene: this._lastScene.navName || this._lastScene.name })
+            : "MonksSceneNavigation.NoPreviousScene"
+        );
 
         let canGoBack = setting("add-back-button") == "everyone" || (setting("add-back-button") == "true" && game.user.isGM);
         if (canGoBack)
@@ -64,7 +80,7 @@ export class MonksNavigation extends CONFIG.ui.nav {
     }
 
     async _prepareContext(_options) {
-        const scenes = this.prepareMenuItems();
+        const scenes = this.prepareScenes();
         return {
             scenes,
             canExpand: scenes.inactive.scenes.length || scenes.inactive.folders.length,
@@ -73,13 +89,8 @@ export class MonksNavigation extends CONFIG.ui.nav {
         };
     }
 
-    prepareMenuItems() {
-        const userScenes = game.users.reduce((obj, u) => {
-            if (!u.active) return obj;
-            obj[u.viewedScene] ||= [];
-            obj[u.viewedScene].push({ name: u.name, letter: u.name[0], color: u.color.multiply(0.5).css, border: u.color, self: u.isSelf });
-            return obj;
-        }, {});
+    prepareScenes() {
+        const userScenes = this.prepareUserPips(u => u.viewedScene);
         const scenes = {
             active: [], inactive: { folders: [], scenes: [] }
         };
@@ -87,12 +98,12 @@ export class MonksNavigation extends CONFIG.ui.nav {
         let useFolders = setting("navigation-folders") == "everyone" || (setting("navigation-folders") == "gm" && game.user.isGM);
 
         for (const scene of game.scenes.filter(s => s.folder == null || !useFolders)) {
-            this.prepareScene(scene, scenes.active, scenes.inactive.scenes, userScenes);
+            this.prepareScene(scene, scenes, userScenes);
         }
 
         if (useFolders) {
             for (const folder of game.scenes.folders.filter(f => f.folder == null)) {
-                let f = this.prepareFolder(folder, scenes.active, userScenes);
+                let f = this.prepareFolder(folder, scenes, userScenes);
                 if (f) {
                     scenes.inactive.folders.push(f);
                 }
@@ -106,7 +117,7 @@ export class MonksNavigation extends CONFIG.ui.nav {
         return scenes;
     }
 
-    prepareScene(scene, activeScenes, inactiveScenes, userScenes) {
+    prepareScene(scene, scenes, userScenes) {
         const { active, isView } = scene;
         const visible = active || isView || (scene.navigation && scene.visible);
         if (!visible) return;
@@ -138,13 +149,18 @@ export class MonksNavigation extends CONFIG.ui.nav {
                 tooltip != name && game.user.isGM ? "italic" : null
             ].filterJoin(" ")
         };
-        let addToActive = active || isView || s.users?.length;
-        if (addToActive) activeScenes.push(s);
+        if (isView) {
+            scenes.viewed = s;
+            scenes.levels = this.prepareLevels(scene);
+        }
+
+        let addToActive = (active || s.users?.length) && !isView;
+        if (addToActive) scenes.active.push(s);
         if (setting("include-active") || !addToActive)
-            inactiveScenes.push(s);
+            scenes.inactive.scenes.push(s);
     }
 
-    prepareFolder(folder, active, userScenes) {
+    prepareFolder(folder, scenes, userScenes) {
         if (!folder) return;
 
         let navopen = game.user.getFlag("monks-scene-navigation", "navopen" + folder.id) || false;
@@ -163,11 +179,13 @@ export class MonksNavigation extends CONFIG.ui.nav {
             folders: []
         };
 
+        let folder_scenes = { active: scenes.active, inactive: { folders: [], scenes: f.scenes } };
+
         for (let scene of folder.contents) {
-            this.prepareScene(scene, active, f.scenes, userScenes);
+            this.prepareScene(scene, folder_scenes, userScenes);
         }
         for (let subfolder of folder.children) {
-            let subf = this.prepareFolder(subfolder.folder, active, userScenes);
+            let subf = this.prepareFolder(subfolder.folder, scenes, userScenes);
             if (subf) {
                 f.folders.push(subf);
             }
@@ -176,11 +194,35 @@ export class MonksNavigation extends CONFIG.ui.nav {
         f.scenes.sort((a, b) => a.navOrder - b.navOrder);
         f.folders.sort((a, b) => a.navOrder - b.navOrder);
 
+        scenes.viewed = folder_scenes.viewed || scenes.viewed;
+        scenes.levels = folder_scenes.levels || scenes.levels;
+
         if (f.scenes.length > 0 || f.folders.length > 0) 
             return f;
 
         // If no scenes or folders, return null
         return null;
+    }
+
+    prepareLevels(scene) {
+        const availableLevels = Array.from(scene.availableLevels);
+        if (availableLevels.length < 2) return null;
+        const userLevels = this.prepareUserPips(u => u.viewedScene === scene.id ? u.viewedLevel : null);
+        return availableLevels.toReversed().map(level => ({
+            id: level.id, sceneId: level.parent.id, name: level.name, css: level.isView ? "active" : "",
+            users: userLevels[level.id]
+        }));
+    }
+
+    prepareUserPips(keyFn) {
+        return game.users.reduce((obj, u) => {
+            if (!u.active) return obj;
+            const key = keyFn(u);
+            if (!key) return obj;
+            obj[key] ||= [];
+            obj[key].push({ name: u.name, letter: u.name[0], color: u.color.multiply(0.5).css, border: u.color });
+            return obj;
+        }, {});
     }
 
     setPreviousTooltip(tooltip) {
@@ -193,14 +235,14 @@ export class MonksNavigation extends CONFIG.ui.nav {
     _getContextMenuOptions() {
         let contextmenu = super._getContextMenuOptions();
 
-        let toggleNav = contextmenu.find(o => o.name === "SCENE.ToggleNav");
-        toggleNav.name = "MonksSceneNavigation.RemoveNav";
+        let toggleNav = contextmenu.find(o => o.label === "SCENE.ToggleNav");
+        toggleNav.label = "MonksSceneNavigation.RemoveNav";
 
         contextmenu.push(...[
             {
-                name: "MonksSceneNavigation.SetViewPosition",
+                label: "MonksSceneNavigation.SetViewPosition",
                 icon: '<i class="fas fa-crop-alt"></i>',
-                condition: li => game.user.isGM && game.scenes.get(li.dataset.sceneId)._view,
+                visible: li => game.user.isGM && game.scenes.get(li.dataset.sceneId)._view,
                 callback: li => {
                     let scene = game.scenes.get(li.dataset.sceneId);
                     let x = parseInt(canvas.stage.pivot.x);
@@ -211,9 +253,9 @@ export class MonksNavigation extends CONFIG.ui.nav {
                 }
             },
             {
-                name: "MonksSceneNavigation.PullAllPlayers",
+                label: "MonksSceneNavigation.PullAllPlayers",
                 icon: '<i class="fa-solid fa-diamond-turn-right"></i>',
-                condition: li => game.user.isGM && (game.scenes.get(li.dataset.sceneId)._view || game.scenes.get(li.dataset.sceneId).active),
+                visible: li => game.user.isGM && (game.scenes.get(li.dataset.sceneId)._view || game.scenes.get(li.dataset.sceneId).active),
                 callback: li => {
                     let scene = game.scenes.get(li.dataset.sceneId);
                     const users = game.users.filter(u => u.active && u.isGM === false && !u.isSelf);
@@ -226,12 +268,32 @@ export class MonksNavigation extends CONFIG.ui.nav {
         return contextmenu;
     }
 
+    _getLevelContextMenuOptions() {
+        let contextmenu = [
+            {
+                label: "MonksSceneNavigation.PullAllPlayersLevel",
+                icon: '<i class="fa-solid fa-diamond-turn-right"></i>',
+                visible: li => game.user.isGM && (game.scenes.get(li.dataset.sceneId)._view || game.scenes.get(li.dataset.sceneId).active),
+                callback: li => {
+                    let scene = game.scenes.get(li.dataset.sceneId);
+                    const users = game.users.filter(u => u.active && u.isGM === false && !u.isSelf);
+                    if (users.length !== 0 && scene) {
+                        scene.pullUsers(users);
+                        MonksSceneNavigation.emit("pullLevel", { sceneId: scene.id, levelId: li.dataset.levelId });
+                    }
+                }
+            }
+        ];
+
+        return contextmenu;
+    }
+
     _getFolderContextMenuOptions() {
         let contextmenu = [
             {
-                name: "FOLDER.Edit",
+                label: "FOLDER.Edit",
                 icon: '<i class="fa-solid fa-pen-to-square"></i>',
-                condition: game.user.isGM,
+                visible: game.user.isGM,
                 callback: async header => {
                     const li = header.closest(".folder");
                     const folder = await fromUuid(li.dataset.uuid);

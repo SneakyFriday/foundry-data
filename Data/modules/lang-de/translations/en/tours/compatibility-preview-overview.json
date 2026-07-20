@@ -1,0 +1,11 @@
+{
+  "TOURS.COMPAT.Title": "Compatibility Preview Overview",
+  "TOURS.COMPAT.Description": "This tour covers a brief overview of the Compatibility Preview tool.",
+  "TOURS.COMPAT.Purpose": "This tour covers a brief overview of the Compatibility Preview tool. The tool's purpose is to check the compatibility of your currently-installed Worlds, Systems, and Modules against the next version of Foundry Virtual Tabletop. It will tell you whether a compatible version of each package exists. That may be the currently-installed version, or some newer version.",
+  "TOURS.COMPAT.OverviewT": "Overall Status",
+  "TOURS.COMPAT.OverviewC": "To see the overall status of your packages in the next version at-a-glance, you can check the bottom-left of of the display.",
+  "TOURS.COMPAT.FilterCompatibilityT": "Individual Packages",
+  "TOURS.COMPAT.FilterCompatibilityC": "You can use this toggle to show only the packages that are compatible, or only the packages that are incompatible with the next version.",
+  "TOURS.COMPAT.FilterCategoryT": "Category Filter",
+  "TOURS.COMPAT.FilterCategoryC": "To check invididual categories of packages, you can select that category from the list here."
+}

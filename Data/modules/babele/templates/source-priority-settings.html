@@ -1,0 +1,57 @@
+<section class="babele-source-priority-dialog">
+    <header class="babele-source-priority-header">
+        <p class="hint">{{texts.intro}}</p>
+    </header>
+
+    {{#if hasOverlaps}}
+    <div class="babele-source-priority-collections">
+        {{#each overlaps}}
+        <section class="babele-source-priority-collection" data-collection="{{collection}}">
+            <label class="babele-source-priority-collection__header">
+                <input type="checkbox" name="sourcePriorityEnabled" {{#if enabled}}checked{{/if}}>
+                <span class="babele-source-priority-collection__title">{{collection}}</span>
+                <small class="hint">{{../texts.explicitPriority}} · {{sourceCount}} {{../texts.source}}</small>
+            </label>
+
+            <div class="babele-source-priority-table" role="group" aria-label="{{collection}}">
+                <div class="babele-source-priority-table__head">
+                    <span>{{../texts.order}}</span>
+                    <span>{{../texts.source}}</span>
+                </div>
+
+                {{#each sources}}
+                <div class="babele-source-priority-row" data-source="{{source}}">
+                    <div class="babele-source-priority-controls" aria-label="{{../collection}} {{../../texts.order}}">
+                        <button
+                            type="button"
+                            class="babele-source-priority-button"
+                            data-action="source-priority-up"
+                            aria-label="{{../../texts.moveUp}}"
+                            title="{{../../texts.moveUp}}"
+                        >
+                            <i class="fas fa-chevron-up" aria-hidden="true"></i>
+                        </button>
+                        <button
+                            type="button"
+                            class="babele-source-priority-button"
+                            data-action="source-priority-down"
+                            aria-label="{{../../texts.moveDown}}"
+                            title="{{../../texts.moveDown}}"
+                        >
+                            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <span class="babele-source-priority-source">
+                        <span>{{source}}</span>
+                        {{#if configured}}<small class="hint">{{../../texts.sourceHint}}</small>{{/if}}
+                    </span>
+                </div>
+                {{/each}}
+            </div>
+        </section>
+        {{/each}}
+    </div>
+    {{else}}
+    <p class="hint babele-source-priority-empty">{{texts.noOverlaps}}</p>
+    {{/if}}
+</section>

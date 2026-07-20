@@ -27,7 +27,8 @@ export const registerSettings = function () {
 		scope: "world",
 		config: true,
 		default: true,
-		type: Boolean
+		type: Boolean,
+        requiresReload: true
 	});
 	game.settings.register(modulename, "scene-indicator", {
 		name: game.i18n.localize("MonksSceneNavigation.scene-indicator.name"),

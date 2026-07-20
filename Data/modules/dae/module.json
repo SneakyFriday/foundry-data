@@ -2,7 +2,7 @@
   "id": "dae",
   "title": "Dynamic effects using Active Effects (DAE)",
   "description": "Replacement for dynamic effects",
-  "version": "13.0.22",
+  "version": "14.0.12",
   "authors": [
     {
       "name": "tposney",
@@ -96,28 +96,17 @@
     "css/field-browser.css"
   ],
   "compatibility": {
-    "minimum": "13.0",
-    "verified": "13.351",
-    "maximum": "13.999"
+    "minimum": "14",
+    "verified": "14.356",
+    "maximum": "14.999"
   },
   "url": "https://gitlab.com/tposney/dae",
-  "manifest": "https://gitlab.com/tposney/dae/raw/v13/package/module.json",
-  "download": "https://gitlab.com/tposney/dae/raw/v13/package/dae-v13.0.22.zip",
-  "readme": "https://gitlab.com/tposney/dae/-/blob/v13/Readme.md",
-  "changelog": "https://gitlab.com/tposney/dae/-/blob/v13/Changelog.md",
+  "manifest": "https://gitlab.com/tposney/dae/raw/v14/package/module.json",
+  "download": "https://gitlab.com/tposney/dae/raw/v14/package/dae-v14.0.12.zip",
+  "readme": "https://gitlab.com/tposney/dae/-/blob/v14/Readme.md",
+  "changelog": "https://gitlab.com/tposney/dae/-/blob/v14/Changelog.md",
   "bugs": "https://gitlab.com/tposney/dae/-/issues",
   "relationships": {
-    "systems": [
-      {
-        "id": "dnd5e",
-        "type": "system",
-        "compatibility": {
-          "minimum": "5.0",
-          "verified": "5.2.0",
-          "maximum": "5.9.99"
-        }
-      }
-    ],
     "requires": [
       {
         "id": "lib-wrapper",

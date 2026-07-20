@@ -1,0 +1,162 @@
+{{#unless ready}}
+<p class="dsn-toolbox-notice">{{localize "DICESONICE.persistentDiceToolboxNotReady"}}</p>
+{{else}}
+
+<section class="dsn-toolbox-section dsn-sidebar-quick-actions">
+    <button type="button" data-action="openConfig" class="dsn-toolbox-clear-btn">
+        <i class="fa-solid fa-dice-d20"></i>
+        <span>{{localize "DICESONICE.sidebarTabOpenConfig"}}</span>
+    </button>
+    <div class="dsn-toolbox-visibility-row">
+        <label class="dsn-toolbox-label">{{localize "DICESONICE.visibility"}}</label>
+        <select data-action="setVisibility" class="dsn-toolbox-select">
+            <option value="all"  {{#if visibilityAll}}selected{{/if}}>{{localize "DICESONICE.visibilityAll"}}</option>
+            <option value="mine" {{#if visibilityMine}}selected{{/if}}>{{localize "DICESONICE.visibilityMine"}}</option>
+            <option value="none" {{#if visibilityNone}}selected{{/if}}>{{localize "DICESONICE.visibilityNone"}}</option>
+        </select>
+    </div>
+    {{#if persistentDiceEnabled}}
+    <label class="dsn-toolbox-protect-row" title="{{localize "DICESONICE.protectPersistentHint"}}">
+        <input type="checkbox" data-action="setProtectPersistent" {{#if protectPersistent}}checked{{/if}}>
+        <span>{{localize "DICESONICE.protectPersistent"}}</span>
+    </label>
+    {{/if}}
+</section>
+
+{{#if persistentDiceEnabled}}
+<section class="dsn-toolbox-section">
+    <h3 class="dsn-sidebar-title">{{localize "DICESONICE.sidebarTabPersistentDiceTitle"}}</h3>
+    <ul class="dsn-toolbox-dice-list">
+        {{#each dice.mainDice}}
+        <li class="dsn-toolbox-dice-row" data-type="{{this.type}}">
+            <span class="dsn-toolbox-dice-label">{{this.label}}</span>
+            <span class="dsn-toolbox-dice-count">{{this.count}}</span>
+            <div class="dsn-toolbox-dice-buttons">
+                <button type="button" data-action="remove" data-type="{{this.type}}" class="dsn-toolbox-btn"
+                    title="{{localize "DICESONICE.persistentDiceToolboxRemove"}}">−</button>
+                <button type="button" data-action="spawn" data-type="{{this.type}}" class="dsn-toolbox-btn"
+                    title="{{localize "DICESONICE.persistentDiceToolboxAdd"}}">+</button>
+            </div>
+        </li>
+        {{/each}}
+
+        {{#each dice.compoundDice}}
+        <li class="dsn-toolbox-dice-row" data-type="{{this.type}}">
+            <span class="dsn-toolbox-dice-label">{{this.label}}</span>
+            <span class="dsn-toolbox-dice-count">{{this.count}}</span>
+            <div class="dsn-toolbox-dice-buttons">
+                <button type="button" data-action="remove" data-type="{{this.type}}" class="dsn-toolbox-btn"
+                    title="{{localize "DICESONICE.persistentDiceToolboxRemove"}}">−</button>
+                <button type="button" data-action="spawn" data-type="{{this.type}}" class="dsn-toolbox-btn"
+                    title="{{localize "DICESONICE.persistentDiceToolboxAdd"}}">+</button>
+            </div>
+        </li>
+        {{/each}}
+    </ul>
+</section>
+
+{{#if dice.hasExtras}}
+<section class="dsn-toolbox-section dsn-toolbox-extras">
+    <button type="button" data-action="toggleExtras" class="dsn-toolbox-disclosure">
+        <i class="fa-solid {{#if dice.showExtras}}fa-chevron-down{{else}}fa-chevron-right{{/if}}"></i>
+        <span>{{localize "DICESONICE.persistentDiceToolboxShowExtras"}}</span>
+    </button>
+    {{#if dice.showExtras}}
+    <ul class="dsn-toolbox-dice-list">
+        {{#each dice.extraDice}}
+        <li class="dsn-toolbox-dice-row" data-type="{{this.type}}">
+            <span class="dsn-toolbox-dice-label">{{this.label}}</span>
+            <span class="dsn-toolbox-dice-count">{{this.count}}</span>
+            <div class="dsn-toolbox-dice-buttons">
+                <button type="button" data-action="remove" data-type="{{this.type}}" class="dsn-toolbox-btn"
+                    title="{{localize "DICESONICE.persistentDiceToolboxRemove"}}">−</button>
+                <button type="button" data-action="spawn" data-type="{{this.type}}" class="dsn-toolbox-btn"
+                    title="{{localize "DICESONICE.persistentDiceToolboxAdd"}}">+</button>
+            </div>
+        </li>
+        {{/each}}
+        {{#each dice.extraCompoundDice}}
+        <li class="dsn-toolbox-dice-row" data-type="{{this.type}}">
+            <span class="dsn-toolbox-dice-label">{{this.label}}</span>
+            <span class="dsn-toolbox-dice-count">{{this.count}}</span>
+            <div class="dsn-toolbox-dice-buttons">
+                <button type="button" data-action="remove" data-type="{{this.type}}" class="dsn-toolbox-btn"
+                    title="{{localize "DICESONICE.persistentDiceToolboxRemove"}}">−</button>
+                <button type="button" data-action="spawn" data-type="{{this.type}}" class="dsn-toolbox-btn"
+                    title="{{localize "DICESONICE.persistentDiceToolboxAdd"}}">+</button>
+            </div>
+        </li>
+        {{/each}}
+    </ul>
+    {{/if}}
+</section>
+{{/if}}
+
+<section class="dsn-toolbox-section dsn-toolbox-clear">
+    <button type="button" data-action="clearMine" class="dsn-toolbox-clear-btn">
+        <i class="fa-solid fa-trash"></i>
+        <span>{{localize "DICESONICE.persistentDiceToolboxClearMine"}}</span>
+    </button>
+    {{#if isGM}}
+    <button type="button" data-action="clearAll" class="dsn-toolbox-clear-btn dsn-toolbox-clear-all">
+        <i class="fa-solid fa-trash-can"></i>
+        <span>{{localize "DICESONICE.persistentDiceToolboxClearAll"}}</span>
+    </button>
+    {{/if}}
+</section>
+
+<section class="dsn-toolbox-section dsn-toolbox-help">
+    <button type="button" data-action="toggleHelp" class="dsn-toolbox-disclosure">
+        <i class="fa-solid {{#if showHelp}}fa-chevron-down{{else}}fa-chevron-right{{/if}}"></i>
+        <span>{{localize "DICESONICE.persistentDiceHelpTitle"}}</span>
+    </button>
+    {{#if showHelp}}
+    <ul class="dsn-toolbox-help-list">
+        <li>{{localize "DICESONICE.persistentDiceHelpSelect"}}</li>
+        <li>{{localize "DICESONICE.persistentDiceHelpDelete"}}</li>
+        <li>{{localize "DICESONICE.persistentDiceHelpDrag"}}</li>
+        <li>{{localize "DICESONICE.persistentDiceHelpThrow"}}</li>
+    </ul>
+    {{/if}}
+</section>
+{{else}}
+<p class="dsn-toolbox-notice">{{localize "DICESONICE.sidebarTabPersistentDisabled"}}</p>
+{{/if}}
+
+{{#if saves.hasSaves}}
+<section class="dsn-toolbox-section dsn-toolbox-saves">
+    <h3 class="dsn-sidebar-title">{{localize "DICESONICE.sidebarTabSavesTitle"}}</h3>
+    <div class="dsn-toolbox-saves-row">
+        <select data-action="selectSave" class="dsn-toolbox-select">
+            <option value="" selected disabled>-----</option>
+            {{#each saves.list}}
+            <option value="{{this}}">{{this}}</option>
+            {{/each}}
+        </select>
+        <button type="button" data-action="loadSave" class="dsn-toolbox-clear-btn">
+            <i class="fa-solid fa-folder-open"></i>
+            <span>{{localize "DICESONICE.sidebarTabLoadSave"}}</span>
+        </button>
+    </div>
+</section>
+{{/if}}
+
+<footer class="dsn-toolbox-footer">
+    <div class="dsn-toolbox-stats">
+        <span class="dsn-toolbox-stat">{{localize "DICESONICE.sidebarFooterDrawCalls"}}: <span data-stat-value="calls">---</span></span>
+        <span class="dsn-toolbox-stat">{{localize "DICESONICE.sidebarFooterTriangles"}}: <span data-stat-value="triangles">---</span></span>
+        <span class="dsn-toolbox-stat">{{localize "DICESONICE.sidebarFooterTextures"}}: <span data-stat-value="textures">---</span></span>
+    </div>
+    <div class="dsn-toolbox-footer-links">
+        <a href="https://riccisi.gitlab.io/foundryvtt-dice-so-nice/guide/getting-started/" target="_blank" class="dsn-toolbox-issue-link">
+            <i class="fa-solid fa-book"></i>
+            {{localize "DICESONICE.sidebarFooterUserGuide"}}
+        </a>
+        <a href="https://gitlab.com/riccisi/foundryvtt-dice-so-nice/-/issues" target="_blank" class="dsn-toolbox-issue-link">
+            <i class="fa-brands fa-gitlab"></i>
+            {{localize "DICESONICE.sidebarFooterReportIssue"}}
+        </a>
+    </div>
+</footer>
+
+{{/unless}}

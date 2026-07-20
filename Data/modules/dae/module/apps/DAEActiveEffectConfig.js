@@ -1,36 +1,8 @@
-import { ceInterface, atlActive, daeSystemClass, localizationMap } from "../dae.js";
-import { i18n, daeSpecialDurations, daeMacroRepeats, error } from "../../dae.js";
+import { ceInterface, atlActive, daeSystemClass, getStatusEffectsArray, localizationMap } from "../dae.js";
+import { i18n, daeSpecialDurations, daeMacroRepeats, daeManagesTurnExpiry } from "../../dae.js";
 import { ValidSpec } from "../Systems/DAESystem.js";
 import { DAEFieldBrowser } from "./FieldBrowser.js";
-/**
- * A DataField for boolean formula strings that combine with || (OR) and && (AND) semantics
- * via Active Effect change modes, analogous to dnd5e's FormulaField for arithmetic formulas.
- */
-export class BooleanFormulaField extends foundry.data.fields.StringField {
-    _castChangeDelta(delta) {
-        return (this._cast(delta) ?? "").trim();
-    }
-    // ADD → OR semantics: either condition grants the flag
-    _applyChangeAdd(value, delta, model, change) {
-        if (!value)
-            return delta;
-        return `(${value}) || (${delta})`;
-    }
-    // MULTIPLY → AND semantics: all conditions must be met
-    _applyChangeMultiply(value, delta, model, change) {
-        if (!value)
-            return value;
-        return `(${value}) && (${delta})`;
-    }
-    // UPGRADE → OR (same as ADD for booleans)
-    _applyChangeUpgrade(value, delta, model, change) {
-        return this._applyChangeAdd(value, delta, model, change);
-    }
-    // DOWNGRADE → AND (same as MULTIPLY for booleans)
-    _applyChangeDowngrade(value, delta, model, change) {
-        return this._applyChangeMultiply(value, delta, model, change);
-    }
-}
+export { BooleanFormulaField } from "./BooleanFormulaField.js";
 export const otherFieldsMap = new Map();
 export function addAutoFields(fields) {
     for (const field of fields) {
@@ -65,6 +37,19 @@ export function getFieldEditor(key) {
     }
     return undefined;
 }
+// Change keys whose values are always macro source / multi-line code. These render as a
+// textarea regardless of the current value, so a freshly-imported multi-line macro is
+// preserved even before it has a chance to be displayed.
+const MULTILINE_CHANGE_KEYS = new Set([
+    "flags.dae.macro.command",
+    "flags.itemacro.macro.command",
+    "flags.itemacro.macro.data.command",
+]);
+function isMultilineChangeValue(key, value) {
+    if (MULTILINE_CHANGE_KEYS.has(key))
+        return true;
+    return typeof value === "string" && value.includes("\n");
+}
 const stackableOptions = {
     noneName: "dae.StackableOptions.noneName",
     noneNameOnly: "dae.StackableOptions.noneNameOnly",
@@ -75,6 +60,7 @@ const stackableOptions = {
 };
 export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEffectConfig {
     ceEffectList = {};
+    static #migratedEffects = new Set();
     constructor(options) {
         // @ts-expect-error v13 stubby
         super(options);
@@ -93,7 +79,7 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
         }
         daeSystemClass.configureLists();
         this.statusEffectList = {};
-        CONFIG.statusEffects
+        getStatusEffectsArray()
             .filter(se => se.id)
             .map(se => ({ id: se.id, name: i18n(se.name) }))
             .toSorted((a, b) => a.name < b.name ? -1 : 1)
@@ -112,35 +98,18 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
                     otherFieldsMap.set(name, { name });
                 }
             });
-            this.ATLVisionModes = {};
-            Object.values(CONFIG.Canvas.visionModes)
-                .filter(f => f.tokenConfig)
-                .forEach(f => this.ATLVisionModes[f.id] = i18n(f.label));
         }
-        this.validFields = { "__": { name: "" } };
-        this.validFields = this.validSpecsToUse.allSpecs
-            .filter(e => e._fieldSpec.includes(""))
-            .reduce((mods, em) => {
-            mods[em._fieldSpec] = {
-                name: localizationMap[em._fieldSpec]?.name ?? em._label,
-                description: localizationMap[em._fieldSpec]?.description ?? em._description
-            };
-            return mods;
-        }, this.validFields);
-        if (!isEnchantment(this.document)) {
-            for (let fieldName of [...otherFieldsMap.keys()].sort((a, b) => a.toLocaleLowerCase() < b.toLocaleLowerCase() ? -1 : 1)) {
-                this.validFields[fieldName] = {
-                    name: localizationMap[fieldName]?.name ?? fieldName,
-                    description: localizationMap[fieldName]?.description || (localizationMap[fieldName]?.name ?? fieldName)
-                };
-            }
-        }
-        this.daeFieldBrowser = new DAEFieldBrowser(this.validFields, this);
-        this.daeFieldBrowser.init().then(() => this.render());
+        // visionMode picker — available for both ATL.sight.visionMode and the native token.sight.visionMode
+        // regardless of ATL being installed. The token field is a plain StringField with no choices, so we
+        // sourced the list from CONFIG.Canvas.visionModes (populated by Foundry core + system + modules).
+        this.visionModeChoices = {};
+        Object.values(CONFIG.Canvas.visionModes)
+            .filter(f => f.tokenConfig)
+            .forEach(f => this.visionModeChoices[f.id] = i18n(f.label));
+        this.ATLVisionModes = this.visionModeChoices;
     }
     static DEFAULT_OPTIONS = {
         window: {
-            title: "EFFECT.ConfigTitle",
             resizable: true
         },
         position: {
@@ -150,14 +119,32 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
         classes: ["sheet", "active-effect-config", "window-app", "dae"],
         actions: {
             addSpecialDuration: DAEActiveEffectConfig.#onAddSpecialDuration,
-            deleteSpecialDuration: DAEActiveEffectConfig.#onDeleteSpecialDuration
+            deleteSpecialDuration: DAEActiveEffectConfig.#onDeleteSpecialDuration,
+            resetStartTime: DAEActiveEffectConfig.#onResetStartTime
         }
     };
-    static PARTS = foundry.utils.mergeObject(super.PARTS ?? {}, {
-        details: { template: "./modules/dae/templates/DAESheetConfig/Details.hbs", scrollable: [""] },
-        duration: { template: "./modules/dae/templates/DAESheetConfig/Duration.hbs" },
-        changes: { template: "./modules/dae/templates/DAESheetConfig/Changes.hbs", scrollable: ["scrollable"] }
-    }, { inplace: false });
+    static PARTS = (() => {
+        const parts = { ...super.PARTS };
+        // Insert dae before footer so the tab renders above the submit button
+        const footer = parts.footer;
+        delete parts.footer;
+        parts.dae = { template: "./modules/dae/templates/DAESheetConfig/DAE.hbs", scrollable: [""] };
+        if (footer)
+            parts.footer = footer;
+        return parts;
+    })();
+    static TABS = {
+        sheet: {
+            tabs: [
+                { id: "details", icon: "fa-solid fa-book", cssClass: "" },
+                { id: "duration", icon: "fa-solid fa-clock", cssClass: "" },
+                { id: "dae", icon: "fa-solid fa-wand-magic-sparkles", cssClass: "" },
+                { id: "changes", icon: "fa-solid fa-gears", cssClass: "" }
+            ],
+            initial: "details",
+            labelPrefix: "EFFECT.TABS"
+        }
+    };
     /* ----------------------------------------- */
     getOptionsForSpec(spec) {
         if (!spec?.key)
@@ -173,7 +160,9 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
         if (spec.key === "ATL.preset")
             return this.ATLPresets;
         if (spec.key === "ATL.sight.visionMode")
-            return this.ATLVisionModes;
+            return this.visionModeChoices;
+        if (spec.key === "token.sight.visionMode")
+            return this.visionModeChoices;
         return daeSystemClass.getOptionsForSpec(spec);
     }
     async _prepareContext(options) {
@@ -196,21 +185,23 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
                     if (activity) {
                         restrictionType = activity.restrictions.type;
                     }
-                    this.validSpecsToUse = ValidSpec.itemSpecs[restrictionType || "union"];
+                    this.validSpecsToUse = ValidSpec.itemSpecs[restrictionType || "union"] ?? ValidSpec.itemSpecs["union"];
                 }
             }
         }
         if (!this.validSpecsToUse) {
             ui.notifications?.error("DAE | No valid specs found");
-            return context;
+            // Continue with an empty spec set so the sheet still renders - returning a half-built
+            // context makes the details template part fail on the missing fields
+            this.validSpecsToUse = { allSpecs: [], allSpecsObj: {} };
         }
         this.validFields = { "__": { name: "" } };
         this.validFields = this.validSpecsToUse.allSpecs
-            .filter(e => e._fieldSpec.includes(""))
+            .filter(e => e.fieldSpec.includes(""))
             .reduce((mods, em) => {
-            mods[em._fieldSpec] = {
-                name: localizationMap[em._fieldSpec]?.name ?? em._label,
-                description: localizationMap[em._fieldSpec]?.description ?? em._description
+            mods[em.fieldSpec] = {
+                name: localizationMap[em.fieldSpec]?.name ?? em.label,
+                description: localizationMap[em.fieldSpec]?.description ?? em.description
             };
             return mods;
         }, this.validFields);
@@ -223,88 +214,35 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
             }
         }
         this.daeFieldBrowser = new DAEFieldBrowser(this.validFields, this);
-        this.daeFieldBrowser.init();
+        await this.daeFieldBrowser.init();
         if (document.flags?.dae?.specialDuration === undefined)
             foundry.utils.setProperty(document, "flags.dae.specialDuration", []);
+        // One-time migrations — only run once per document per session
+        if (!DAEActiveEffectConfig.#migratedEffects.has(document.uuid)) {
+            DAEActiveEffectConfig.#migratedEffects.add(document.uuid);
+            await this.#migrateDeprecatedData(document);
+        }
         if (!document.flags?.dae?.stackable) {
-            foundry.utils.setProperty(document, "flags.dae.stackable", "multi");
             foundry.utils.setProperty(context, "effect.flags.dae.stackable", "multi");
         }
         await daeSystemClass.editConfig();
-        const allModes = Object.entries(CONST.ACTIVE_EFFECT_MODES)
-            .reduce((obj, e) => {
-            obj[e[1]] = i18n("EFFECT.MODE_" + e[0]);
-            return obj;
-        }, {});
-        context.modes = allModes;
+        // DAE-specific duration context:
         context.specialDuration = daeSpecialDurations;
         context.showSpecialDurations = Object.keys(daeSpecialDurations)?.length > 1;
         context.macroRepeats = daeMacroRepeats;
         context.stackableOptions = stackableOptions;
+        context.expiryModeOptions = {
+            "default": i18n("dae.expiryMode.default"),
+            "delete": i18n("dae.expiryMode.delete"),
+            "suppress": i18n("dae.expiryMode.suppress"),
+        };
         if (document.parent) {
             context.isItemEffect = document.parent instanceof CONFIG.Item.documentClass;
             context.isActorEffect = document.parent instanceof CONFIG.Actor.documentClass;
         }
         context.submitText = "EFFECT.Submit";
-        context.source.changes.forEach(change => {
-            if ([-1, undefined].includes(this.validSpecsToUse.allSpecsObj[change.key]?.forcedMode)) {
-                if (change.modes && options.force)
-                    error("DAE | change already has modes set", this.document, change);
-                change.modes = allModes;
-            }
-            else if (this.validSpecsToUse.allSpecsObj[change.key]) {
-                const mode = {};
-                mode[this.validSpecsToUse.allSpecsObj[change.key]?.forcedMode] = allModes[this.validSpecsToUse.allSpecsObj[change.key]?.forcedMode];
-                if (change.modes && options.force)
-                    error("DAE | change already has modes set", this.document, change);
-                change.modes = mode;
-            } /*else if (!this.validSpecsToUse.allSpecsObj[change.key].startsWith("flags.midi-qol")) {
-              change.modes = allModes; //change.mode ? allModes: [allModes[CONST.ACTIVE_EFFECT_MODES.CUSTOM]];
-            }*/
-            if (this.validSpecsToUse.allSpecsObj[change.key]?.options) {
-                if (change.options && options.force)
-                    error("DAE | change already has options set", this.document, change);
-                change.options = this.validSpecsToUse.allSpecsObj[change.key]?.options;
-            }
-            else {
-                if (change.options && options.force)
-                    error("DAE | change already has options set", this.document, change);
-                change.options = this.getOptionsForSpec(change);
-            }
-            if (!change.priority)
-                change.priority = change.mode * 10;
-            const fieldInfo = this.daeFieldBrowser.getFieldInfo(change.key);
-            change.fieldName = fieldInfo.name;
-            change.fieldDescription = fieldInfo.description;
-            if (fieldInfo.name === change.key && !change.key.startsWith("flags")) {
-                // Could not find the key so set the name to <UNKNOWN>
-                change.fieldName = "<UNKNOWN>";
-            }
-            // Some SRD/Player's Handbook effects have string fields enclosed in quotes which confuses DAEs selection process
-            // Stripping them off is safe since the field is still a string
-            if (typeof change.value === "string") {
-                change.value = change.value.replace(/^(["'])(.*)\1$/, "$2");
-            }
-            // Mark changes that have a registered pluggable editor
-            const fieldEditor = getFieldEditor(change.key);
-            if (fieldEditor) {
-                change.hasEditor = true;
-                change.editorIcon = fieldEditor.icon ?? "fas fa-edit";
-                change.editorTooltip = fieldEditor.tooltip ?? "Edit";
-            }
-        });
-        // TODO (Michael): Foundry calendar here?
-        const simpleCalendar = globalThis.SimpleCalendar?.api;
-        if (simpleCalendar && context.document.duration?.startTime) {
-            const dateTime = simpleCalendar.formatDateTime(simpleCalendar.timestampToDate(context.document.duration.startTime));
-            context.startTimeString = dateTime.date + " " + dateTime.time;
-            if (context.document.duration.seconds) {
-                const duration = simpleCalendar.formatDateTime(simpleCalendar.timestampToDate(context.document.duration.startTime + context.document.duration.seconds));
-                context.durationString = duration.date + " " + duration.time;
-            }
-        }
         foundry.utils.setProperty(context.document, "flags.dae.durationExpression", document.flags?.dae?.durationExpression);
-        if (!context.document.flags?.dae?.specialDuration || !(context.document.flags.dae.specialDuration instanceof Array))
+        if (!context.document.flags?.dae?.specialDuration)
             foundry.utils.setProperty(context.document.flags, "dae.specialDuration", []);
         context.sourceName = await document.sourceName;
         context.midiActive = globalThis.MidiQOL !== undefined;
@@ -317,11 +255,135 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
         }
         return context;
     }
+    async _preparePartContext(partId, context, options) {
+        const partContext = await super._preparePartContext(partId, context, options);
+        if (partId === "details") {
+            if (partContext.isItemEffect && (isEnchantment(this.document) || this.document.parent?.name === i18n("dae.ConditionalEffectsItem")))
+                partContext.isItemEffect = false;
+        }
+        return partContext;
+    }
+    async _renderChange(context) {
+        const { change, index } = context;
+        // Strip quotes that confuse DAE's selection process
+        if (typeof change.value === "string") {
+            change.value = change.value.replace(/^(["'])(.*)\1$/, "$2");
+        }
+        // Restrict change types if the spec has a forced mode
+        const spec = this.validSpecsToUse?.allSpecsObj[change.key];
+        if (spec?.forcedMode) {
+            const numericToString = { 0: "custom", 1: "multiply", 2: "add", 3: "downgrade", 4: "upgrade", 5: "override" };
+            const forcedMode = (typeof spec.forcedMode === "number" ? numericToString[spec.forcedMode] ?? "" : spec.forcedMode).toLowerCase();
+            if (forcedMode) {
+                const restrictedTypes = {};
+                restrictedTypes[forcedMode] = context.changeTypes[forcedMode] ?? forcedMode;
+                context.changeTypes = restrictedTypes;
+                change.type = forcedMode;
+            }
+        }
+        // Normalise change type to lowercase (v14 CHANGE_TYPES keys are lowercase)
+        if (change.type && change.type !== change.type.toLowerCase())
+            change.type = change.type.toLowerCase();
+        // Replace value with a select if the spec provides options
+        let options = spec?.options ?? this.getOptionsForSpec(change);
+        const isSet = !!options && !spec?.forcedMode && isSetBackedKey(change.key, this.document);
+        // Picker values: pin string fields to override (v14 default "add" would string-concat);
+        // Set fields default to "add" with the type left unrestricted (override would wipe the Set).
+        if (options && !spec?.forcedMode) {
+            if (isSet) {
+                if (!change.type)
+                    change.type = "add";
+            }
+            else {
+                change.type = "override";
+                context.changeTypes = { override: context.changeTypes?.override ?? "override" };
+            }
+        }
+        // traitList carries "-value" removal entries; keep them only for custom mode
+        // (doCustomArrayValue). add/subtract use the bare value — core adds/removes natively.
+        if (isSet && options && change.type !== "custom") {
+            options = Object.fromEntries(Object.entries(options).filter(([v]) => !v.startsWith("-")));
+        }
+        // Get the base HTML from core
+        // @ts-expect-error _renderChange not in fvtt-types yet
+        const html = await super._renderChange(context);
+        // Parse and inject DAE elements
+        const template = document.createElement("template");
+        template.innerHTML = html.trim();
+        const li = template.content.firstElementChild;
+        if (!li)
+            return html;
+        // Inject field info under the key input
+        const keyDiv = li.querySelector("div.key");
+        if (keyDiv) {
+            const keyInput = keyDiv.querySelector("input");
+            if (keyInput)
+                keyInput.classList.add("dae-key-input");
+            const fieldInfo = this.daeFieldBrowser?.getFieldInfo(change.key);
+            const fieldName = fieldInfo?.name ?? change.key;
+            const fieldDescription = fieldInfo?.description ?? "";
+            const displayName = (fieldName === change.key && !change.key.startsWith("flags")) ? "<UNKNOWN>" : fieldName;
+            const infoDiv = document.createElement("div");
+            infoDiv.classList.add("dae-field-info");
+            infoDiv.innerHTML = `<div class="dae-field-name">${displayName}</div><div class="dae-field-description">${fieldDescription}</div>`;
+            keyDiv.appendChild(infoDiv);
+        }
+        // Replace value input with select if options exist
+        const valueDiv = li.querySelector("div.value");
+        if (valueDiv && options) {
+            const existingInput = valueDiv.querySelector("input");
+            if (existingInput) {
+                const select = document.createElement("select");
+                select.name = `system.changes.${index}.value`;
+                select.dataset.dtype = "String";
+                for (const [optValue, optLabel] of Object.entries(options)) {
+                    const option = document.createElement("option");
+                    option.value = optValue;
+                    option.textContent = optLabel;
+                    if (optValue === change.value)
+                        option.setAttribute("selected", "selected");
+                    select.appendChild(option);
+                }
+                existingInput.replaceWith(select);
+            }
+        }
+        // Replace value <input> with a <textarea> for multi-line content. <input type="text">
+        // strips newlines on render and on submit (per HTML spec), permanently corrupting
+        // macro source on any sheet save. Triggered for known multi-line keys, or when the
+        // current value already contains newlines.
+        if (valueDiv && !options && isMultilineChangeValue(change.key, change.value)) {
+            const existingInput = valueDiv.querySelector("input");
+            if (existingInput) {
+                const textarea = document.createElement("textarea");
+                textarea.name = `system.changes.${index}.value`;
+                textarea.dataset.dtype = "String";
+                textarea.classList.add("dae-multiline-value");
+                // Set textContent (not .value) — the rendered HTML is captured via outerHTML,
+                // which serializes the textarea's child text node, not its .value property.
+                textarea.textContent = change.value ?? "";
+                existingInput.replaceWith(textarea);
+            }
+        }
+        // Inject editor button next to value for keys that opted into a richer editor.
+        if (valueDiv && !options) {
+            const fieldEditor = getFieldEditor(change.key);
+            if (fieldEditor) {
+                const btn = document.createElement("a");
+                btn.classList.add("dae-edit-value");
+                btn.dataset.index = String(index);
+                btn.dataset.tooltip = fieldEditor.tooltip ?? "Edit";
+                btn.innerHTML = `<i class="${fieldEditor.icon ?? "fas fa-edit"}"></i>`;
+                valueDiv.appendChild(btn);
+            }
+        }
+        return li.outerHTML;
+    }
     updateFieldInfo() {
-        const changes = this.document.changes;
+        // @ts-expect-error v14 system.changes
+        const changes = this.document.system.changes;
         changes.forEach((change, index) => {
             const fieldInfo = this.daeFieldBrowser.getFieldInfo(change.key);
-            const row = this.element?.querySelector(`.effect-change[data-index="${index}"]`);
+            const row = this.element?.querySelector(`li[data-index="${index}"]`);
             const fieldName = row?.querySelector(".dae-field-name");
             const fieldDescription = row?.querySelector(".dae-field-description");
             if (fieldName && fieldDescription) {
@@ -330,22 +392,43 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
             }
         });
     }
+    _onChangeForm(formConfig, event) {
+        super._onChangeForm(formConfig, event);
+        const target = event.target;
+        // Re-render when a change's type flips so the value picker re-filters (e.g. "-value" removal
+        // options are only offered in custom mode).
+        if (target instanceof HTMLSelectElement && /^system\.changes\.\d+\.type$/.test(target.name)) {
+            this.submit()?.then(() => this.render());
+        }
+    }
     async _onRender(context, options) {
         // @ts-expect-error wait 'til types de-stubs, then type this properly
         const currTabId = Object.values(context.tabs)?.find(i => i.active)?.id;
         if (currTabId !== "changes")
             this.position.height = this.element.offsetHeight ?? "auto";
-        const keyInputs = Array.from(this.element.querySelectorAll(".key-input"));
+        // Inject reset start time button into the core duration tab's start fieldset
+        const startFieldset = this.element.querySelector('.tab[data-tab="duration"] fieldset.start-data');
+        if (startFieldset) {
+            const timeFields = startFieldset.querySelector(".form-fields");
+            if (timeFields && !timeFields.querySelector('[data-action="resetStartTime"]')) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.classList.add("icon");
+                btn.dataset.action = "resetStartTime";
+                btn.dataset.tooltip = i18n("dae.resetStartTime");
+                btn.innerHTML = '<i class="fas fa-clock-rotate-left"></i>';
+                timeFields.appendChild(btn);
+            }
+        }
+        const keyInputs = Array.from(this.element.querySelectorAll(".dae-key-input"));
         for (const keyInput of keyInputs) {
             keyInput.addEventListener("click", this.#onKeyInputInteraction.bind(this));
             keyInput.addEventListener("input", this.#onKeyInputInteraction.bind(this));
         }
-        const transferCheckBox = Array.from(this.element.querySelectorAll(".transferCheckbox"));
-        for (const checkbox of transferCheckBox) {
-            checkbox.addEventListener("change", (event) => {
-                this.submit({ preventClose: true })?.then(() => this.render());
-            });
-        }
+        const transferCheckBox = this.element.querySelector('input[name="transfer"]');
+        transferCheckBox?.addEventListener("change", (event) => {
+            this.submit()?.then(() => this.render());
+        });
         new foundry.applications.ux.DragDrop.implementation({
             // dragSelector: ".dae-change-drag-handle",
             dropSelector: ".value",
@@ -360,12 +443,14 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
         }
     }
     changeTab(tab, group, options) {
+        if (tab === "changes") {
+            // Keep the current height so the changes list can fill available space via flex
+            super.changeTab(tab, group, options);
+            return;
+        }
         let autoPos = { ...this.position, height: "auto" };
         this.setPosition(autoPos);
         super.changeTab(tab, group, options);
-        // Don't want to allow resizing height for changes tab, as that's handled by resizing the textareas themselves
-        if (tab === "changes")
-            return;
         let newPos = { ...this.position, height: this.element.offsetHeight };
         this.setPosition(newPos);
     }
@@ -380,20 +465,22 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
         }
     }
     onFieldSelected() {
-        this.submit({ preventClose: true })?.then(() => this.render());
+        this.submit()?.then(() => this.render());
     }
     async #onEditValue(event) {
         const btn = event.currentTarget;
         const index = Number(btn.dataset.index);
-        const change = this.document.changes[index];
+        // @ts-expect-error v14 system.changes
+        const change = this.document.system.changes[index];
         if (!change)
             return;
         const registration = getFieldEditor(change.key);
         if (!registration)
             return;
-        // Read current value from the textarea (may have unsaved edits)
-        const textarea = this.element.querySelector(`textarea[name="changes.${index}.value"]`);
-        const currentValue = textarea?.value ?? change.value ?? "";
+        // Read current value from the input (may have unsaved edits). Multi-line keys render
+        // as a <textarea> instead of <input>.
+        const valueInput = this.element.querySelector(`input[name="system.changes.${index}.value"], textarea[name="system.changes.${index}.value"]`);
+        const currentValue = valueInput?.value ?? change.value ?? "";
         const result = await registration.editor(currentValue, {
             key: change.key,
             effect: this.document,
@@ -402,14 +489,12 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
             app: this,
         });
         if (result !== null && result !== undefined) {
-            if (textarea)
-                textarea.value = result;
-            this.submit({ preventClose: true })?.then(() => this.render());
+            if (valueInput)
+                valueInput.value = result;
+            this.submit()?.then(() => this.render());
         }
     }
     /* ----------------------------------------- */
-    _onDragStart(ev) { }
-    // TODO: What is this actually for?
     async _onDrop(ev) {
         ev.preventDefault();
         const data = foundry.applications.ux.TextEditor.getDragEventData(ev);
@@ -417,13 +502,12 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
         const targetValue = ev.target?.value?.split(",")[1];
         if (data.uuid && ev.target) {
             ev.target.value = data.uuid + (targetValue ? `, ${targetValue}` : "");
-            this.submit({ preventClose: true })?.then(() => this.render());
+            this.submit()?.then(() => this.render());
         }
         if (data.fieldName) {
             if (ev.target)
                 ev.target.value = data.fieldName;
             this.daeFieldBrowser.debouncedUpdateBrowser();
-            // TODO need to update the description when selected.
         }
     }
     static #onAddSpecialDuration() {
@@ -432,7 +516,6 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
         const specialDuration = Object.values(submitData.flags?.dae?.specialDuration ?? {});
         // @ts-expect-error v13 stubby
         return this.submit({
-            preventClose: true,
             updateData: {
                 "flags.dae.specialDuration": specialDuration.concat("None")
             }
@@ -446,20 +529,24 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
         specialDuration.splice(idx, 1);
         // @ts-expect-error v13 stubby
         return this.submit({
-            preventClose: true,
             updateData: {
                 "flags.dae.specialDuration": specialDuration
             }
         });
     }
+    static #onResetStartTime() {
+        // @ts-expect-error v14 ActiveEffect.getEffectStart
+        const start = ActiveEffect.getEffectStart(game.combat);
+        // @ts-expect-error v13 stubby
+        return this.submit({
+            updateData: {
+                start,
+                "duration.expired": false
+            }
+        });
+    }
     async _processSubmitData(event, form, submitData) {
         const document = this.document;
-        for (let change of (submitData.changes ?? [])) {
-            if (typeof change.priority === "string")
-                change.priority = Number(change.priority);
-            if (change.priority === undefined || isNaN(change.priority ?? NaN))
-                change.priority = change.mode ? change.mode * 10 : 0;
-        }
         if (!submitData.tint || submitData.tint === "")
             submitData.tint = null;
         // fixed for very old items
@@ -475,6 +562,16 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
             submitData.transfer = false;
         submitData.statuses ??= [];
         foundry.utils.setProperty(submitData, "flags.dae.specialDuration", Array.from(Object.values(submitData.flags?.dae?.specialDuration ?? {})));
+        // Set the correct phase on each change based on the ValidSpec lookup.
+        // The schema defaults phase to "initial", but specials/derived fields need "final".
+        const changes = submitData.system?.changes;
+        if (changes && this.validSpecsToUse?.allSpecsObj) {
+            for (const change of Object.values(changes)) {
+                const spec = this.validSpecsToUse.allSpecsObj[change.key];
+                if (spec)
+                    change.phase = spec.phase;
+            }
+        }
         await this.document.update(submitData);
     }
     /* ----------------------------------------- */
@@ -484,9 +581,40 @@ export class DAEActiveEffectConfig extends foundry.applications.sheets.ActiveEff
             this.daeFieldBrowser.browserElement.remove();
             this.daeFieldBrowser.browserElement = null;
         }
-        for (let change of this.document._source.changes) {
-            delete change.modes;
-            delete change.options;
+    }
+    async #migrateDeprecatedData(document) {
+        // Migrate deprecated special durations to v14 duration.expiry
+        const deprecatedSpecialDurMap = daeManagesTurnExpiry ? {
+            "turnStart": "targetStart",
+            "turnEnd": "targetEnd",
+            "turnStartSource": "sourceStart",
+            "turnEndSource": "sourceEnd",
+            "combatEnd": "combatEnd"
+        } : {
+            "turnStart": "turnStart",
+            "turnEnd": "turnEnd",
+            "turnStartSource": "turnStart",
+            "turnEndSource": "turnEnd",
+            "combatEnd": "combatEnd"
+        };
+        const specialDurs = document.flags?.dae?.specialDuration ?? [];
+        const deprecatedDurs = specialDurs.filter(sd => sd in deprecatedSpecialDurMap);
+        const updateData = {};
+        if (deprecatedDurs.length > 0) {
+            const expiry = deprecatedSpecialDurMap[deprecatedDurs[0]];
+            const remaining = specialDurs.filter(sd => !(sd in deprecatedSpecialDurMap));
+            ui.notifications?.warn(`DAE | Effect "${document.name}": special duration "${deprecatedDurs.join(", ")}" is deprecated. Migrating to expiry: ${expiry}.`);
+            updateData["flags.dae.specialDuration"] = remaining;
+            updateData["duration.expiry"] = expiry;
+        }
+        // Migrate deprecated flags.dae.showIcon to native showIcon field
+        if (document.flags?.dae?.showIcon) {
+            foundry.utils.logCompatibilityWarning(`dae | Effect "${document.name}": flags.dae.showIcon is deprecated, auto-migrated to ActiveEffect.showIcon.`, { once: true, stack: false });
+            updateData["showIcon"] = 2;
+            updateData["flags.dae.-=showIcon"] = null;
+        }
+        if (Object.keys(updateData).length > 0) {
+            await document.update(updateData);
         }
     }
 }
@@ -506,4 +634,24 @@ Hooks.once("setup", () => {
 export function isEnchantment(effect) {
     //@ts-expect-error no dnd5e-types
     return effect.type === "enchantment";
+}
+// True if `key` resolves to a SetField on the real data model. DAE models these as StringField
+// in its spec, so resolve from the actual model (preferring the effect's actor subtype).
+function isSetBackedKey(key, doc) {
+    if (!key.startsWith("system."))
+        return false;
+    const path = key.slice(7);
+    const SetField = foundry.data.fields.SetField;
+    const fieldFor = (type) => type ? CONFIG.Actor.dataModels[type]?.schema?.getField?.(path) : undefined;
+    const parent = doc?.parent;
+    const preferred = parent instanceof CONFIG.Actor.documentClass ? parent.type
+        : parent instanceof CONFIG.Item.documentClass ? parent.actor?.type : undefined;
+    let field = fieldFor(preferred);
+    if (!field)
+        for (const type of Object.keys(CONFIG.Actor.dataModels)) {
+            field = fieldFor(type);
+            if (field)
+                break;
+        }
+    return field instanceof SetField;
 }

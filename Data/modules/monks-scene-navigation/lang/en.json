@@ -1,8 +1,11 @@
 {
   "MonksSceneNavigation.RemoveNav": "Remove Navigation",
-  "MonksSceneNavigation.GoBack": "Go back to the previous scene",
   "MonksSceneNavigation.SetViewPosition": "Set View Position",
   "MonksSceneNavigation.PullAllPlayers": "Pull All Players to this Scene",
+  "MonksSceneNavigation.PullAllPlayersLevel": "Pull All Players to this Level",
+  "MonksSceneNavigation.ReturnLastScene": "Return to: {lastScene}",
+  "MonksSceneNavigation.NoPreviousScene": "No previous scene",
+  "MonksSceneNavigation.ViewArtwork": "View Artwork",
 
   "MonksSceneNavigation.click-to-view.name": "Click to View",
   "MonksSceneNavigation.click-to-view.hint": "Click to view a scene rather than configure it.",

@@ -1,0 +1,8 @@
+{
+  "TOURS.BACKUPS.Title": "Backups Overview",
+  "TOURS.BACKUPS.Description": "This tour covers a brief overview of the Foundry VTT built-in backups functionality.",
+  "TOURS.BACKUPS.IndividualPackagesT": "Taking Backups of Packages",
+  "TOURS.BACKUPS.IndividualPackagesC": "You can right-click any package to bring up the context menu. From there you can create, restore, or manage backups of that particular package.<video src=\"toolclips/backups/create-backup.webm\" autoplay muted loop></video>",
+  "TOURS.BACKUPS.ManageBackupsT": "Manage All Backups",
+  "TOURS.BACKUPS.ManageBackupsC": "The interface for managing all your existing backups and snapshots can be found by clicking this button in the top-right."
+}

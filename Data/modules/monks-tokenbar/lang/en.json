@@ -268,7 +268,8 @@
 	"MonksTokenBar.MacroCopied": "Macro Copied",
 	"MonksTokenBar.SelectCriticalSaved": "Select Critical Saved",
 	"MonksTokenBar.SelectCriticalFailed": "Select Critical Failed",
-	"MonksTokenBar.DefaultTheme": "Deafult Theme",
+	"MonksTokenBar.DefaultTheme": "Default Theme",
+	"MonksTokenBar.Dice": "Dice",
 
 	"MonksTokenBar.None": "No one",
 	"MonksTokenBar.GMOnly": "GM Only",

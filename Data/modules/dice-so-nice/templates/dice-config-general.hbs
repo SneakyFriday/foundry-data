@@ -3,16 +3,14 @@
         <div id="dice-configuration-canvas-container"></div>
         <div class="dsn-settings-container">
             <hr />
-            <div class="form-group">
-                <label>{{localize "DICESONICE.enable"}}</label>
-                <input type="checkbox" name="enabled" data-dtype="Boolean" {{checked enabled}} />
-            </div>
+            {{#if isUser}}
             <div class="form-group">
                 <label>{{localize "DICESONICE.showExtraDice"}}</label>
                 <input type="checkbox" name="showExtraDice" data-showExtraDice data-dtype="Boolean" {{checked showExtraDice}} />
             </div>
+            {{/if}}
             <hr />
-            <a class="dice-more-theme" href="https://gitlab.com/riccisi/foundryvtt-dice-so-nice/-/wikis/Links" target="_blank">
+            <a class="dice-more-theme" href="https://riccisi.gitlab.io/foundryvtt-dice-so-nice/addons/" target="_blank">
                 <i class="fa-solid fa-store"></i> {{localize "DICESONICE.FindMoreTheme"}}
             </a>
             <nav class="tabs dsn-appearance-tabs">

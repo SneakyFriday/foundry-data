@@ -1,0 +1,170 @@
+<section class="babele-actor-translation">
+    <header class="babele-actor-translation__hero">
+        <div>
+            <p class="babele-actor-translation__eyebrow">{{texts.actor}}</p>
+            <h2>{{actorName}}</h2>
+            <p class="hint">{{texts.intro}}</p>
+        </div>
+
+        <div class="babele-actor-translation__stats" aria-label="{{texts.total}}">
+            {{#each stats}}
+            <span
+                class="babele-actor-translation__stat {{cssClass}}"
+                data-summary-stat="{{key}}"
+                title="{{hint}}"
+                aria-label="{{label}}: {{hint}}"
+            >
+                <strong data-summary-{{key}}>{{count}}</strong>
+                <small>{{label}}</small>
+            </span>
+            {{/each}}
+        </div>
+    </header>
+
+    {{#if hasEntries}}
+    <div class="babele-actor-translation__toolbar">
+        <span class="babele-actor-translation__selected">
+            <strong data-selected-count>{{selectedCount}}</strong>
+            <span>{{texts.selected}}</span>
+        </span>
+
+        <div class="babele-actor-translation__toolbar-actions">
+            <button type="button" data-action="select-all" {{#unless hasReady}}disabled{{/unless}}>
+                {{texts.selectAll}}
+            </button>
+            <button type="button" data-action="select-none" {{#unless hasReady}}disabled{{/unless}}>
+                {{texts.selectNone}}
+            </button>
+        </div>
+    </div>
+
+    <nav class="babele-actor-translation__filters" aria-label="{{texts.total}}">
+        {{#each filters}}
+        <button
+            type="button"
+            data-action="filter"
+            data-filter="{{filter}}"
+            data-active="{{#if active}}true{{else}}false{{/if}}"
+            aria-pressed="{{#if active}}true{{else}}false{{/if}}"
+            title="{{hint}}"
+            aria-label="{{label}}: {{hint}}"
+        >
+            <span>{{label}}</span>
+            <strong data-filter-count="{{filter}}">{{count}}</strong>
+        </button>
+        {{/each}}
+    </nav>
+
+    <ol class="babele-actor-translation__list">
+        {{#each entries}}
+        <li class="babele-actor-translation__entry {{cssClass}}" data-entry-id="{{id}}" data-entry-filter="{{filter}}">
+            <label class="babele-actor-translation__entry-label">
+                <input
+                    type="checkbox"
+                    data-entry-selector
+                    data-entry-id="{{id}}"
+                    {{#if selected}}checked{{/if}}
+                    {{#unless applicable}}disabled{{/unless}}
+                >
+
+                <span class="babele-actor-translation__entry-body">
+                    <span class="babele-actor-translation__entry-state">
+                        <span data-entry-status>{{status}}</span>
+                        <i
+                            class="fas fa-circle-info babele-actor-translation__review-hint"
+                            data-review-hint
+                            {{#unless reviewReason}}hidden{{/unless}}
+                            {{#if reviewReason}}title="{{reviewReason}}" aria-label="{{reviewReason}}"{{/if}}
+                        ></i>
+                    </span>
+
+                    <span class="babele-actor-translation__comparison">
+                        <span>
+                            <small>
+                                {{../texts.original}}
+                                {{#if itemType}} · {{../texts.type}}: {{itemType}}{{/if}}
+                            </small>
+                            <strong>{{originalName}}</strong>
+                            {{#if hasCurrentTranslation}}
+                            <em class="babele-actor-translation__current-name">
+                                <span>{{../texts.current}}:</span>
+                                <strong data-current-name>{{currentName}}</strong>
+                                {{#if translationLanguage}}
+                                <small class="babele-actor-translation__language-tag">{{translationLanguage}}</small>
+                                {{/if}}
+                            </em>
+                            {{/if}}
+                        </span>
+                        <i class="fas {{arrowIcon}}" aria-hidden="true" data-arrow></i>
+                        <span>
+                            {{#if showModeChoice}}
+                            <select
+                                class="babele-actor-translation__mode-selector"
+                                data-mode-selector
+                                data-entry-id="{{id}}"
+                                {{#unless modeChoiceEnabled}}disabled{{/unless}}
+                            >
+                                {{#each modeChoices}}
+                                <option value="{{id}}" {{#if selected}}selected{{/if}}>
+                                    {{label}}
+                                </option>
+                                {{/each}}
+                            </select>
+                            {{else}}
+                            <small data-proposed-label>{{proposedLabel}}</small>
+                            {{/if}}
+                            {{#if showCandidateChoice}}
+                            <select
+                                data-candidate-selector
+                                data-entry-id="{{id}}"
+                                {{#unless candidateChoiceEnabled}}disabled{{/unless}}
+                            >
+                                {{#each candidates}}
+                                <option value="{{id}}" {{#if selected}}selected{{/if}}>
+                                    {{label}}
+                                </option>
+                                {{/each}}
+                            </select>
+                            {{/if}}
+                            {{#if showProposedName}}
+                            <strong data-proposed-name class="{{#if proposedMissing}}is-missing{{/if}}" {{#unless showProposedName}}hidden{{/unless}}>{{proposedName}}</strong>
+                            {{/if}}
+                            {{#if showPackDetails}}
+                            <em class="babele-actor-translation__candidate-line" data-pack-line>
+                                <span>{{../texts.from}}:</span>
+                                {{#if showPackChoice}}
+                                <select
+                                    data-pack-selector
+                                    data-entry-id="{{id}}"
+                                    {{#unless packChoiceEnabled}}disabled{{/unless}}
+                                >
+                                    {{#each packChoices}}
+                                    <option value="{{id}}" {{#if selected}}selected{{/if}}>
+                                        {{label}}
+                                    </option>
+                                    {{/each}}
+                                </select>
+                                {{else}}
+                                <strong data-pack-label {{#unless showPackLabelValue}}hidden{{/unless}}>{{showPackLabel}}</strong>
+                                {{/if}}
+                            </em>
+                            {{/if}}
+                        </span>
+                    </span>
+                </span>
+            </label>
+        </li>
+        {{/each}}
+    </ol>
+    {{else}}
+    <p class="hint babele-actor-translation__empty">{{texts.empty}}</p>
+    {{/if}}
+
+    <footer class="babele-actor-translation__footer">
+        <button type="button" data-action="cancel">{{texts.cancel}}</button>
+        <button type="button" data-action="apply-selected" {{#unless hasReady}}disabled{{/unless}}>
+            <i class="fas fa-check" aria-hidden="true"></i>
+            <span>{{texts.apply}}</span>
+        </button>
+    </footer>
+</section>

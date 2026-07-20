@@ -13,5 +13,7 @@
   "BABELE.TranslationDirTitle": "سجل ملفات الترجمة",
   "BABELE.TranslationDirHint": "أدخل السجل حيث فيه ملقات ترجمات الجامع المحلية",
   "BABELE.EnableTranslationExportTile": "تفعيل تصدير الترجمة",
-  "BABELE.EnableTranslationExportHint": "تفعيل هذا الخيار إذا كنت تريد إضافة زر لكل جامع لصنع ملف ترجمة، مفيد كقالب ابتدائي"
+  "BABELE.EnableTranslationExportHint": "تفعيل هذا الخيار إذا كنت تريد إضافة زر لكل جامع لصنع ملف ترجمة، مفيد كقالب ابتدائي",
+  "BABELE.SyncImportedAdventureTokenNames": "مزامنة أسماء الرموز للمغامرات المستوردة",
+  "BABELE.SyncImportedAdventureTokenNamesHint": "عند استيراد مغامرة، حدّث أسماء الرموز فقط في المشاهد المستوردة وفقط للرموز المرتبطة بممثلين تم استيرادهم بواسطة تلك المغامرة نفسها."
 }

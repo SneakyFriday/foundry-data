@@ -36,9 +36,29 @@ export let patchFunc = (prop, func, type = "WRAPPER") => {
     }
 }
 
+export class MonksSceneNavigation {
+    static emit(action, args = {}) {
+        args.action = action;
+        args.senderId = game.user.id;
+        game.socket.emit(MonksSceneNavigation.SOCKET, args, (resp) => { });
+    }
+
+    static onMessage(data) {
+        MonksSceneNavigation[data.action].call(MonksSceneNavigation, data);
+    }
+
+    static pullLevel(data) {
+        if (data.sceneId == canvas.scene.id) {
+            canvas.scene.view({ level: data.levelId });
+        }
+    }
+}
+
 Hooks.on("init", () => {
     log('Initializing Monks Scene Navigation');
     registerSettings();
+
+    MonksSceneNavigation.SOCKET = "module.monks-scene-navigation";
 
     CONFIG.ui.nav = MonksNavigation;
 
@@ -60,12 +80,29 @@ Hooks.on("init", () => {
     let oldContext = CONFIG.ui.scenes.prototype._getEntryContextOptions;
     CONFIG.ui.scenes.prototype._getEntryContextOptions = function () {
         let options = oldContext.call(this);
-        let idx = options.findIndex(o => o.name === "SIDEBAR.Export");
+
+        let idx = options.findIndex(o => o.label === "SIDEBAR.Edit");
+        if (idx == -1) {
+            var permission = {
+                label: "SIDEBAR.Edit",
+                icon: '<i class="fas fa-edit"></i>',
+                visible: () => game.user.isGM,
+                callback: async (li) => {
+                    const { entryId } = li.closest("[data-entry-id]").dataset;
+                    const document = this.collection.get(entryId) ?? await this.collection.getDocument(entryId);
+                    document.sheet.render(true);
+                }
+            };
+            let idx = options.findIndex(o => o.label === "SCENE.View")
+            options.splice(idx + 1, 0, permission);
+        }
+
+        idx = options.findIndex(o => o.label === "SIDEBAR.Export");
         if (idx != -1) {
             var permission = {
-                name: "OWNERSHIP.Configure",
+                label: "OWNERSHIP.Configure",
                 icon: '<i class="fas fa-lock"></i>',
-                condition: () => game.user.isGM,
+                visible: () => game.user.isGM,
                 callback: li => {
                     const document = this.collection.get(li.dataset.entryId);
                     let cls = foundry.applications.apps.DocumentOwnershipConfig;
@@ -81,11 +118,11 @@ Hooks.on("init", () => {
             options.splice(idx, 0, permission);
 
             var view_artwork = {
-                name: "View Artwork",
+                label: "MonksSceneNavigation.ViewArtwork",
                 icon: '<i class="fas fa-image"></i>',
-                condition: li => {
+                visible: li => {
                     const document = this.collection.get(li.dataset.entryId);
-                    return document.background.src && game.user.isGM;
+                    return document.initialLevel.background.src && game.user.isGM;
                 },
                 callback: li => {
                     const document = this.collection.get(li.dataset.entryId);
@@ -93,7 +130,7 @@ Hooks.on("init", () => {
                         window: {
                             title: document.name
                         },
-                        src: document.background.src,
+                        src: document.initialLevel.background.src,
                         shareable: true,
                         uuid: document.uuid
                     }).render(true);
@@ -136,6 +173,8 @@ Hooks.on("init", () => {
 });
 
 Hooks.on("ready", () => {
+    game.socket.on(MonksSceneNavigation.SOCKET, MonksSceneNavigation.onMessage);
+
     if (setting("minimize-activate")) {
         let expanded = game.user.getFlag("monks-scene-navigation", "expanded") || false;
         ui.nav.toggleExpanded(expanded);

@@ -1,3 +1,17 @@
+# version 14.02
+
+Restoring edit context menu that Foundry had removed, so that scenes are editable again.
+
+Fixing a weird Firefox issue with cutting off levels list
+
+Adding a bit more functionality when using a lot of levels.
+
+# version 14.01
+
+v14 compatibility
+
+Adding the ability to drag players to a level
+
 # version 13.03
 
 Fixed directory refresh when navigation is toggled.
