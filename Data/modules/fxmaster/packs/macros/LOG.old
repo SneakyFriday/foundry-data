@@ -1,5 +1,0 @@
-2026/06/23-16:26:14.755 a374 Delete type=3 #1
-2026/06/23-16:26:14.758 1cbc Level-0 table #5: started
-2026/06/23-16:26:14.759 1cbc Level-0 table #5: 859 bytes OK
-2026/06/23-16:26:14.760 1cbc Delete type=0 #3
-2026/06/23-16:26:14.760 1cbc Manual compaction at level-0 from '!macros!Gx6a4ONkHSXmO9Sj' @ 72057594037927935 : 1 .. '!macros!ftoNC6DqcQGQOAOp' @ 0 : 0; will stop at (end)

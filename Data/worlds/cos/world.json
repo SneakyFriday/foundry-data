@@ -3,10 +3,10 @@
   "id": "cos",
   "system": "dnd5e",
   "nextSession": "2023-06-11T17:00:00.000Z",
-  "coreVersion": "14.359",
+  "coreVersion": "14.365",
   "compatibility": {
     "minimum": "14",
-    "verified": "14.359"
+    "verified": "14.365"
   },
   "systemVersion": "5.3.3",
   "packs": [
@@ -227,8 +227,8 @@
       }
     }
   ],
-  "lastPlayed": "Sun Jul 19 2026 22:39:38 GMT+0200 (Central European Summer Time)",
-  "playtime": 7212448,
+  "lastPlayed": "Wed Jul 29 2026 15:39:06 GMT+0200 (Central European Summer Time)",
+  "playtime": 8050805,
   "safeMode": false,
   "description": "",
   "flags": {}

@@ -1,33 +1,14 @@
-2026/07/19-17:04:02.360677 7f63aaffd6c0 Recovering log #360
-2026/07/19-17:04:02.365352 7f63aaffd6c0 Level-0 table #364: started
-2026/07/19-17:04:02.373453 7f63aaffd6c0 Level-0 table #364: 657507 bytes OK
-2026/07/19-17:04:02.376891 7f63aaffd6c0 Delete type=2 #361
-2026/07/19-17:04:02.376935 7f63aaffd6c0 Delete type=0 #360
-2026/07/19-17:04:02.377207 7f63aaffd6c0 Delete type=2 #359
-2026/07/19-17:04:02.377247 7f63aaffd6c0 Delete type=3 #352
-2026/07/19-17:04:02.704857 7f63aa7fc6c0 Compacting 1@0 + 1@1 files
-2026/07/19-17:04:02.724793 7f63aa7fc6c0 Generated table #366@0: 1186 keys, 1684580 bytes
-2026/07/19-17:04:02.724809 7f63aa7fc6c0 Compacted 1@0 + 1@1 files => 1684580 bytes
-2026/07/19-17:04:02.725560 7f63aa7fc6c0 compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/07/19-20:54:24.792794 7f63aa7fc6c0 Level-0 table #368: started
-2026/07/19-20:54:24.808388 7f63aa7fc6c0 Level-0 table #368: 1876561 bytes OK
-2026/07/19-20:54:24.809579 7f63aa7fc6c0 Delete type=2 #364
-2026/07/19-20:54:24.809903 7f63aa7fc6c0 Delete type=2 #362
-2026/07/19-20:54:24.810131 7f63aa7fc6c0 Delete type=0 #365
-2026/07/19-20:55:05.157555 7f63aa7fc6c0 Compacting 1@0 + 1@1 files
-2026/07/19-20:55:05.176134 7f63aa7fc6c0 Generated table #369@0: 1217 keys, 1732888 bytes
-2026/07/19-20:55:05.176153 7f63aa7fc6c0 Compacted 1@0 + 1@1 files => 1732888 bytes
-2026/07/19-20:55:05.176946 7f63aa7fc6c0 compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/07/19-22:38:53.556611 7f63aa7fc6c0 Level-0 table #371: started
-2026/07/19-22:38:53.567396 7f63aa7fc6c0 Level-0 table #371: 1482609 bytes OK
-2026/07/19-22:38:53.568532 7f63aa7fc6c0 Delete type=2 #366
-2026/07/19-22:38:53.568921 7f63aa7fc6c0 Delete type=0 #367
-2026/07/19-22:38:53.569756 7f63aa7fc6c0 Delete type=2 #368
-2026/07/19-22:38:53.573349 7f63aa7fc6c0 Manual compaction at level-0 from '!actors!0EgZuPSk7rEiIR6s' @ 72057594037927935 : 1 .. '!actors.items.effects!yjesZNmDsGtMB83y.uTXBwfSFuVgnw4ad.8rP3gwmXVTgZqYZE' @ 0 : 0; will stop at '!actors.items.effects!PaW5YJwuaFlOREtj.tnNqy1nc1W4jgj8J.ObtXWapsou2jYoip' @ 28278 : 1
-2026/07/19-22:38:53.573355 7f63aa7fc6c0 Compacting 1@0 + 1@1 files
-2026/07/19-22:38:53.591248 7f63aa7fc6c0 Generated table #372@0: 1216 keys, 1733258 bytes
-2026/07/19-22:38:53.591263 7f63aa7fc6c0 Compacted 1@0 + 1@1 files => 1733258 bytes
-2026/07/19-22:38:53.592120 7f63aa7fc6c0 compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/07/19-22:38:53.592261 7f63aa7fc6c0 Delete type=2 #371
-2026/07/19-22:38:53.592683 7f63aa7fc6c0 Delete type=2 #369
-2026/07/19-22:38:53.609074 7f63aa7fc6c0 Manual compaction at level-0 from '!actors.items.effects!PaW5YJwuaFlOREtj.tnNqy1nc1W4jgj8J.ObtXWapsou2jYoip' @ 28278 : 1 .. '!actors.items.effects!yjesZNmDsGtMB83y.uTXBwfSFuVgnw4ad.8rP3gwmXVTgZqYZE' @ 0 : 0; will stop at (end)
+2026/07/19-22:39:38.108515 7f63abfff6c0 Recovering log #370
+2026/07/19-22:39:38.111641 7f63abfff6c0 Delete type=0 #370
+2026/07/19-22:39:38.111662 7f63abfff6c0 Delete type=3 #363
+2026/07/29-15:32:30.895677 7f63aa7fc6c0 Level-0 table #376: started
+2026/07/29-15:32:30.912861 7f63aa7fc6c0 Level-0 table #376: 1731173 bytes OK
+2026/07/29-15:32:30.913997 7f63aa7fc6c0 Delete type=0 #374
+2026/07/29-15:32:30.916183 7f63aa7fc6c0 Manual compaction at level-0 from '!actors!0EgZuPSk7rEiIR6s' @ 72057594037927935 : 1 .. '!actors.items.effects!yjesZNmDsGtMB83y.uTXBwfSFuVgnw4ad.8rP3gwmXVTgZqYZE' @ 0 : 0; will stop at '!actors.items.effects!yjesZNmDsGtMB83y.uTXBwfSFuVgnw4ad.8rP3gwmXVTgZqYZE' @ 30558 : 1
+2026/07/29-15:32:30.916188 7f63aa7fc6c0 Compacting 1@0 + 1@1 files
+2026/07/29-15:32:30.938531 7f63aa7fc6c0 Generated table #377@0: 1216 keys, 1733202 bytes
+2026/07/29-15:32:30.938553 7f63aa7fc6c0 Compacted 1@0 + 1@1 files => 1733202 bytes
+2026/07/29-15:32:30.939355 7f63aa7fc6c0 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/07/29-15:32:30.939565 7f63aa7fc6c0 Delete type=2 #372
+2026/07/29-15:32:30.940259 7f63aa7fc6c0 Delete type=2 #376
+2026/07/29-15:32:30.956590 7f63aa7fc6c0 Manual compaction at level-0 from '!actors.items.effects!yjesZNmDsGtMB83y.uTXBwfSFuVgnw4ad.8rP3gwmXVTgZqYZE' @ 30558 : 1 .. '!actors.items.effects!yjesZNmDsGtMB83y.uTXBwfSFuVgnw4ad.8rP3gwmXVTgZqYZE' @ 0 : 0; will stop at (end)

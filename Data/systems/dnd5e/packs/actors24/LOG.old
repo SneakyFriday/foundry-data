@@ -1,5 +1,18 @@
-2026/05/07-17:37:19.410770 7f448d7be6c0 Delete type=3 #1
-2026/05/07-17:37:19.475325 7f446ffff6c0 Level-0 table #5: started
-2026/05/07-17:37:19.536430 7f446ffff6c0 Level-0 table #5: 8250853 bytes OK
-2026/05/07-17:37:19.537221 7f446ffff6c0 Delete type=0 #3
-2026/05/07-17:37:19.539338 7f446ffff6c0 Manual compaction at level-0 from '!actors!AkraLv0100000000' @ 72057594037927935 : 1 .. '!folders!xmXOrBADA4LyJOGl' @ 0 : 0; will stop at (end)
+2026/07/19-22:39:38.788959 7f63f8fff6c0 Recovering log #4
+2026/07/19-22:39:38.791848 7f63f8fff6c0 Delete type=3 #2
+2026/07/19-22:39:38.791874 7f63f8fff6c0 Delete type=0 #4
+2026/07/29-15:32:30.693418 7f63aa7fc6c0 Level-0 table #9: started
+2026/07/29-15:32:30.765173 7f63aa7fc6c0 Level-0 table #9: 8398884 bytes OK
+2026/07/29-15:32:30.768868 7f63aa7fc6c0 Delete type=0 #7
+2026/07/29-15:32:30.773349 7f63aa7fc6c0 Manual compaction at level-0 from '!actors!AkraLv0100000000' @ 72057594037927935 : 1 .. '!folders!xmXOrBADA4LyJOGl' @ 0 : 0; will stop at (end)
+2026/07/29-15:32:30.773407 7f63aa7fc6c0 Manual compaction at level-1 from '!actors!AkraLv0100000000' @ 72057594037927935 : 1 .. '!folders!xmXOrBADA4LyJOGl' @ 0 : 0; will stop at '!actors.items.effects!phbsplConjuredFe.phbaoiAttackAtta.sEpCnDgBAYjTuRgI' @ 15729 : 1
+2026/07/29-15:32:30.773411 7f63aa7fc6c0 Compacting 1@1 + 1@2 files
+2026/07/29-15:32:30.799516 7f63aa7fc6c0 Generated table #10@1: 1069 keys, 2126003 bytes
+2026/07/29-15:32:30.823841 7f63aa7fc6c0 Generated table #11@1: 1619 keys, 2124656 bytes
+2026/07/29-15:32:30.846279 7f63aa7fc6c0 Generated table #12@1: 1659 keys, 2125632 bytes
+2026/07/29-15:32:30.871422 7f63aa7fc6c0 Generated table #13@1: 3543 keys, 2023966 bytes
+2026/07/29-15:32:30.871438 7f63aa7fc6c0 Compacted 1@1 + 1@2 files => 8400257 bytes
+2026/07/29-15:32:30.872256 7f63aa7fc6c0 compacted to: files[ 0 0 4 0 0 0 0 ]
+2026/07/29-15:32:30.872730 7f63aa7fc6c0 Delete type=2 #9
+2026/07/29-15:32:30.874753 7f63aa7fc6c0 Delete type=2 #5
+2026/07/29-15:32:30.884489 7f63aa7fc6c0 Manual compaction at level-1 from '!actors.items.effects!phbsplConjuredFe.phbaoiAttackAtta.sEpCnDgBAYjTuRgI' @ 15729 : 1 .. '!folders!xmXOrBADA4LyJOGl' @ 0 : 0; will stop at (end)

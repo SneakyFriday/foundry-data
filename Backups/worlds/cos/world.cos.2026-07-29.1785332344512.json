@@ -1,0 +1,25 @@
+{
+  "title": "Curse of Strahd",
+  "id": "world.cos.2026-07-29.1785332344512",
+  "system": "dnd5e",
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14.359"
+  },
+  "description": "",
+  "version": "0",
+  "relationships": {
+    "systems": [],
+    "requires": [],
+    "recommends": [],
+    "conflicts": [],
+    "flags": {}
+  },
+  "type": "world",
+  "size": 43436361,
+  "note": "cos",
+  "snapshotId": null,
+  "originalSize": 59546201,
+  "createdAt": 1785332342659,
+  "packageId": "cos"
+}

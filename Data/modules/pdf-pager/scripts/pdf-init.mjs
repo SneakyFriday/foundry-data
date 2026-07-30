@@ -8,7 +8,7 @@ import { PDFCONFIG, SpreadMode, ScrollMode } from './pdf-config.mjs';
 
 export let SpreadChoices, ZoomChoices, ScrollChoices;
 
-Hooks.once('ready', () => {
+export function initConfig() {
     // Set up module settings
     let name = PDFCONFIG.MODULE_NAME;
     let param = PDFCONFIG.ALWAYS_LOAD_PDF;
@@ -61,14 +61,17 @@ Hooks.once('ready', () => {
         config: true
     });
 
+    // Foundry 14.361 does NOT allow us to use our own viewer.html which would
+    // expose the Annotation tools in the PDF viewer.
+    // Thus annotations are disabled permanently.
     param = PDFCONFIG.EDITABLE_ANNOTATIONS;
     game.settings.register(name, param, {
         name: game.i18n.localize(`${name}.${param}.Name`),
         hint: game.i18n.localize(`${name}.${param}.Hint`),
         scope: "world",
         type: Boolean,
-        default: true,
-        config: true
+        default: false,
+        config: false
     });
 
     param = PDFCONFIG.HIDE_EDITABLE_BG;
@@ -112,6 +115,16 @@ Hooks.once('ready', () => {
     });
 
     param = PDFCONFIG.AUTO_SCROLL_TOC;
+    game.settings.register(name, param, {
+        name: game.i18n.localize(`${name}.${param}.Name`),
+        hint: game.i18n.localize(`${name}.${param}.Hint`),
+        scope: "world",
+        type: Boolean,
+        default: true,
+        config: true
+    });
+
+    param = PDFCONFIG.HEADINGS_AS_TOC;
     game.settings.register(name, param, {
         name: game.i18n.localize(`${name}.${param}.Name`),
         hint: game.i18n.localize(`${name}.${param}.Hint`),
@@ -328,4 +341,4 @@ Hooks.once('ready', () => {
             registerActorMapping, registerItemMapping, getPDFValue, setPDFValue, deleteOutlines
         };
     }
-});
+}

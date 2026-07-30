@@ -1,8 +1,42 @@
 # CHANGELOG
 
+## 14.2.2 - PDF Page settings available
+- Fix a bug whereby the PDF journal entry page settings were not being seen.
+
+## 14.2.1 - Presentation Mode & Quick Insert compatibility
+- Replace `Event.srcElement` with `Event.target` in the `_onClickDocumentLink` hook.
+- Also check `Event.currentTarget` in `_onClickDocumentLink` hook so that the `Quick Insert` module can open PDF pages and sections.
+- Add new option to the anchor in journal links, appending `?presentationMode` to the anchor will open the PDF in presentation mode (i.e. full screen), e.g. `@UUID[JournalEntry.L9GgqNy1pGiXnUxQ.JournalEntryPage.wqaaOCuO3HG7AAbb#page=162?presentationMode]{PDF page 162 - presentationMode}`
+  - **NOTE**: Browsers only allow full screen to be entered by an explicit user interaction, this means that the PDF must already be open for clicking on a link to be able to show the page in full screen (presentation) mode.
+
+## 14.2.0 - New Option to not show the PDF's outline as the journal page's TOC
+- Add a new option "Show PDF Outline as page TOC" (defaults to True) which can be unchecked to prevent the PDF's outline from appearing as the Foundry journal page's TOC.
+  - Since the outline is not extracted from the PDF, links that point to headings within the PDF will not work.
+- Internally, ensure there is a single 'ready' hook handler to ensure correct order of initialisation.
+
+## 14.1.0 - Use Foundry-supplied pdfjs library
+- Foundry 14.361 removed the ability to use our own pdfjs library.
+  - Annotations, Save file and Print file are no longer available.
+- Set a default Actor sheet size to 800x800.
+- Set a default Item sheet size to 500x500.
+
+## 14.0.2
+- Get link creation working in both `@PDF` and `@UUID` format (even dragging page title to create link with current page).
+- Merge of fixes from version 13.0.6
+
+## 14.0.1
+- Only copy value into IMG field if there is a mapping defined (since IMG fields are not editable in the PDF).
+
 ## 14.0.0
 - Migrate Actor and Item sheets to ApplicationV2.
 - First version that supports Foundry V14.
+
+## 13.0.6
+- Restore ability to drag page title to create a link, to include the page number in the link.
+- Restore ability to use `#page=xxx` in `@UUID` links to the PDF's JournalEntryPage.
+
+## 13.0.5
+- Only copy value into IMG field if there is a mapping defined (since IMG fields are not editable in the PDF).
 
 ## 13.0.4
 

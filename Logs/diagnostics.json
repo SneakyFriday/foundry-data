@@ -1,5 +1,5 @@
 {
-  "timestamp": 1784473435357,
+  "timestamp": 1785332057766,
   "os": {
     "platform": "linux",
     "version": "Debian GNU/Linux 13 (trixie)",
@@ -7,7 +7,7 @@
   },
   "foundry": {
     "generation": 14,
-    "build": 359,
+    "build": 365,
     "channel": "stable",
     "hosting": null
   },
@@ -16,46 +16,46 @@
       "version": "4.1.2"
     },
     "babele": {
-      "version": "2.7.7"
+      "version": "2.9.1"
     },
     "color-picker": {
       "version": "1.7"
     },
     "dae": {
-      "version": "13.0.22"
+      "version": "14.0.12"
     },
     "ddb-importer": {
-      "version": "7.2.4"
+      "version": "7.3.15"
     },
     "dice-calculator": {
-      "version": "3.5.4"
+      "version": "3.7.1"
     },
     "dice-so-nice": {
-      "version": "5.3.2"
+      "version": "6.2.9"
     },
     "fxmaster": {
-      "version": "7.5.2"
+      "version": "8.3.3"
     },
     "item-piles": {
-      "version": "3.2.32"
+      "version": "3.3.4"
     },
     "lang-de": {
-      "version": "13.1"
+      "version": "14.364"
     },
     "levels": {
-      "version": "6.0.21"
+      "version": "7.0.3"
     },
     "lib-wrapper": {
-      "version": "1.13.4.0"
+      "version": "1.13.5.1"
     },
     "monks-active-tiles": {
-      "version": "13.06"
+      "version": "14.01"
     },
     "monks-scene-navigation": {
-      "version": "13.03"
+      "version": "14.02"
     },
     "monks-tokenbar": {
-      "version": "13.02"
+      "version": "14.01"
     },
     "pdf-pager": {
       "version": "14.0.0"
@@ -67,7 +67,7 @@
       "version": "0.12.0"
     },
     "theripper-premium-hub": {
-      "version": "6.0.0"
+      "version": "6.0.1"
     },
     "wall-height": {
       "version": "7.0.8"
@@ -75,13 +75,13 @@
   },
   "systems": {
     "dnd5e": {
-      "version": "5.3.0",
-      "playtime": 7192367
+      "version": "5.3.3",
+      "playtime": 8050805
     }
   },
   "worlds": {},
   "playtime": {
-    "total": 7192367,
-    "max": 7192367
+    "total": 8050805,
+    "max": 8050805
   }
 }

@@ -10,9 +10,9 @@
   "changelog": "https://github.com/MrPrimate/ddb-importer/blob/main/CHANGELOG.md",
   "url": "https://docs.ddb.mrprimate.co.uk",
   "compatibility": {
-    "minimum": "14.359",
+    "minimum": "14",
     "verified": "14.359",
-    "maximum": 14
+    "maximum": "14"
   },
   "authors": [
     {
@@ -20,14 +20,16 @@
       "email": "jack@mrprimate.co.uk",
       "url": "https://docs.ddb.mrprimate.co.uk",
       "patreon": "https://www.patreon.com/MrPrimate",
-      "discord": "https://discord.gg/WzPuRuDJVP"
+      "discord": "https://discord.gg/WzPuRuDJVP",
+      "flags": {}
     }
   ],
   "languages": [
     {
       "lang": "en",
       "name": "English",
-      "path": "lang/en.json"
+      "path": "lang/en.json",
+      "flags": {}
     }
   ],
   "relationships": {
@@ -44,20 +46,32 @@
     ]
   },
   "scripts": [
-    "./vendor/zipjs/zip-fs.js"
+    "vendor/zipjs/zip-fs.js"
   ],
   "esmodules": [
     "dist/main.mjs"
   ],
   "styles": [
-    "./css/default.css",
-    "./css/import.css",
-    "./css/journal.css",
-    "./css/notifications.css",
-    "./css/adventure.css",
-    "./css/maps.css"
+    {
+      "src": "css/default.css"
+    },
+    {
+      "src": "css/import.css"
+    },
+    {
+      "src": "css/journal.css"
+    },
+    {
+      "src": "css/notifications.css"
+    },
+    {
+      "src": "css/adventure.css"
+    },
+    {
+      "src": "css/maps.css"
+    }
   ],
-  "packs": [],
   "socket": true,
-  "persistentStorage": true
+  "persistentStorage": true,
+  "flags": {}
 }

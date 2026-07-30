@@ -1,5 +1,15 @@
-2026/05/07-17:37:22.090300 7f448d7be6c0 Delete type=3 #1
-2026/05/07-17:37:22.092570 7f446ffff6c0 Level-0 table #5: started
-2026/05/07-17:37:22.094431 7f446ffff6c0 Level-0 table #5: 115359 bytes OK
-2026/05/07-17:37:22.094952 7f446ffff6c0 Delete type=0 #3
-2026/05/07-17:37:22.095049 7f446ffff6c0 Manual compaction at level-0 from '!folders!6PmNgdAU8WO1cFlx' @ 72057594037927935 : 1 .. '!tables.results!phbsplTeleportMi.yJ4FhyyZvenG7AJl' @ 0 : 0; will stop at (end)
+2026/07/19-22:39:38.783700 7f63aaffd6c0 Recovering log #4
+2026/07/19-22:39:38.786535 7f63aaffd6c0 Delete type=3 #2
+2026/07/19-22:39:38.786563 7f63aaffd6c0 Delete type=0 #4
+2026/07/29-15:32:30.657979 7f63aa7fc6c0 Level-0 table #9: started
+2026/07/29-15:32:30.660849 7f63aa7fc6c0 Level-0 table #9: 27365 bytes OK
+2026/07/29-15:32:30.661590 7f63aa7fc6c0 Delete type=0 #7
+2026/07/29-15:32:30.664453 7f63aa7fc6c0 Manual compaction at level-0 from '!folders!6PmNgdAU8WO1cFlx' @ 72057594037927935 : 1 .. '!tables.results!phbsplTeleportMi.yJ4FhyyZvenG7AJl' @ 0 : 0; will stop at (end)
+2026/07/29-15:32:30.688627 7f63aa7fc6c0 Manual compaction at level-1 from '!folders!6PmNgdAU8WO1cFlx' @ 72057594037927935 : 1 .. '!tables.results!phbsplTeleportMi.yJ4FhyyZvenG7AJl' @ 0 : 0; will stop at '!tables.results!mmWraithManifest.xxZJmMvUL6SGMUIH' @ 887 : 1
+2026/07/29-15:32:30.688633 7f63aa7fc6c0 Compacting 1@1 + 1@2 files
+2026/07/29-15:32:30.692338 7f63aa7fc6c0 Generated table #10@1: 718 keys, 120404 bytes
+2026/07/29-15:32:30.692352 7f63aa7fc6c0 Compacted 1@1 + 1@2 files => 120404 bytes
+2026/07/29-15:32:30.693202 7f63aa7fc6c0 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/07/29-15:32:30.693269 7f63aa7fc6c0 Delete type=2 #9
+2026/07/29-15:32:30.693352 7f63aa7fc6c0 Delete type=2 #5
+2026/07/29-15:32:30.773338 7f63aa7fc6c0 Manual compaction at level-1 from '!tables.results!mmWraithManifest.xxZJmMvUL6SGMUIH' @ 887 : 1 .. '!tables.results!phbsplTeleportMi.yJ4FhyyZvenG7AJl' @ 0 : 0; will stop at (end)
