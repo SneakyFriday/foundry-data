@@ -1,5 +1,5 @@
 {
-  "timestamp": 1785332057766,
+  "timestamp": 1785420102233,
   "os": {
     "platform": "linux",
     "version": "Debian GNU/Linux 13 (trixie)",
@@ -58,7 +58,7 @@
       "version": "14.01"
     },
     "pdf-pager": {
-      "version": "14.0.0"
+      "version": "14.2.2"
     },
     "socketlib": {
       "version": "v1.1.4"
