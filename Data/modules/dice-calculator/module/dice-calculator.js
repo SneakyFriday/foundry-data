@@ -3,10 +3,7 @@ const { ApplicationV2: ApplicationV2$2, HandlebarsApplicationMixin: HandlebarsAp
 class DiceCreator extends HandlebarsApplicationMixin$2(ApplicationV2$2) {
 	constructor(object, options = {}) {
 		super(options);
-		const { dice, diceRows, form, settings } = object;
-		this.object = { dice, diceRows, settings };
-		this.diceRowSettings = form;
-		Hooks.once("closeDiceRowSettings", () => this.close());
+		this.object = object;
 	}
 
 	static DEFAULT_OPTIONS = {
@@ -28,22 +25,20 @@ class DiceCreator extends HandlebarsApplicationMixin$2(ApplicationV2$2) {
 	};
 
 	static PARTS = {
-		diceRows: {
+		diceCreator: {
 			template: "./modules/dice-calculator/templates/DiceCreator.hbs"
 		},
 		footer: { template: "templates/generic/form-footer.hbs" }
 	};
 
 	_prepareContext(options) {
-		const { dice, diceRows, settings } = this.object;
-		const nextRow = diceRows.findIndex((row) => Object.keys(row).length < 7);
-		const rowIndex = (nextRow !== -1 ? nextRow : diceRows.length) + 1;
+		const { dice, insideDrawer, maxRows, row, settings } = this.object;
 		const label = dice?.key ? "SETTINGS.Save" : "DICE_TRAY.DiceCreator.CreateDice";
 		return {
 			dice,
-			diceRows: this.object.diceRows, // this.diceRows,
-			value: dice?.row ?? rowIndex,
-			maxRows: rowIndex,
+			insideDrawer,
+			row: row !== undefined ? row + 1 : maxRows ?? null,
+			maxRows,
 			settings,
 			buttons: [
 				{ type: "submit", icon: "fa-solid fa-save", label },
@@ -51,34 +46,54 @@ class DiceCreator extends HandlebarsApplicationMixin$2(ApplicationV2$2) {
 		};
 	}
 
-	static async #onSubmit(event, form, formData) {
+	#cleanDiceData(dice) {
+		const clean = Object.fromEntries(
+			Object.entries(dice).filter(([k, v]) => k !== "key" && v !== "")
+		);
+		if (!clean.img) {
+			clean.label ??= dice.key;
+			if (clean.alternative) clean.alternative = false;
+		}
+		return clean;
+	}
+
+	#submitRow(dice, row) {
+		const { insideDrawer, originalKey: origKey, row: origRow } = this.object;
+		const cleanKey = this.#cleanDiceData(dice);
+		if (row > this.parent.diceRows.length - 1) this.parent.diceRows.push({});
+		let target = this.parent.diceRows[row];
+
+		if (dice.drawer) cleanKey.drawer = target[origKey].drawer;
+
+		if (insideDrawer) target[insideDrawer].drawer[dice.key] = cleanKey;
+		else target[dice.key] = cleanKey;
+
+		if (origRow !== row) delete this.parent.diceRows[origRow]?.[origKey];
+	}
+
+	static #onSubmit(event, form, formData) {
 		let { dice, row } = foundry.utils.expandObject(formData.object);
-		// Account for ROW being 1-index for better UX
-		const actualRow = row - 1;
-		if (this.object.dice && this.object.dice.row !== row) {
-			const key = this.object.dice.originalKey;
-			delete this.diceRowSettings.diceRows[actualRow][key];
+		if (row !== undefined) {
+			// Account for row being 1-index for better UX
+			row--;
+			this.#submitRow(dice, row );
+		} else {
+			this.parent.dice[dice.key] = this.#cleanDiceData(dice);
 		}
-		if (row > this.diceRowSettings.diceRows.length) {
-			this.diceRowSettings.diceRows.push({});
-		}
-		const cleanKey = Object.fromEntries(Object.entries(dice).filter(([k, v]) => k !== "key" && v !== ""));
-		if (!cleanKey.img && !cleanKey.label) {
-			cleanKey.label = dice.key;
-		}
-		if (!cleanKey.img && cleanKey.alternative) {
-			cleanKey.alternative = false;
-		}
-		this.diceRowSettings.diceRows[actualRow][dice.key] = cleanKey;
-		this.diceRowSettings.render(true);
+	}
+
+	async close(options={}) {
+		if (options.submitted) this.parent.render({ force: true });
+		await super.close(options);
 	}
 }
 
 const { ApplicationV2: ApplicationV2$1, HandlebarsApplicationMixin: HandlebarsApplicationMixin$1 } = foundry.applications.api;
 class DiceRowSettings extends HandlebarsApplicationMixin$1(ApplicationV2$1) {
-	constructor(object, options = {}) {
-		super(object, options);
+	constructor(options = {}) {
+		super(options);
 		this.diceRows = foundry.utils.deepClone(game.settings.get("dice-calculator", "diceRows"));
+		this.dice = foundry.utils.deepClone(game.settings.get("dice-calculator", "dice"));
 	}
 
 	static DEFAULT_OPTIONS = {
@@ -126,6 +141,8 @@ class DiceRowSettings extends HandlebarsApplicationMixin$1(ApplicationV2$1) {
 		return {
 			diceRows: this.diceRows,
 			settings: this.settings,
+			isPreview: true,
+			pool: [this.dice],
 			showExtraButtons: CONFIG.DICETRAY.showExtraButtons,
 			buttons: [
 				{ type: "button", icon: "fa-solid fa-plus", label: "DICE_TRAY.DiceCreator.CreateDice", action: "add" },
@@ -137,70 +154,253 @@ class DiceRowSettings extends HandlebarsApplicationMixin$1(ApplicationV2$1) {
 
 	_onRender(context, options) {
 		super._onRender(context, options);
-		CONFIG.DICETRAY.applyLayout(this.element, { hideAdv: context.settings.hideAdv });
-		const diceTrayInput = this.element.querySelector("input.dice-tray__input");
+		let dragged;
+		let dragData;
+		if (context.showExtraButtons && !context.settings.hideAdv) {
+			CONFIG.DICETRAY._createExtraButtons(this.element);
+		}
+		this.element.querySelectorAll(".dice-rows .dice-tray__buttons").forEach((row) => {
+			row.addEventListener("drop", (event) => {
+				const { drawer, key, origin } = dragData;
+
+				const buttons = [...row.children].filter((el) =>
+					el.dataset.formula !== key && el.matches(".dice-tray__button")
+				);
+				let button;
+				let nearestDistance = Infinity;
+				for (const b of buttons) {
+					const rect = b.getBoundingClientRect();
+					const centerX = rect.left + (rect.width / 2);
+					const distance = Math.abs(event.clientX - centerX);
+
+					if (distance < nearestDistance) {
+						button = b;
+						nearestDistance = distance;
+					}
+				}
+				if (button === dragged) return;
+
+				if (origin === "dice-calculator-preview") {
+					const dice = CONFIG.DICETRAY.dice;
+					const rowElement = button.closest("[data-row]");
+					const row = rowElement.dataset.row;
+					// Moved into a Drawer
+					if (dragged.parentElement.dataset.drawer) {
+						const dr = dragged.parentElement.dataset.drawer;
+						const drawerDoor = this.diceRows[row][dr];
+						if (!drawerDoor.drawer) drawerDoor.drawer = {};
+						drawerDoor.drawer[key] = this.diceRows[row][key] ?? dice[key];
+					}
+					this.diceRows[row] = Object.fromEntries(
+						[...rowElement.children]
+							.filter((el) => el.matches(".dice-tray__button"))
+							.map((el) => {
+								const key = el.dataset.formula;
+								const path =
+									this.diceRows[row][key]
+									?? this.diceRows[row][drawer]?.drawer[key]
+									?? dice[key];
+								return [key, path];
+							})
+					);
+					// Moved out of a Drawer
+					if (drawer) {
+						const drawerDoor = this.diceRows[row][drawer];
+						delete drawerDoor.drawer[key];
+						if (!Object.keys(drawerDoor.drawer).length) {
+							this.element.querySelector(`.dice-tray__drawer[data-drawer="${drawer}"]`).remove();
+							drawerDoor.drawer = null;
+						}
+					}
+					delete this.dice[key];
+					event.stopImmediatePropagation();
+				}
+				dragged = null;
+				dragData = null;
+			});
+		});
+		this.element.querySelectorAll("input.dice-tray__input").forEach((el) => el.disabled = true);
 		for (const input of this.element.querySelectorAll(".form-group input")) {
-			input.addEventListener("click", async (event) => {
+			input.addEventListener("click", (event) => {
 				const { checked, name } = event.currentTarget;
 				this.settings[name] = checked;
 				this.render(true);
 			});
 		}
-		if (diceTrayInput) diceTrayInput.disabled = true;
-		for (const button of this.element.querySelectorAll(".dice-tray button.dice-tray__button")) {
-			button.addEventListener("click", async (event) => {
-				event.preventDefault();
-				const { formula: key, tooltip } = Object.keys(event.target.parentElement.dataset).length
-					? event.target.parentElement.dataset
-					: event.target.dataset;
-				const row = this.diceRows.findIndex((r) => r[key]);
-				const diceData = this.diceRows[row][key];
-				const { color, img, label } = diceData;
-				new DiceCreator({
-					form: this,
-					diceRows: this.diceRows,
-					dice: {
-						key,
-						originalKey: key, // In case the key is changed later.
-						color,
-						img,
-						label,
-						tooltip: tooltip !== key ? tooltip : "",
-						row: row + 1,
-					},
-					settings: this.settings
-				}).render(true);
+		this.element.querySelectorAll(".dice-tray button.dice-tray__button[draggable=true]").forEach((button) => {
+			button.addEventListener("dragstart", (event) => {
+				dragged = event.target;
+				const key = button.dataset.formula;
+				const drawer = button.closest(".dice-tray__drawer")?.dataset?.drawer;
+				dragData = { origin: "dice-calculator-preview", key, drawer };
 			});
-			button.addEventListener("contextmenu", async (event) => {
+			button.addEventListener("dragend", (event) => {
+				if (dragData?.origin === "dice-calculator-preview") this.render(false);
+				dragged = null;
+				dragData = null;
+			});
+		});
+		this.element.querySelectorAll(".dice-tray:not(.dice-tray__pool) button.dice-tray__button").forEach((button) => {
+			button.addEventListener("click", (event) => {
 				event.preventDefault();
-				const { formula: key } = Object.keys(event.target.parentElement.dataset).length
-					? event.target.parentElement.dataset
-					: event.target.dataset;
-				const row = this.diceRows.findIndex((r) => r[key]);
-				delete this.diceRows[row][key];
+				this.#editDice(event, this.diceRows);
+			});
+			button.addEventListener("contextmenu", (event) => {
+				event.preventDefault();
+				const { formula: key, drawer } = event.target.dataset;
+				const parent = event.target.parentElement;
+				const isDrawerButton = parent.classList.contains("dice-tray__drawer");
+
+				let row = this.diceRows.findIndex((r) => r[key]);
+				let first = this.diceRows[row]?.[key];
+
+				const emptyDrawer = (k) => {
+					this.dice[k] = first.drawer[k];
+					delete first.drawer[k];
+				};
+
+				if (drawer) {
+					this.element.querySelectorAll(`.dice-tray__drawer[data-drawer="${key}"] button`)
+						.forEach((d) => emptyDrawer(d.dataset.formula));
+					first.drawer = null;
+				}
+
+				if (isDrawerButton) {
+					const firstKey = parent.dataset.drawer;
+					row = this.diceRows.findIndex((r) => r[firstKey]);
+					first = this.diceRows[row][firstKey];
+					emptyDrawer(key);
+					if (!Object.keys(first.drawer).length) first.drawer = null;
+				} else {
+					this.dice[key] = first;
+					delete this.diceRows[row][key];
+				}
+
 				if (!Object.keys(this.diceRows[row]).length) {
 					this.diceRows.splice(row, 1);
 				}
+				this.dice = this.dice = Object.fromEntries(
+					Object.entries(this.dice)
+						.sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+				);
 				this.render(false);
 			});
-		}
-		for (const button of this.element.querySelectorAll(".dice-tray .dice-tray__math button")) {
-			button.addEventListener("click", async (event) => {
-				event.preventDefault();
+			button.addEventListener("dragover", async (event) => {
+				if (button === dragged) return;
+				if (dragData?.origin === "dice-calculator-preview") {
+					const rect = button.getBoundingClientRect();
+					const topPosition = event.clientY - rect.top;
+					const before = event.clientX < rect.left + (rect.width / 2);
+					const next = before ? event.target : event.target.nextSibling;
+					if (next === dragged) return;
+					if (topPosition < rect.height * 0.25) {
+						const dragParent = dragged.parentElement;
+						const key = button.dataset.formula;
+						// Drag over current drawer
+						if (dragParent.dataset?.drawer === key) return;
+
+						// Drag over pre-existing drawer
+						if (button.parentElement.dataset.drawer) {
+							button.after(dragged);
+							return;
+						}
+						// Drag over top of button, create new drawer
+						const div = document.createElement("div");
+						div.classList.add("dice-tray__drawer", "flexcol");
+						div.dataset.drawer = key;
+						div.style.positionAnchor = `--${CSS.escape(key)}`;
+						div.append(dragged);
+
+						button.style.anchorName = `--${CSS.escape(key)}`;
+						button.dataset.drawer = key;
+						button.after(div);
+						return;
+					}
+					if (dragged.nextSibling === next || next.parentElement.dataset.drawer) return;
+					dragged.remove();
+					button.parentNode.insertBefore(dragged, next);
+				}
 			});
+		});
+		this.element.querySelectorAll(".dice-tray.dice-tray__pool button.dice-tray__button").forEach((button) => {
+			button.addEventListener("click", (event) => {
+				event.preventDefault();
+				this.#editDice(event, this.dice);
+			});
+			button.addEventListener("contextmenu", (event) => {
+				event.preventDefault();
+				const { formula: key } = event.target.dataset;
+				delete this.dice[key];
+				this.render(false);
+			});
+		});
+		this.element.querySelectorAll(".dice-tray__drawer[data-drawer]").forEach((drawer) => {
+			const key = drawer.dataset.drawer;
+			const button = this.element.querySelector(`.dice-tray button.dice-tray__button[data-drawer="${key}"`);
+			button.style.anchorName = `--${CSS.escape(key)}`;
+			drawer.style.positionAnchor = button.style.anchorName;
+		});
+		this.element
+			.querySelectorAll(".dice-tray__math button, .dice-tray__stacked button, .dice-tray__roll")
+			.forEach((button) =>
+				button.addEventListener("click", (event) => event.preventDefault())
+			);
+	}
+
+	#editDice(event, source) {
+		let insideDrawer;
+		let row;
+		let diceData;
+		const parent = event.target.parentElement;
+		const { formula: key } = event.target.dataset;
+
+		if (!Array.isArray(source)) {
+			diceData = source[key];
+		} else if (parent.classList.contains("dice-tray__drawer")) {
+			const firstKey = parent.dataset.drawer;
+			if (!row) row = source.findIndex((r) => r[firstKey]);
+			insideDrawer = firstKey;
+			diceData = source[row][firstKey].drawer[key];
+		} else {
+			if (!row) row = source.findIndex((r) => r[key]);
+			diceData = source[row][key];
 		}
+		const dc = new DiceCreator({
+			dice: {
+				...diceData,
+				key,
+				drawer: diceData.drawer ? key : false,
+			},
+			originalKey: key,
+			row,
+			insideDrawer,
+			settings: this.settings
+		});
+		this.renderChild(dc);
 	}
 
 	static #add() {
-		new DiceCreator({
-			form: this,
-			diceRows: this.diceRows,
+		let nextRow;
+		let maxRows;
+		nextRow = this.diceRows.findIndex((row) => Object.keys(row).length < 7);
+		maxRows = (nextRow !== -1 ? nextRow : this.diceRows.length) + 1;
+		const dc = new DiceCreator({
+			maxRows,
 			settings: this.settings
-		}).render(true);
+		});
+		this.renderChild(dc);
 	}
 
 	static #reset() {
-		this.diceRows = game.settings.settings.get("dice-calculator.diceRows").default;
+		this.diceRows = CONFIG.DICETRAY.rows;
+		this.dice = Object.fromEntries(
+			Object.entries(CONFIG.DICETRAY.dice)
+				.filter(([key]) =>
+					!this.diceRows.some(
+						(r) => r[key] || Object.values(r).some((d) => d.drawer?.[key])
+					)
+				)
+		);
 		this.render(false);
 	}
 
@@ -215,12 +415,22 @@ class DiceRowSettings extends HandlebarsApplicationMixin$1(ApplicationV2$1) {
 				}
 			})
 		);
-		const current = game.settings.get("dice-calculator", "diceRows");
-		if (JSON.stringify(this.diceRows) !== JSON.stringify(current)) {
-			await game.settings.set("dice-calculator", "diceRows", this.diceRows);
-			forceRender = true;
-		}
+		await Promise.all(
+			["diceRows", "dice"].map(async (s) => {
+				const current = game.settings.get("dice-calculator", s);
+
+				if (JSON.stringify(this[s]) !== JSON.stringify(current)) {
+					await game.settings.set("dice-calculator", s, this[s]);
+					forceRender = true;
+				}
+			})
+		);
 		if (forceRender) Hooks.callAll("dice-calculator.forceRender");
+	}
+
+	async close(options={}) {
+		this.children.forEach((c) => c.close());
+		await super.close(options);
 	}
 }
 
@@ -243,7 +453,7 @@ class DiceTrayPopOut extends HandlebarsApplicationMixin(ApplicationV2) {
 	static PARTS = {
 		list: {
 			id: "list",
-			template: "modules/dice-calculator/templates/tray.html",
+			template: "", // Set when the Dice Tray is initialized
 		}
 	};
 
@@ -277,6 +487,7 @@ class DiceTrayPopOut extends HandlebarsApplicationMixin(ApplicationV2) {
 		super._onRender(context, options);
 		CONFIG.DICETRAY.applyLayout(this.element);
 		CONFIG.DICETRAY.applyListeners(this.element);
+		CONFIG.DICETRAY.applyDropListener();
 	}
 
 	async _prepareContext(_options) {
@@ -298,7 +509,23 @@ class DiceTrayPopOut extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 
 class TemplateDiceMap {
+	constructor() {
+		DiceTrayPopOut.PARTS.list.template = this.template;
+	}
+
 	_rightClickCommand;
+
+	/** Default value of the Compact Mode setting */
+	compactMode = this.dice.length < 2 && Object.keys(this.dice[0]).length < 7;
+
+	/** Default value of the Hide Number Input setting */
+	hideNumberInput = false;
+
+	/** Default value of the Hide Number +/- setting */
+	hideNumberButtons = false;
+
+	/** Default value of the Hide Roll Button setting */
+	hideRollButton = false;
 
 	/** Unmark the KH/KL buttons if a roll is made */
 	removeAdvOnRoll = true;
@@ -306,7 +533,9 @@ class TemplateDiceMap {
 	/** Shows the KH/KL buttons */
 	showExtraButtons = true;
 
-	template = "modules/dice-calculator/templates/tray.html";
+	template = "modules/dice-calculator/templates/tray.hbs";
+
+	#appliedDropListener;
 
 	/**
 	 * The formula that will be rendered on the KH/KL buttons
@@ -327,51 +556,80 @@ class TemplateDiceMap {
 	}
 
 	/**
-	 * The dice rows that will be shown on the dice tray.
-	 * @property {String} color		Optional RGB or Hex value that colors a dice's background image. If none is preset, it will be white.
-	 * @property {String} img		The path to an image that will be shown on the button. If none is present, the label will be used instead.
-	 * @property {String} label		The label meant to be used when the button doesn't have a proper image, like Fate Dice or multiple dice.
-	 * @property {String} tooltip	Optional tooltip that will be shown instead of the key. Useful for special dice like Genesys system's.
-	 * @returns {[Object]}
+	 * Configuration for a dice tray button.
 	 *
-	 * @example
-	 * ```js Dice buttons with mixed image/label
-	 * return [{
-	 * 	d6: { img: "icons/dice/d6black.svg" },
-	 *  "4df": { label: "Fate Dice" }
-	 * }];
+	 * @typedef {Object} DiceButton
+	 * @property {boolean} [alternative] Changes how the dice is rendered. Used for some edge cases (e.g. AlienRPG).
+	 * @property {string} [color] Optional RGB or hex color applied to the die's background image. Defaults to white.
+	 * @property {string} [img] Path to the image shown on the button. If omitted, `label` is used instead.
+	 * @property {string} [label] Text displayed when no image is provided.
+	 * @property {string} [tooltip] Optional tooltip shown instead of the die key.
+	 *
+	 * @example Dice buttons with mixed image/label
+	 * ```js
+	 * d6: { img: "icons/dice/d6black.svg" },
+	 * "4df": { label: "Fate Dice" }
 	 * ```
 	 *
 	 * @example Dice buttons with just labels
 	 * ```js
-	 * return [{
-	 * 	d6: { label: "1d6" },
-	 *  "2d6": { label: "2d6" }
-	 *  "3d6": { label: "3d6" }
-	 * }];
+	 * d6: { label: "1d6" },
+	 * "2d6": { label: "2d6" }
+	 * "3d6": { label: "3d6" }
 	 * ```
 	 *
+	 * @example Dice buttons with just labels
+	 * ```js
+	 * return {
+	 * d6: { label: "1d6" },
+	 * "2d6": { label: "2d6" }
+	 * "3d6": { label: "3d6" }
+	 * };
+	 * ```
 	 * @example Dice buttons with tooltips
 	 * ```js
-	 * return [{
-	 * 	da: { tooltip: "Proficiency" },
-	 *  ds: { tooltip: "Setback" }
-	 *  df: { tooltip: "Force" }
-	 * }];
+	 * da: { tooltip: "Proficiency" },
+	 * ds: { tooltip: "Setback" }
+	 * df: { tooltip: "Force" }
 	 * ```
+	*/
+
+	/**
+	 * The dice that will be shown on the dice tray.
+	 * @returns {Object<string, DiceButton>}
 	 */
 	get dice() {
-		return [
-			{
-				d4: { img: "icons/dice/d4black.svg" },
-				d6: { img: "icons/dice/d6black.svg" },
-				d8: { img: "icons/dice/d8black.svg" },
-				d10: { img: "icons/dice/d10black.svg" },
-				d12: { img: "icons/dice/d12black.svg" },
-				d20: { img: "icons/dice/d20black.svg" },
-				d100: { img: "modules/dice-calculator/assets/icons/d100black.svg" },
-			}
-		];
+		return {
+			d3: { img: "modules/dice-calculator/assets/icons/d3black.svg" },
+			d4: { img: "icons/dice/d4black.svg" },
+			d5: { img: "modules/dice-calculator/assets/icons/d5black.svg" },
+			d6: { img: "icons/dice/d6black.svg" },
+			d7: { img: "modules/dice-calculator/assets/icons/d7black.svg" },
+			d8: { img: "icons/dice/d8black.svg" },
+			d10: { img: "icons/dice/d10black.svg" },
+			d12: { img: "icons/dice/d12black.svg" },
+			d14: { img: "modules/dice-calculator/assets/icons/d14black.svg" },
+			d16: { img: "modules/dice-calculator/assets/icons/d16black.svg" },
+			d20: { img: "icons/dice/d20black.svg" },
+			d24: { img: "modules/dice-calculator/assets/icons/d24black.svg" },
+			d30: { img: "modules/dice-calculator/assets/icons/d30black.svg" },
+			d100: { img: "modules/dice-calculator/assets/icons/d100black.svg" },
+		};
+	}
+
+	/**
+	 * Base Data of a Dice Row
+	 * @typedef {DiceButton & { drawer?: Object<string, DiceButton>}} DiceRow
+	 */
+
+	/**
+	 * The dice rows that will be shown on the dice tray. Limit of 7 dice per row due to size constraints.
+	 * @returns {Object<string, DiceRow>[]}
+	 */
+	get rows() {
+		const { d4, d6, d8, d10, d12, d20, d100 } = this.dice;
+		d10.drawer = { d100 };
+		return [{ d4, d6, d8, d10, d12, d20 }];
 	}
 
 	/**
@@ -425,23 +683,48 @@ class TemplateDiceMap {
 			this._createExtraButtons(html);
 			this._extraButtonsLogic(html);
 		}
-
-		/** Clicking the Roll button clears and hides all orange number flags, and unmark the KH/KL keys */
-		html.querySelector(".dice-tray__roll")?.addEventListener("click", async (event) => {
-			event.preventDefault();
-			await this.roll(this.textarea.value);
-			this.textarea.value = "";
-			event.target.blur();
-		});
 	}
 
 	applyListeners(html) {
+		let blur = false;
+		let longPress = false;
+		let pointerDownEvent;
+		let holdTimer;
+		let leaveTimer;
+		let tooltipDirection;
+
+		function cancelTimer(timer) {
+			if (!timer) return;
+			clearTimeout(timer);
+			timer = null;
+		}
+		const drawers = html.querySelectorAll(".dice-tray__drawer");
+		const drawerDoors = html.querySelectorAll(".dice-tray button[data-drawer]");
 		// Auto-focuses on the chat box but wait for any drag events
 		html.querySelectorAll(".dice-tray button[draggable='true']").forEach((button) => {
-			let blur = false;
-			let pointerDownEvent;
+			const insideDrawer = button.parentElement.classList.contains("dice-tray__drawer");
+			const drawer = insideDrawer
+				? button.parentElement
+				: [...drawers].find((e) => e.dataset.drawer === button.dataset.drawer);
+			const drawerDoor = insideDrawer
+				? [...drawerDoors].find((e) => e.dataset.drawer === drawer.dataset.drawer)
+				: button;
 			button.addEventListener("pointerdown", (event) => {
 				pointerDownEvent = event;
+				// Open Drawer
+				if (drawer?.hidden && !insideDrawer) {
+					holdTimer = setTimeout(() => {
+						longPress = true;
+						holdTimer = null;
+						blur = false;
+						event.target.blur();
+						pointerDownEvent = null;
+						tooltipDirection = button.dataset?.tooltipDirection;
+						button.dataset.tooltipDirection = "LEFT";
+						if (game.tooltip.element) game.tooltip._setAnchor("LEFT");
+						drawer.hidden = false;
+					}, 250);
+				}
 				// Avoid chat notifications' box constantly "accordioning" when losing and gaining focus but still remove focus from buttons
 				if (!ui.sidebar.expanded && !ui.chat.popout?.rendered && !ui.chat.isPopout) {
 					blur = true;
@@ -465,7 +748,27 @@ class TemplateDiceMap {
 				}
 				blur = false;
 				pointerDownEvent = null;
+				cancelTimer(holdTimer);
 			});
+			button.addEventListener("pointerleave", (event) => {
+				cancelTimer(holdTimer);
+				if (drawer && !drawer.hidden) {
+					leaveTimer = setTimeout(() => {
+						cancelTimer(leaveTimer);
+						drawerDoor.dataset.tooltipDirection = tooltipDirection;
+						drawer.hidden = true;
+					}, 500);
+				}
+			});
+			button.addEventListener("pointerenter", (event) => {
+				if (drawer && !drawer.hidden) {
+					cancelTimer(leaveTimer);
+				}
+			});
+			if (drawer && !insideDrawer) {
+				button.style.anchorName = `--${CSS.escape(button.dataset.formula)}`;
+				drawer.style.positionAnchor = button.style.anchorName;
+			}
 		});
 		html.querySelectorAll(".dice-tray #dice-tray-math button").forEach((button) => {
 			button.addEventListener("pointerdown", (event) => {
@@ -479,8 +782,12 @@ class TemplateDiceMap {
 		html.querySelectorAll(".dice-tray__button").forEach((button) => {
 			button.addEventListener("click", (event) => {
 				event.preventDefault();
+				if (longPress) {
+					longPress = false;
+					return;
+				}
 				const dataset = event.currentTarget.dataset;
-				CONFIG.DICETRAY.updateChatDice(dataset, "add", html);
+				this.updateChatDice(dataset, "add", html);
 			});
 
 			button.addEventListener("contextmenu", async (event) => {
@@ -494,50 +801,32 @@ class TemplateDiceMap {
 					}
 					case "decrease":
 					default:
-						CONFIG.DICETRAY.updateChatDice(dataset, "sub", html);
+						this.updateChatDice(dataset, "sub", html);
 				}
 			});
 
 			if (button.draggable) button.addEventListener("dragstart", (event) => {
 				const dataset = event.target.dataset;
 				const dragData = JSON.parse(JSON.stringify(dataset));
-				if (dragData?.formula) {
-					// Grab the modifier, if any.
-					const parentElement = event.target.closest(".dice-tray");
-					const modInput = parentElement.querySelector(".dice-tray__input");
-					const mod = modInput.value;
+				if (!dragData?.formula) return;
+				// Grab the modifier, if any.
+				const parentElement = event.target.closest(".dice-tray");
+				const modInput = parentElement.querySelector(".dice-tray__input");
+				const mod = modInput?.value;
 
-					// Grab the count, if any.
-					const qty = button.querySelector(".dice-tray__flag").textContent;
-					if (qty.length > 0) {
-						dragData.formula = `${qty}${dataset.formula}`;
-					}
-
-					// Apply the modifier.
-					if (mod && mod !== "0") {
-						dragData.formula += ` + ${mod}`;
-					}
-					dragData.origin = "dice-calculator";
-					event.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+				// Grab the count, if any.
+				const qty = button.querySelector(".dice-tray__flag").textContent;
+				if (qty.length > 0) {
+					dragData.formula = `${qty}${dataset.formula}`;
 				}
+
+				// Apply the modifier.
+				if (mod && mod !== "0") {
+					dragData.formula += ` + ${mod}`;
+				}
+				dragData.origin = "dice-calculator";
+				event.dataTransfer.setData("text/plain", JSON.stringify(dragData));
 			});
-		});
-
-		document.documentElement.addEventListener("drop", async (event) => {
-			// This try-catch is needed because it conflicts with other modules
-			try {
-				const data = JSON.parse(event.dataTransfer.getData("text/plain"));
-				// If there's a formula, trigger the roll.
-				if (data?.origin === "dice-calculator" && data?.formula) {
-					const rollPrefix = this._getMessageMode();
-					await this.roll(`${rollPrefix} ${data.formula}`);
-					this.reset();
-					event.stopImmediatePropagation();
-				}
-			} catch(err) {
-				// Unable to Parse Data, Return Event
-				return event;
-			}
 		});
 
 		// Handle correcting the modifier math if it's null.
@@ -546,14 +835,14 @@ class TemplateDiceMap {
 			let modVal = Number(event.target.value);
 			modVal = Number.isNaN(modVal) ? 0 : modVal;
 			event.target.value = modVal;
-			CONFIG.DICETRAY.applyModifier(html, { noFocus: true });
+			this.applyModifier(html, { noFocus: true });
 		});
 		diceTrayInput?.addEventListener("wheel", (event) => {
 			const diff = event.deltaY < 0 ? 1 : -1;
 			let modVal = event.currentTarget.value;
 			modVal = Number.isNaN(modVal) ? 0 : Number(modVal);
 			event.currentTarget.value = modVal + diff;
-			CONFIG.DICETRAY.applyModifier(html, { noFocus: true });
+			this.applyModifier(html, { noFocus: true });
 		});
 		diceTrayInput?.addEventListener("focus", (event) => {
 			diceTrayInput.select();
@@ -576,9 +865,37 @@ class TemplateDiceMap {
 				}
 
 				html.querySelector('input[name="dice.tray.modifier"]').value = modVal;
-				CONFIG.DICETRAY.applyModifier(html);
+				this.applyModifier(html);
 			});
 		});
+		/** Clicking the Roll button clears and hides all orange number flags, and unmark the KH/KL keys */
+		html.querySelector(".dice-tray__roll")?.addEventListener("click", async (event) => {
+			event.preventDefault();
+			await this.roll(this.textarea.value);
+			this.textarea.value = "";
+			event.target.blur();
+		});
+	}
+
+	applyDropListener() {
+		if (this.#appliedDropListener) return;
+		document.documentElement.addEventListener("drop", async (event) => {
+			// This try-catch is needed because it conflicts with other modules
+			try {
+				const data = JSON.parse(event.dataTransfer.getData("text/plain") || "{}");
+				// If there's a formula, trigger the roll.
+				if (data?.origin === "dice-calculator" && data?.formula) {
+					const rollPrefix = this._getMessageMode();
+					await this.roll(`${rollPrefix} ${data.formula}`);
+					this.reset();
+					event.stopImmediatePropagation();
+				}
+			} catch(err) {
+				// Unable to Parse Data, Return Event
+				return event;
+			}
+		});
+		this.#appliedDropListener = true;
 	}
 
 	async render() {
@@ -594,9 +911,10 @@ class TemplateDiceMap {
 		if (content.length > 0) {
 			const inputElement = document.getElementById("chat-message");
 			inputElement.insertAdjacentHTML("afterend", content);
-			CONFIG.DICETRAY.element = inputElement.parentElement.querySelector(".dice-tray");
-			CONFIG.DICETRAY.applyLayout(CONFIG.DICETRAY.element);
-			CONFIG.DICETRAY.applyListeners(CONFIG.DICETRAY.element);
+			this.element = inputElement.parentElement.querySelector(".dice-tray");
+			this.applyLayout(this.element);
+			this.applyListeners(this.element);
+			this.applyDropListener();
 		}
 		this.rendered = true;
 	}
@@ -606,8 +924,19 @@ class TemplateDiceMap {
 	 */
 	reset() {
 		this.textarea.value = "";
-		TemplateDiceMap._resetTray(this.element);
-		TemplateDiceMap._resetTray(CONFIG.DICETRAY.popout?.element);
+		const resetTray = (html) => {
+			if (!html) return;
+			if (html.querySelector(".dice-tray__input")) html.querySelector(".dice-tray__input").value = 0;
+			for (const flag of html.querySelectorAll(".dice-tray__flag:not(.hide)")) {
+				flag.textContent = "";
+				flag.classList.add("hide");
+			}
+			if (this.removeAdvOnRoll) {
+				html.querySelector(".dice-tray__ad.active")?.classList?.remove("active");
+			}
+		};
+		resetTray(this.element);
+		resetTray(this.popout?.element);
 	}
 
 	/**
@@ -617,6 +946,7 @@ class TemplateDiceMap {
 	_createExtraButtons(html) {
 		const { kh, kl } = this.buttonFormulas;
 		const math = html.querySelector("#dice-tray-math");
+		if (!math) return;
 		math.removeAttribute("hidden");
 		const div = document.createElement("div");
 		div.classList.add("dice-tray__stacked", "flexcol");
@@ -689,18 +1019,6 @@ class TemplateDiceMap {
 				// Update the value.
 				chat.value = chatVal;
 			});
-		}
-	}
-
-	static _resetTray(html) {
-		if (!html) return;
-		if (html.querySelector(".dice-tray__input")) html.querySelector(".dice-tray__input").value = 0;
-		for (const flag of html.querySelectorAll(".dice-tray__flag:not(.hide)")) {
-			flag.textContent = "";
-			flag.classList.add("hide");
-		}
-		if (CONFIG.DICETRAY.removeAdvOnRoll ) {
-			html.querySelector(".dice-tray__ad")?.classList?.remove("active");
 		}
 	}
 
@@ -840,7 +1158,7 @@ class TemplateDiceMap {
 	 */
 	updateDiceFlags(qty, formula) {
 		const selector = CSS.escape(`dice-tray__flag--${formula}`); // There is a chance the formula contains invalid CSS character (e.g. "/")
-		const flags = document.querySelectorAll(`.${selector}`);
+		const flags = document.querySelectorAll(`.${selector}:not(.sidebar-preview .${selector})`);
 		for (const flag of flags) {
 			flag.textContent = qty !== 0 ? qty : "";
 			flag.classList.toggle("hide", qty === 0);
@@ -935,36 +1253,38 @@ class alienrpgDiceMap extends TemplateDiceMap {
 	showExtraButtons = false;
 
 	get dice() {
-		return [
-			{
-				db: {
-					tooltip: game.i18n.localize("ALIENRPG.Base"),
-					img: "systems/alienrpg/ui/alien-dice-b6.png",
-					alternative: true
-				},
-				ds: {
-					tooltip: game.i18n.localize("ALIENRPG.Stress"),
-					img: "systems/alienrpg/ui/alien-dice-y6.png",
-					alternative: true
-				}
-			}
-		];
+		return {
+			db: {
+				tooltip: game.i18n.localize("ALIENRPG.Base"),
+				img: "systems/alienrpg/ui/alien-dice-b6.png",
+				alternative: true
+			},
+			ds: {
+				tooltip: game.i18n.localize("ALIENRPG.Stress"),
+				img: "systems/alienrpg/ui/alien-dice-y6.png",
+				alternative: true
+			},
+			...super.dice
+		};
+	}
+
+	get rows() {
+		const { db, ds } = this.dice;
+		return [{ db, ds }];
 	}
 }
 
 class cosmereDiceMap extends TemplateDiceMap {
 	get dice() {
-		return [
-			{
-				d4: { img: "icons/dice/d4black.svg" },
-				d6: { img: "icons/dice/d6black.svg" },
-				d8: { img: "icons/dice/d8black.svg" },
-				d10: { img: "icons/dice/d10black.svg" },
-				d12: { img: "icons/dice/d12black.svg" },
-				d20: { img: "icons/dice/d20black.svg" },
-				dp: { img: "systems/cosmere-rpg/assets/icons/svg/dice/dp_op.svg", tooltip: game.i18n.localize("DICE.Plot.Die") },
-			}
-		];
+		return {
+			dp: { img: "systems/cosmere-rpg/assets/icons/svg/dice/dp_op.svg", tooltip: game.i18n.localize("DICE.Plot.Die") },
+			...super.dice
+		};
+	}
+
+	get rows() {
+		const { d4, d6, d8, d10, d12, d20, dp } = this.dice;
+		return [d4, d6, d8, d10, d12, d20, dp];
 	}
 
 	get labels() {
@@ -986,25 +1306,31 @@ class daggerheartDiceMap extends TemplateDiceMap {
 	}
 
 	get dice() {
-		const initials = (str) => {
-			const rgx = new RegExp(/(\p{L}{1})\p{L}+/, "gu");
-
-			const initials = [...str.matchAll(rgx)] || [];
-
-			return ((initials.shift()?.[1] || "") + (initials.pop()?.[1] || "")
-			).toUpperCase();
+		return {
+			"/dr": { img: "systems/daggerheart/assets/icons/dice/duality/DualityBW.svg", tooltip: _loc("DAGGERHEART.GENERAL.dualityRoll") },
+			"/fr": { img: "systems/daggerheart/assets/icons/dice/hope/d12.svg", alternative: true, tooltip: _loc("DAGGERHEART.GENERAL.fateRoll") },
+			"/fr type=fear": { img: "systems/daggerheart/assets/icons/dice/fear/d12.svg", alternative: true, tooltip: _loc("DAGGERHEART.GENERAL.fateRoll") },
+			...super.dice,
 		};
-		const dr = _loc("DAGGERHEART.GENERAL.dualityRoll");
-		const fr = _loc("DAGGERHEART.GENERAL.fateRoll");
+	}
+
+	get rows() {
+		const dice = this.dice;
+		const { d4, d6, d8, d10, d12 } = dice;
 		return [
 			{
-				d4: { img: "icons/dice/d4black.svg" },
-				d6: { img: "icons/dice/d6black.svg" },
-				d8: { img: "icons/dice/d8black.svg" },
-				d10: { img: "icons/dice/d10black.svg" },
-				d12: { img: "icons/dice/d12black.svg" },
-				"/dr": { label: initials(dr), tooltip: dr },
-				"/fr": { label: initials(fr), tooltip: fr },
+				d4,
+				d6,
+				d8,
+				d10,
+				d12,
+				"/dr": dice["/dr"],
+				"/fr": {
+					...dice["/fr"],
+					drawer: {
+						"/fr type=fear": dice["/fr type=fear"]
+					}
+				}
 			}
 		];
 	}
@@ -1062,7 +1388,7 @@ class dccDiceMap extends TemplateDiceMap {
 		};
 	}
 
-	get dice() {
+	get rows() {
 		return [
 			{
 				d3: { img: "modules/dice-calculator/assets/icons/d3black.svg" },
@@ -1126,16 +1452,9 @@ class dccDiceMap extends TemplateDiceMap {
 }
 
 class demonlordDiceMap extends TemplateDiceMap {
-
-	get dice() {
-		const dice = [
-			{
-				d3: { img: "modules/dice-calculator/assets/icons/d3black.svg" },
-				d6: { img: "icons/dice/d6black.svg" },
-				d20: { img: "icons/dice/d20black.svg" }
-			}
-		];
-		return dice;
+	get rows() {
+		const { d3, d6, d20 } = this.dice;
+		return [{ d3, d6, d20 }];
 	}
 
 	get buttonFormulas() {
@@ -1202,45 +1521,54 @@ class dnd5eDiceMap extends TemplateDiceMap {
 
 class FateDiceMap extends TemplateDiceMap {
 	get dice() {
+		return {
+			"4df": { label: game.i18n.localize("DICE_TRAY.FateDice")},
+			...super.dice
+		};
+	}
+
+	get rows() {
+		const dice = this.dice;
 		return [
 			{
-				d6: { img: "icons/dice/d6black.svg" },
-				"4df": { label: game.i18n.localize("DICE_TRAY.FateDice")},
+				d6: dice.d6,
+				"4df": dice["4df"],
 			}
 		];
 	}
 }
 
 class GrimwildDiceMap extends TemplateDiceMap {
-	// Ironically, this is used to *remove* extra buttons like the input.
-	// @todo update the parent class to add something like a render hook
-	// for a more accurate place to modify the final markup.
-	showExtraButtons = true;
+	compactMode = true;
 
-	// Prepare dice buttons.
+	hideNumberInput = true;
+
+	hideNumberButtons = true;
+
 	get dice() {
-		return [
-			{
-				d: {
-					// img: "icons/dice/d6black.svg",
-					tooltip: "Dice",
-					label: "<i class=\"fas fa-dice-d6\"></i> d",
-					direction: "LEFT"
-				},
-				t: {
-					// img: "icons/dice/d8black.svg",
-					tooltip: "Thorns",
-					label: "<i class=\"fas fa-dice-d8\"></i> t",
-					direction: "LEFT"
-				},
-				p: {
-					// img: "icons/dice/d6black.svg",
-					tooltip: "Pool",
-					label: "<i class=\"fas fa-dice-d6\"></i> Pool",
-					direction: "LEFT"
-				},
-			}
-		];
+		return {
+			d: {
+				tooltip: "Dice",
+				label: "<i class=\"fas fa-dice-d6\"></i> d",
+				direction: "LEFT"
+			},
+			t: {
+				tooltip: "Thorns",
+				label: "<i class=\"fas fa-dice-d8\"></i> t",
+				direction: "LEFT"
+			},
+			p: {
+				tooltip: "Pool",
+				label: "<i class=\"fas fa-dice-d6\"></i> Pool",
+				direction: "LEFT"
+			},
+			...super.dice
+		};
+	}
+
+	get rows() {
+		const { d, t, p } = this.dice;
+		return [{ d, t, p }];
 	}
 
 	// Override the chat formula logic.
@@ -1383,16 +1711,6 @@ class GrimwildDiceMap extends TemplateDiceMap {
 			chat.value = dice ? currFormula : "";
 		}
 	}
-
-	/**
-	 * Remove buttons unused by Grimwild.
-	 * @param {HTMLElement} html
-	 */
-	_createExtraButtons(html) {
-		html.querySelector(".dice-tray__math--sub").remove();
-		html.querySelector(".dice-tray__math--add").remove();
-		html.querySelector(".dice-tray__input").remove();
-	}
 }
 
 class HeXXen1733DiceMap extends TemplateDiceMap {
@@ -1400,30 +1718,34 @@ class HeXXen1733DiceMap extends TemplateDiceMap {
 	showExtraButtons = false;
 
 	get dice() {
-		return [
-			{
-				h: {
-					tooltip: "HeXXenwürfel",
-					img: "systems/hexxen-1733/img/dice/svg/erfolgswuerfel_einfach.svg",
-					color: "#00a806"
-				},
-				s: {
-					tooltip: "Segnungswürfel",
-					img: "systems/hexxen-1733/img/dice/svg/erfolgswuerfel_doppel.svg",
-					color: "#d1c5a8"
-				},
-				b: {
-					tooltip: "Blutwürfel",
-					img: "systems/hexxen-1733/img/dice/svg/blutwuerfel_3.svg",
-					color: "#a74937"
-				},
-				e: {
-					tooltip: "Elixierwürfel",
-					img: "systems/hexxen-1733/img/dice/svg/elixirwuerfel_5.svg",
-					color: "#4c7ba0"
-				}
-			}
-		];
+		return {
+			h: {
+				tooltip: "HeXXenwürfel",
+				img: "systems/hexxen-1733/img/dice/svg/erfolgswuerfel_einfach.svg",
+				color: "#00a806"
+			},
+			s: {
+				tooltip: "Segnungswürfel",
+				img: "systems/hexxen-1733/img/dice/svg/erfolgswuerfel_doppel.svg",
+				color: "#d1c5a8"
+			},
+			b: {
+				tooltip: "Blutwürfel",
+				img: "systems/hexxen-1733/img/dice/svg/blutwuerfel_3.svg",
+				color: "#a74937"
+			},
+			e: {
+				tooltip: "Elixierwürfel",
+				img: "systems/hexxen-1733/img/dice/svg/elixirwuerfel_5.svg",
+				color: "#4c7ba0"
+			},
+			...super.dice
+		};
+	}
+
+	get rows() {
+		const { h, s, b, e } = this.dice;
+		return [{ h, s, b, e }];
 	}
 
 	applyModifier(html) {
@@ -1527,19 +1849,6 @@ class pf2eDiceMap extends TemplateDiceMap {
 		return super.buttonFormulas;
 	}
 
-	get dice() {
-		return [
-			{
-				d4: { img: "icons/dice/d4black.svg" },
-				d6: { img: "icons/dice/d6black.svg" },
-				d8: { img: "icons/dice/d8black.svg" },
-				d10: { img: "icons/dice/d10black.svg" },
-				d12: { img: "icons/dice/d12black.svg" },
-				d20: { img: "icons/dice/d20black.svg" }
-			}
-		];
-	}
-
 	flatCheckLabel(dc) {
 		return game.i18n.format("DICE_TRAY.SETTINGS.PF2E.flatCheckLabel", {
 			dc: game.i18n.format("PF2E.InlineAction.Check.DC", { dc }),
@@ -1606,62 +1915,58 @@ class starwarsffgDiceMap extends TemplateDiceMap {
 	showExtraButtons = false;
 
 	get dice() {
-		return [
-			{
-				dp: {
-					tooltip: game.i18n.localize("SWFFG.DiceProficiency"),
-					img: "systems/starwarsffg/images/dice/starwars/yellow.png",
-					color: "#fef135"
-				},
-				da: {
-					tooltip: game.i18n.localize("SWFFG.DiceAbility"),
-					img: "systems/starwarsffg/images/dice/starwars/green.png",
-					color: "#46ac4f"
-				},
-				dc: {
-					tooltip: game.i18n.localize("SWFFG.DiceChallenge"),
-					img: "systems/starwarsffg/images/dice/starwars/red.png",
-					color: "#751317"
-				},
-				di: {
-					tooltip: game.i18n.localize("SWFFG.DiceDifficulty"),
-					img: "systems/starwarsffg/images/dice/starwars/purple.png",
-					color: "#52287e"
-				},
-				db: {
-					tooltip: game.i18n.localize("SWFFG.DiceBoost"),
-					img: "systems/starwarsffg/images/dice/starwars/blue.png",
-					color: "#76c3db"
-				},
-				ds: {
-					tooltip: game.i18n.localize("SWFFG.DiceSetback"),
-					img: "systems/starwarsffg/images/dice/starwars/black.png",
-					color: "#141414"
-				},
-				df: {
-					tooltip: game.i18n.localize("SWFFG.DiceForce"),
-					img: "systems/starwarsffg/images/dice/starwars/whiteHex.png",
-					color: "#ffffff"
-				}
-			}
-		];
+		return {
+			dp: {
+				tooltip: game.i18n.localize("SWFFG.DiceProficiency"),
+				img: "systems/starwarsffg/images/dice/starwars/yellow.png",
+				color: "#fef135"
+			},
+			da: {
+				tooltip: game.i18n.localize("SWFFG.DiceAbility"),
+				img: "systems/starwarsffg/images/dice/starwars/green.png",
+				color: "#46ac4f"
+			},
+			dc: {
+				tooltip: game.i18n.localize("SWFFG.DiceChallenge"),
+				img: "systems/starwarsffg/images/dice/starwars/red.png",
+				color: "#751317"
+			},
+			di: {
+				tooltip: game.i18n.localize("SWFFG.DiceDifficulty"),
+				img: "systems/starwarsffg/images/dice/starwars/purple.png",
+				color: "#52287e"
+			},
+			db: {
+				tooltip: game.i18n.localize("SWFFG.DiceBoost"),
+				img: "systems/starwarsffg/images/dice/starwars/blue.png",
+				color: "#76c3db"
+			},
+			ds: {
+				tooltip: game.i18n.localize("SWFFG.DiceSetback"),
+				img: "systems/starwarsffg/images/dice/starwars/black.png",
+				color: "#141414"
+			},
+			df: {
+				tooltip: game.i18n.localize("SWFFG.DiceForce"),
+				img: "systems/starwarsffg/images/dice/starwars/whiteHex.png",
+				color: "#ffffff"
+			},
+			...super.dice
+		};
+	}
+
+	get rows() {
+		const { dp, da, dc, di, db, ds, df } = this.dice;
+		return [{ dp, da, dc, di, db, ds, df }];
 	}
 }
 
 class SWADEDiceMap extends TemplateDiceMap {
 	removeAdvOnRoll = false;
 
-	get dice() {
-		const dice = [
-			{
-				d4: { img: "icons/dice/d4black.svg" },
-				d6: { img: "icons/dice/d6black.svg" },
-				d8: { img: "icons/dice/d8black.svg" },
-				d10: { img: "icons/dice/d10black.svg" },
-				d12: { img: "icons/dice/d12black.svg" }
-			}
-		];
-		return dice;
+	get rows() {
+		const { d4, d6, d8, d10, d12 } = this.dice;
+		return [{ d4, d6, d8, d10, d12 }];
 	}
 
 	get labels() {
@@ -1752,6 +2057,9 @@ const KEYS = {
 	"hexxen-1733": "hexxen1733"
 };
 
+const {
+	ArrayField, BooleanField, ColorField, FilePathField, SchemaField, StringField, TypedObjectField
+} = foundry.data.fields;
 function registerSettings() {
 	game.settings.registerMenu("dice-calculator", "DiceRowSettings", {
 		name: "DICE_TRAY.SETTINGS.DiceRowSettings",
@@ -1781,46 +2089,49 @@ function registerSettings() {
 	});
 
 	// Menu Settings
-
+	const diceRows = CONFIG.DICETRAY.rows;
+	game.settings.register("dice-calculator", "dice", {
+		scope: "world",
+		config: false,
+		default: !diceRows.length ? CONFIG.DICETRAY.dice : Object.fromEntries(
+			Object.entries(CONFIG.DICETRAY.dice)
+				.filter(([key]) =>
+					!diceRows.some((r) => r[key] && Object.values(r).some((d) => d.drawer?.[key]))
+				)
+		),
+		type: new TypedObjectField(new BaseDiceField()),
+	});
 	game.settings.register("dice-calculator", "diceRows", {
 		scope: "world",
 		config: false,
-		default: CONFIG.DICETRAY.dice,
-		type: new foundry.data.fields.ArrayField(
-			new foundry.data.fields.TypedObjectField(
-				new foundry.data.fields.SchemaField({
-					key: new foundry.data.fields.StringField(),
-					img: new foundry.data.fields.FilePathField({categories: ["IMAGE"]}),
-					alternative: new foundry.data.fields.BooleanField(),
-					// Optional Fields
-					label: new foundry.data.fields.StringField(),
-					tooltip: new foundry.data.fields.StringField(),
-					color: new foundry.data.fields.ColorField(),
-				}))),
+		default: CONFIG.DICETRAY.rows,
+		type: new ArrayField(
+			new TypedObjectField(new DiceField())),
 	});
 
+	const { compactMode, hideNumberInput, hideNumberButtons, hideRollButton } = CONFIG.DICETRAY;
 	game.settings.register("dice-calculator", "compactMode", {
 		scope: "world",
 		config: false,
-		default: false,
+		default: compactMode,
 		type: Boolean,
 	});
 	game.settings.register("dice-calculator", "hideNumberInput", {
 		scope: "world",
 		config: false,
-		default: false,
+		default: hideNumberInput,
 		type: Boolean,
 	});
 	game.settings.register("dice-calculator", "hideNumberButtons", {
 		scope: "world",
 		config: false,
-		default: false,
+		default: hideNumberButtons,
 		type: Boolean
 	});
 	game.settings.register("dice-calculator", "hideRollButton", {
 		scope: "world",
 		config: false,
-		default: false,
+		default: hideRollButton,
 		type: Boolean,
 	});
 
@@ -1883,9 +2194,32 @@ function registerSettings() {
 	}
 }
 
+class BaseDiceField extends SchemaField {
+	constructor(options={}, context={}) {
+		super({
+			key: new StringField(),
+			img: new FilePathField({categories: ["IMAGE"]}),
+			alternative: new BooleanField(),
+			label: new StringField(),
+			tooltip: new StringField(),
+			color: new ColorField(),
+		}, options, context);
+	}
+}
+
+class DiceField extends BaseDiceField {
+	constructor(options={}, context={}) {
+		super(options, context);
+		this.fields.drawer = new TypedObjectField(new BaseDiceField(), { nullable: true });
+	}
+}
+
 // Initialize module
 Hooks.once("init", () => {
-	foundry.applications.handlebars.loadTemplates(["modules/dice-calculator/templates/tray.html"]);
+	foundry.applications.handlebars.loadTemplates({
+		"dice-tray.button": "modules/dice-calculator/templates/button.hbs",
+		"dice-tray.tray": "modules/dice-calculator/templates/tray.hbs"
+	});
 });
 
 Hooks.once("i18nInit", () => {

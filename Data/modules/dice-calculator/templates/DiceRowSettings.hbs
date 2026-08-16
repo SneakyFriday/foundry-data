@@ -5,7 +5,6 @@
             <div class="form-fields">
                 <input id="compactMode" type="checkbox" name="compactMode" {{checked settings.compactMode}}>
             </div>
-            <p class="hint">{{localize "DICE_TRAY.DiceRows.compactMode.hint"}}</p>
         </div>
         <div class="form-group">
             <label for="hideNumberInput">{{localize "DICE_TRAY.DiceRows.hideNumberInput.label"}}</label>
@@ -35,12 +34,23 @@
         </div>
     </fieldset>
     <fieldset>
-        <legend>{{localize "Preview"}}</legend>
-        <div>
-            <p class="hint">{{localize "DICE_TRAY.DiceRows.Instruction1"}}</p>
-        </div>
-        <section class="sidebar-preview flexcol">
-            {{>"modules/dice-calculator/templates/tray.html" dicerows=diceRows settings=settings }}
+        <legend>{{localize "DICE_TRAY.DiceRows.Preview"}}</legend>
+        <section class="sidebar-preview dice-rows flexcol">
+            {{>"modules/dice-calculator/templates/tray.hbs" dicerows=diceRows settings=settings }}
         </section>
     </fieldset>
+	<fieldset>
+		<legend>{{localize "DICE_TRAY.DiceRows.Pool"}}</legend>
+		<section class="sidebar-preview flexcol">
+			<section class="dice-tray dice-tray__pool">
+				{{#each pool as |dice|}}
+				<div class="dice-tray__buttons dice-pool flexrow">
+					{{#each dice as |data key|}}
+					{{> "dice-tray.button" data=data key=key}}
+					{{/each}}
+				</div>
+				{{/each}}
+			</section>
+        </section>
+	</fieldset>
 </div>

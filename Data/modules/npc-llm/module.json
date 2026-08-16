@@ -1,0 +1,20 @@
+{
+  "id": "npc-llm",
+  "title": "NPC LLM",
+  "description": "Lässt einen NPC über ein Sprachmodell im Chat antworten. Wissen wird gestuft freigegeben und vom GM kontrolliert.",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "14"
+  },
+  "authors": [
+    { "name": "Marc" }
+  ],
+  "esmodules": [
+    "scripts/npc-llm.mjs"
+  ],
+  "styles": [
+    "styles/npc-llm.css"
+  ],
+  "socket": false
+}

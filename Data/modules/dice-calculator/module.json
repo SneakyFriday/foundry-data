@@ -13,7 +13,7 @@
         }
     ],
     "url": "https://github.com/mclemente/fvtt-dice-tray",
-    "version": "3.7.1",
+    "version": "4.0.5",
     "compatibility": {
         "minimum": "14",
         "verified": "14"
@@ -33,7 +33,7 @@
         },
         {
             "lang": "pt-BR",
-            "name": "English",
+            "name": "Português (Brasil)",
             "path": "lang/pt-BR.json"
         },
         {
@@ -68,5 +68,5 @@
         }
     ],
     "manifest": "https://github.com/mclemente/fvtt-dice-tray/releases/latest/download/module.json",
-    "download": "https://github.com/mclemente/fvtt-dice-tray/releases/download/3.7.1/module.zip"
+    "download": "https://github.com/mclemente/fvtt-dice-tray/releases/download/4.0.5/module.zip"
 }

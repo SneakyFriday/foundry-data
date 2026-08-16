@@ -144,6 +144,21 @@ function flagChangeKeys(actor, change) {
  * Chains to core+dnd5e, then applies "missed" changes whose ValidSpec phase
  * differs from the phase core assigned them to.
  */
+/** A change's effective application phase.
+ *  - If the effect was authored through the DAE editor (`flags.dae.phaseStamped`), every change has an
+ *    explicit phase, so `change.phase` is authoritative — including a deliberately-chosen "initial" on
+ *    a key whose ValidSpec phase is "final".
+ *  - Otherwise (legacy/foreign effects): a non-default phase is explicit and wins; the schema default
+ *    "initial" defers to the ValidSpec phase so unstamped derived-key changes still apply at the right time.
+ *  `effect` is supplied where `change.effect` isn't populated yet (the missed-changes scan). */
+export function effectivePhase(change, spec, effect) {
+    const stamped = (effect ?? change?.effect)?.flags?.dae?.phaseStamped;
+    if (stamped)
+        return change?.phase ?? spec?.phase ?? "initial";
+    if (change?.phase && change.phase !== "initial")
+        return change.phase;
+    return spec?.phase ?? change?.phase ?? "initial";
+}
 export function daeApplyActiveEffects(wrapped, phase) {
     if (disableEffects) {
         wrapped(phase);
@@ -164,9 +179,9 @@ export function daeApplyActiveEffects(wrapped, phase) {
             foundry.utils.logCompatibilityWarning(`dae | Effect "${effect.name}" on actor "${this.name}" uses deprecated dae special duration (${specialDurs.filter(sd => deprecatedSpecialDurs.includes(sd)).join(", ")}). Edit the effect to migrate to native duration.expiry.`, { once: true, stack: false });
         }
     }
-    // Collect "missed" changes: ValidSpec says they belong to THIS phase,
-    // but their original phase is different, so core's phase filter will skip them.
-    // We apply these after core+dnd5e finish their normal processing.
+    // Collect "missed" changes: their EFFECTIVE phase is THIS phase (e.g. an unstamped change on a
+    // derived-field key still carrying the default "initial"), but their stored change.phase differs,
+    // so core's phase filter skipped them. Apply them after core+dnd5e finish their normal processing.
     const missedChanges = [];
     for (const effect of this.appliedEffects) {
         if (effect.disabled || effect.isSuppressed)
@@ -176,7 +191,7 @@ export function daeApplyActiveEffects(wrapped, phase) {
             if (!change.key || change.key.startsWith("ATL."))
                 continue;
             const spec = ValidSpec.actorSpecs?.["union"]?.allSpecsObj?.[change.key];
-            if (spec && spec.phase === phase && change.phase !== phase) {
+            if (effectivePhase(change, spec, effect) === phase && change.phase !== phase) {
                 // ValidSpec says this phase, but original phase doesn't match — core will skip it
                 const c = foundry.utils.deepClone(change);
                 c.effect = effect;
@@ -341,17 +356,17 @@ export function daeApplyChange(wrapped, targetDoc, change, options = {}) {
         return wrapped(targetDoc, change, options);
     }
     const actor = targetDoc;
-    // --- Phase correction (ValidSpec) ---
-    // If the current phase is known and ValidSpec says this key belongs to a different phase,
-    // skip it here. The applyActiveEffects WRAPPER collects and applies these "missed" changes
-    // in the correct phase.
-    // For token.* keys: core strips the "token." prefix before calling applyChange, so we
-    // must also check the prefixed key against ValidSpec to catch phase mismatches.
+    // --- Phase correction ---
+    // Skip a change here if its EFFECTIVE phase (the change's own phase when explicitly set, else the
+    // ValidSpec phase for the key) differs from the current phase. The applyActiveEffects WRAPPER
+    // collects and re-applies these "missed" changes in their correct phase.
+    // For token.* keys: core strips the "token." prefix before calling applyChange, so we also
+    // check the prefixed key against ValidSpec.
     const currentPhase = actor._daeCurrentPhase;
     if (currentPhase) {
         const spec = ValidSpec.actorSpecs?.["union"]?.allSpecsObj?.[change.key]
             ?? ValidSpec.actorSpecs?.["union"]?.allSpecsObj?.[`token.${change.key}`];
-        if (spec && spec.phase !== currentPhase) {
+        if (effectivePhase(change, spec) !== currentPhase) {
             return {};
         }
     }
@@ -2542,7 +2557,14 @@ export async function toggleActorStatusEffect(actor, statusId, { active = false,
         if (active) {
             return true;
         }
-        await actor.deleteEmbeddedDocuments("ActiveEffect", existing.map(e => e.id));
+        try {
+            await actor.deleteEmbeddedDocuments("ActiveEffect", existing.map(e => e.id));
+        }
+        catch (err) {
+            // Race condition: another concurrent call deleted this status effect first
+            if (!String(err).includes("does not exist"))
+                throw err;
+        }
         return false;
     }
     // Create a new effect unless the status effect is forced inactive

@@ -492,15 +492,17 @@
     min-height: 0;
   }
   .dae.active-effect-config .tab.changes header {
-    grid-template-columns: 400px 110px 1fr 60px 1rem;
+    grid-template-columns: 400px 110px 1fr 96px 60px 1rem;
     padding-right: 14px;
+    min-width: max-content;
   }
   .dae.active-effect-config .tab.changes ol {
-    grid-template-columns: 400px 110px 1fr 60px 1rem;
+    grid-template-columns: 400px 110px 1fr 96px 60px 1rem;
     align-items: start;
     align-content: start;
     flex: 1;
     min-height: 0;
+    min-width: max-content;
     overflow-y: auto;
   }
   .dae.active-effect-config .tab.changes .key {
@@ -522,6 +524,13 @@
   .dae.active-effect-config .tab.changes .value input,
   .dae.active-effect-config .tab.changes .value textarea {
     min-width: 250px;
+    width: 100%;
+  }
+  .dae.active-effect-config .tab.changes .phase {
+    min-width: 96px;
+  }
+  .dae.active-effect-config .tab.changes .phase select {
+    min-width: 96px;
     width: 100%;
   }
   .dae.active-effect-config .tab.changes .priority {

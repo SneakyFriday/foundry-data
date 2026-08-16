@@ -222,6 +222,8 @@
   "dae.enabledFilter": "Enabled Effects",
   "dae.temporaryFilter": "Timed effects",
   "dae.Priority": "Priority",
+  "dae.Phase": "Phase — when this change is applied (defaults to the field's phase; your choice wins)",
+  "dae.PhaseHeader": "Phase",
   "dae.Stackable": "Stackable",
   "dae.EffectSheetLabel": "DAE Active Effect Sheet",
   "dae.confirm": "Confirmation Dialog",

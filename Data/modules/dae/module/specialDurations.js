@@ -62,7 +62,16 @@ export async function expireEffect(effect, options = {}) {
             await effect.delete(options);
         }
         else {
-            await effect.update({ "duration.expired": true }, options);
+            // "update" mode marks the effect expired (kept, inactive) rather than deleting it. On dnd5e 6.0+
+            // the system itself deletes an expired effect the moment `duration.expired` is set while the
+            // actor is out of combat (ActiveEffect5e._onUpdate), and reaps in-combat ones on combat exit — so
+            // mark-and-keep only holds during combat. Out of combat (incl. combat-end expiry) delete directly
+            // to match the system and avoid leaving an orphaned marked-expired effect behind.
+            const actor = effect.parent instanceof Actor ? effect.parent : effect.parent?.parent;
+            if (!daeManagesTurnExpiry && !actor?.inCombat)
+                await effect.delete(options);
+            else
+                await effect.update({ "duration.expired": true }, options);
         }
     }
 }
@@ -236,23 +245,17 @@ async function expireRoundEffectsOnEnd(actor) {
     }
 }
 // ---- Migrate deprecated special durations to v14 duration.expiry ----
-// When daeManagesTurnExpiry (dnd5e < 6.0), map to DAE's source/target expiry events.
-// Otherwise map to core turnStart/turnEnd (dnd5e 6.0+ handles source/target natively).
+// Both DAE (dnd5e < 6.0, which registers these events and converts them to core turnStart/turnEnd +
+// start.combatant itself) and dnd5e 6.0+ (native PSEUDO_EXPIRIES sourceStart/sourceEnd/targetStart/
+// targetEnd) understand the same expiry names, so one map serves both. Previously the 6.0+ branch
+// mapped source/target → plain turnStart/turnEnd, silently dropping the source/target distinction now
+// that dnd5e 6.0 handles these values natively (confirmed in PR #6837).
 export function getDeprecatedSpecialDurMap() {
-    if (daeManagesTurnExpiry) {
-        return {
-            "turnStart": "targetStart",
-            "turnEnd": "targetEnd",
-            "turnStartSource": "sourceStart",
-            "turnEndSource": "sourceEnd",
-            "combatEnd": "combatEnd"
-        };
-    }
     return {
-        "turnStart": "turnStart",
-        "turnEnd": "turnEnd",
-        "turnStartSource": "turnStart",
-        "turnEndSource": "turnEnd",
+        "turnStart": "targetStart",
+        "turnEnd": "targetEnd",
+        "turnStartSource": "sourceStart",
+        "turnEndSource": "sourceEnd",
         "combatEnd": "combatEnd"
     };
 }
