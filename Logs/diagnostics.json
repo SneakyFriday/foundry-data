@@ -1,5 +1,5 @@
 {
-  "timestamp": 1786830933733,
+  "timestamp": 1786965996290,
   "os": {
     "platform": "linux",
     "version": "Debian GNU/Linux 13 (trixie)",
@@ -22,19 +22,19 @@
       "version": "1.7"
     },
     "dae": {
-      "version": "14.0.12"
+      "version": "14.0.13"
     },
     "ddb-importer": {
-      "version": "7.3.15"
+      "version": "7.4.1"
     },
     "dice-calculator": {
-      "version": "3.7.1"
+      "version": "4.0.5"
     },
     "dice-so-nice": {
       "version": "6.2.9"
     },
     "fxmaster": {
-      "version": "8.3.3"
+      "version": "8.3.5"
     },
     "item-piles": {
       "version": "3.3.4"
