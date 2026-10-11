@@ -3,7 +3,7 @@
         <label>{{localize "DICESONICE.system"}}</label>
         <div class="form-fields">
             <select data-system data-dicetype="{{dicetype}}" name="appearance[{{dicetype}}][system]">
-                {{selectOptions systemList selected=appearance.system}}
+                {{#if roleMode}}{{selectOptions systemList selected=appearance.system blank=inheritLabel}}{{else}}{{selectOptions systemList selected=appearance.system}}{{/if}}
             </select>
             <a class="system-control {{systemSettingsVisible}}" data-system-options title='{{localize "DICESONICE.Options"}}'><i class="fas fa-cog"></i></a>
         </div>
@@ -32,7 +32,7 @@
         <label>{{localize "DICESONICE.colorset"}}</label>
         <div class="form-fields">
             <select data-colorset data-dicetype="{{dicetype}}" name="appearance[{{dicetype}}][colorset]">
-                {{selectOptions colorsetList selected=appearance.colorset localize=true}}
+                {{#if roleMode}}{{selectOptions colorsetList selected=appearance.colorset localize=true blank=inheritLabel}}{{else}}{{selectOptions colorsetList selected=appearance.colorset localize=true}}{{/if}}
             </select>
         </div>
         <p class="hint">{{localize "DICESONICE.colorsetDesc"}}</p>
@@ -42,7 +42,7 @@
         <label>{{localize "DICESONICE.texture"}}</label>
         <div class="form-fields">
             <select data-texture data-dicetype="{{dicetype}}" name="appearance[{{dicetype}}][texture]">
-                {{selectOptions textureList selected=appearance.texture}}
+                {{#if roleMode}}{{selectOptions textureList selected=appearance.texture blank=inheritLabel}}{{else}}{{selectOptions textureList selected=appearance.texture}}{{/if}}
             </select>
         </div>
     </div>
@@ -51,7 +51,7 @@
         <label>{{localize "DICESONICE.material"}}</label>
         <div class="form-fields">
             <select data-material data-dicetype="{{dicetype}}" name="appearance[{{dicetype}}][material]">
-                {{selectOptions materialList selected=appearance.material}}
+                {{#if roleMode}}{{selectOptions materialList selected=appearance.material blank=inheritLabel}}{{else}}{{selectOptions materialList selected=appearance.material}}{{/if}}
             </select>
         </div>
     </div>
@@ -60,7 +60,7 @@
         <label>{{localize "DICESONICE.font"}}</label>
         <div class="form-fields">
             <select data-font data-dicetype="{{dicetype}}" name="appearance[{{dicetype}}][font]">
-                {{selectOptions fontList selected=appearance.font}}
+                {{#if roleMode}}{{selectOptions fontList selected=appearance.font blank=inheritLabel}}{{else}}{{selectOptions fontList selected=appearance.font}}{{/if}}
             </select>
         </div>
     </div>
@@ -69,7 +69,7 @@
         <label>{{localize "DICESONICE.labelColor"}}</label>
         <div class="form-fields">
             <input type="text" data-labelColor data-dicetype="{{dicetype}}" name="appearance[{{dicetype}}][labelColor]" value="{{appearance.labelColor}}" data-dtype="String" />
-            <input type="color" name="appearance[{{dicetype}}][labelColorSelector]" value="{{appearance.labelColor}}"
+            <input type="color" class="{{inheritCls.labelColor}}" name="appearance[{{dicetype}}][labelColorSelector]" value="{{preview.labelColor}}"
                 data-edit="appearance[{{dicetype}}][labelColor]" data-labelColorSelector />
         </div>
     </div>
@@ -78,7 +78,7 @@
         <label>{{localize "DICESONICE.diceColor"}}</label>
         <div class="form-fields">
             <input type="text" data-diceColor data-dicetype="{{dicetype}}" name="appearance[{{dicetype}}][diceColor]" value="{{appearance.diceColor}}" data-dtype="String" />
-            <input type="color" name="appearance[{{dicetype}}][diceColorSelector]" value="{{appearance.diceColor}}"
+            <input type="color" class="{{inheritCls.diceColor}}" name="appearance[{{dicetype}}][diceColorSelector]" value="{{preview.diceColor}}"
                 data-edit="appearance[{{dicetype}}][diceColor]" data-diceColorSelector />
         </div>
     </div>
@@ -88,7 +88,7 @@
         <div class="form-fields">
             <input type="text" data-outlineColor data-dicetype="{{dicetype}}" name="appearance[{{dicetype}}][outlineColor]" value="{{appearance.outlineColor}}"
                 data-dtype="String" />
-            <input type="color" name="appearance[{{dicetype}}][outlineColorSelector]" value="{{appearance.outlineColor}}"
+            <input type="color" class="{{inheritCls.outlineColor}}" name="appearance[{{dicetype}}][outlineColorSelector]" value="{{preview.outlineColor}}"
                 data-edit="appearance[{{dicetype}}][outlineColor]" data-outlineColorSelector />
         </div>
     </div>
@@ -97,7 +97,7 @@
         <label>{{localize "DICESONICE.edgeColor"}}</label>
         <div class="form-fields">
             <input type="text" data-edgeColor data-dicetype="{{dicetype}}" name="appearance[{{dicetype}}][edgeColor]" value="{{appearance.edgeColor}}" data-dtype="String" />
-            <input type="color" name="appearance[{{dicetype}}][edgeColorSelector]" value="{{appearance.edgeColor}}"
+            <input type="color" class="{{inheritCls.edgeColor}}" name="appearance[{{dicetype}}][edgeColorSelector]" value="{{preview.edgeColor}}"
                 data-edit="appearance[{{dicetype}}][edgeColor]" data-edgeColorSelector />
         </div>
     </div>

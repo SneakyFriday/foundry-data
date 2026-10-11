@@ -1,0 +1,60 @@
+{{#if live}}
+<div class="dsn-pending-need">{{localize "DICESONICE.pendingCardNeed" name=rollerName}}</div>
+<div class="dice-roll expanded dsn-pending-roll">
+    <div class="dice-result">
+        {{#if formula}}
+        <div class="dice-formula">{{formula}}</div>
+        {{/if}}
+        <div class="dice-tooltip">
+            <div class="wrapper">
+                {{#each groups}}
+                <div class="dsn-pending-group">
+                    {{#each this.chips}}
+                    <div class="dsn-pending-row">
+                        <span class="dsn-pending-term-label">{{this.label}}</span>
+                        <ol class="dice-rolls">
+                            {{#each this.cells}}
+                            <li class="roll die {{../type}}{{#unless this.bound}} dsn-open{{/unless}}{{#if this.rolling}} dsn-rolling{{/if}}{{#if this.held}} dsn-held{{/if}}">{{#if this.bound}}{{this.display}}{{/if}}</li>
+                            {{/each}}
+                        </ol>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/each}}
+            </div>
+        </div>
+    </div>
+</div>
+{{#if overCapCount}}
+<div class="dsn-pending-overcap">{{localize "DICESONICE.pendingCardOverCap" count=overCapCount}}</div>
+{{/if}}
+{{#if spawnRefused}}
+<div class="dsn-pending-overcap">{{localize "DICESONICE.pendingCardSpawnRefused"}}</div>
+{{/if}}
+{{else}}
+<div class="dsn-pending-need">{{localize "DICESONICE.pendingCardTitleInert" name=rollerName}}</div>
+{{/if}}
+{{#if hasActions}}
+<div class="dsn-pending-actions">
+    {{#if canSpawn}}
+    <button type="button" data-dsn-pending-action="spawn">
+        <i class="fa-solid fa-plus"></i> {{localize "DICESONICE.pendingCardSpawn"}}
+    </button>
+    {{/if}}
+    {{#if canEscape}}
+    <button type="button" data-dsn-pending-action="escape">
+        <i class="fa-solid fa-forward"></i> {{localize "DICESONICE.pendingCardEscape"}}
+    </button>
+    {{/if}}
+    {{#if canForce}}
+    <button type="button" data-dsn-pending-action="force" class="dsn-pending-force">
+        <i class="fa-solid fa-gavel"></i> {{localize "DICESONICE.pendingCardForce"}}
+    </button>
+    {{/if}}
+    {{#if canSkip}}
+    <button type="button" data-dsn-pending-action="skip" class="dsn-pending-skip" data-tooltip="{{localize "DICESONICE.pendingCardSkip"}}">
+        <i class="fa-solid fa-forward-fast"></i>
+    </button>
+    {{/if}}
+</div>
+{{/if}}

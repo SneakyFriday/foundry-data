@@ -2,7 +2,7 @@
     <input type="hidden" name="sfxLine[{{id}}][mode]" data-sfx-mode-input value="{{#if isAdvanced}}advanced{{else}}basic{{/if}}" />
     {{#if isAdvanced}}
     <div class="sfx-data sfx-flex-7 sfx-formula-container">
-        <input type="text" data-sfx-formula name="sfxLine[{{id}}][formula]" value="{{formula}}" placeholder="{{localize 'DICESONICE.sfxFormulaPlaceholder'}}" autocomplete="off" />
+        <input type="text" data-sfx-formula name="sfxLine[{{id}}][formula]" value="{{formula}}" placeholder="{{localize 'DICESONICE.sfxFormulaPlaceholder'}}" title="{{formulaRolesHint}}" autocomplete="off" />
         <i class="fas fa-circle-exclamation sfx-formula-error-icon" data-sfx-formula-error></i>
     </div>
     {{else}}

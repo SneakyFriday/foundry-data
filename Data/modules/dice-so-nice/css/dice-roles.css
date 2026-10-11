@@ -1,0 +1,148 @@
+/* Dice roles config window */
+.dice-roles-config .dice-roles-config-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.dice-roles-config .dice-roles-config-table-wrap {
+    max-height: 60vh;
+    overflow-y: auto;
+    border: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.2));
+    border-radius: 4px;
+}
+
+.dice-roles-config .dice-roles-config-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-13, 13px);
+}
+
+.dice-roles-config .dice-roles-config-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--color-bg-alt, rgba(0, 0, 0, 0.05));
+    text-align: left;
+    padding: 0.4rem 0.5rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.2));
+}
+
+.dice-roles-config .dice-roles-config-table td {
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--color-border-light-tertiary, rgba(0, 0, 0, 0.08));
+    vertical-align: middle;
+}
+
+.dice-roles-config .dice-roles-config-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.dice-roles-config .dice-roles-row.deleted td {
+    opacity: 0.4;
+}
+
+.dice-roles-config .dice-roles-row.deleted td.col-actions {
+    opacity: 1;
+}
+
+.dice-roles-config .col-label {
+    width: 18%;
+}
+
+.dice-roles-config .col-label .role-label {
+    font-weight: 600;
+}
+
+.dice-roles-config .col-label .dice-roles-id,
+.dice-roles-config .col-origin .dice-roles-package {
+    display: block;
+    font-size: 0.8em;
+    opacity: 0.6;
+    font-family: var(--font-mono, monospace);
+}
+
+.dice-roles-config .col-group,
+.dice-roles-config .col-origin {
+    width: 10%;
+}
+
+.dice-roles-config .col-detectors {
+    width: 14%;
+}
+
+.dice-roles-config .col-detectors .dice-roles-detector {
+    display: block;
+    font-size: 0.85em;
+}
+
+.dice-roles-config .col-detectors code {
+    font-family: var(--font-mono, monospace);
+}
+
+.dice-roles-config .col-players {
+    width: 5rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.dice-roles-config .col-players i {
+    margin: 0 0.2rem;
+    opacity: 0.2;
+}
+
+.dice-roles-config .col-players i.on {
+    opacity: 1;
+}
+
+.dice-so-nice .dice-role-settings .form-group .role-label {
+    font-weight: 600;
+}
+
+.dice-so-nice .dice-role-settings .form-group > label {
+    /* long permission labels in other languages stay on one line */
+    flex: 3;
+}
+
+.dice-roles-config .col-preset,
+.dice-roles-config .col-theme {
+    width: 16%;
+}
+
+.dice-roles-config .col-preset select,
+.dice-roles-config .col-theme select {
+    width: 100%;
+}
+
+.dice-roles-config .col-actions {
+    width: 9rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.dice-roles-config .col-actions button {
+    /* foundry core buttons are block level, keep the row actions on one line */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    line-height: 1;
+}
+
+.dice-roles-config .dice-roles-config-actions {
+    display: flex;
+    justify-content: flex-start;
+    padding-top: 0.3rem;
+}
+
+.dice-roles-config .dice-roles-config-actions button {
+    padding: 0.35rem 0.75rem;
+}
+
+.dice-roles-config select:disabled,
+.dice-roles-config .col-actions button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}

@@ -6,9 +6,10 @@
             <div class="dice-library-section-header" data-action="toggleSection">
                 <i class="fas fa-chevron-down section-chevron"></i>
                 <span class="die-type-badge">{{this.label}}</span>
-                <button type="button" data-action="createNew" data-die-type="{{this.dieType}}" class="section-create-btn" title="{{localize "DICESONICE.editorCreateNew"}}"><i class="fas fa-plus"></i></button>
+                {{#if @root.canCreate}}<button type="button" data-action="createNew" data-die-type="{{this.dieType}}" {{#if @root.worldOnly}}data-owner="world"{{/if}} class="section-create-btn" title="{{localize "DICESONICE.editorCreateNew"}}"><i class="fas fa-plus"></i></button>{{/if}}
             </div>
             <div class="dice-library-section-body">
+                {{#unless @root.worldOnly}}
                 <div class="dice-library-subsection">
                     <div class="dice-library-subsection-header">{{localize "DICESONICE.libraryMyDice"}}</div>
                     {{#if this.myDice.length}}
@@ -19,6 +20,9 @@
                             <div class="die-actions">
                                 <a data-action="editDie" data-die-id="{{this.id}}" title="{{localize "DICESONICE.editorEdit"}}"><i class="fas fa-edit"></i></a>
                                 <a data-action="duplicateDie" data-die-id="{{this.id}}" title="{{localize "DICESONICE.editorDuplicate"}}"><i class="fas fa-copy"></i></a>
+                                {{#if @root.isGM}}
+                                <a data-action="copyToWorld" data-die-id="{{this.id}}" title="{{localize "DICESONICE.libraryCopyToWorld"}}"><i class="fas fa-globe"></i></a>
+                                {{/if}}
                                 <a data-action="deleteDie" data-die-id="{{this.id}}" title="{{localize "DICESONICE.Delete"}}"><i class="fas fa-trash"></i></a>
                             </div>
                         </li>
@@ -28,6 +32,33 @@
                     <div class="dice-library-empty-sub">{{localize "DICESONICE.libraryNoDice"}}</div>
                     {{/if}}
                 </div>
+                {{/unless}}
+                {{#if this.worldDice.length}}
+                <div class="dice-library-subsection dice-library-world">
+                    <div class="dice-library-subsection-header"><i class="fas fa-globe"></i> {{localize "DICESONICE.libraryWorldDice"}}</div>
+                    <ol class="dice-list">
+                        {{#each this.worldDice}}
+                        <li class="dice-list-entry {{#unless @root.isGM}}other-user-entry{{/unless}}" data-die-id="{{this.id}}">
+                            <span class="die-name">{{this.name}}</span>
+                            <div class="die-actions">
+                                {{#if @root.isGM}}
+                                <a data-action="editDie" data-die-id="{{this.id}}" data-owner="world" title="{{localize "DICESONICE.editorEdit"}}"><i class="fas fa-edit"></i></a>
+                                <a data-action="duplicateDie" data-die-id="{{this.id}}" data-owner="world" title="{{localize "DICESONICE.editorDuplicate"}}"><i class="fas fa-copy"></i></a>
+                                {{/if}}
+                                {{#unless @root.worldOnly}}
+                                <a data-action="copyToMine" data-die-id="{{this.id}}" title="{{localize "DICESONICE.libraryCopyToMine"}}"><i class="fas fa-user-plus"></i></a>
+                                {{/unless}}
+                                {{#if @root.isGM}}
+                                <a data-action="deleteDie" data-die-id="{{this.id}}" data-owner="world" title="{{localize "DICESONICE.Delete"}}"><i class="fas fa-trash"></i></a>
+                                {{/if}}
+                            </div>
+                        </li>
+                        {{/each}}
+                    </ol>
+                </div>
+                {{else if @root.worldOnly}}
+                <div class="dice-library-empty-sub">{{localize "DICESONICE.libraryNoDice"}}</div>
+                {{/if}}
                 {{#each this.otherUsers}}
                 <div class="dice-library-subsection dice-library-other-user">
                     <div class="dice-library-subsection-header">{{this.userName}}</div>
@@ -53,12 +84,21 @@
         <p>{{localize "DICESONICE.editorNoCustomDice"}}</p>
     </div>
     {{/if}}
+    {{#if canCreate}}
     <div class="dice-library-footer">
         <select data-footer-dietype>
             {{#each dieTypeOptions}}
             <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
             {{/each}}
         </select>
+        {{#if worldOnly}}
+        <button type="button" data-action="createFromFooter" data-owner="world" class="dialog-button"><i class="fas fa-globe"></i> {{localize "DICESONICE.editorCreateNew"}}</button>
+        {{else}}
         <button type="button" data-action="createFromFooter" class="dialog-button"><i class="fas fa-plus"></i> {{localize "DICESONICE.editorCreateNew"}}</button>
+        {{#if isGM}}
+        <button type="button" data-action="createFromFooter" data-owner="world" class="dialog-button" title="{{localize "DICESONICE.libraryCreateWorldDie"}}"><i class="fas fa-globe"></i></button>
+        {{/if}}
+        {{/if}}
     </div>
+    {{/if}}
 </div>

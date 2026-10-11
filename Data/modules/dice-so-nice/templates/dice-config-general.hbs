@@ -1,5 +1,29 @@
 <div class="tab {{tab.cssClass}}" data-tab="general" data-group="dsn-main">
     <div class="settings-list">
+        {{#if roleSwitcher}}
+        <div class="form-group dsn-role-switcher">
+            <label>{{localize "DICESONICE.RoleSwitcher"}}</label>
+            <div class="form-fields">
+                <select data-role-switcher {{#if roleSwitcher.disabled}}disabled{{/if}}>
+                    <option value="basic" {{#if roleSwitcher.basicSelected}}selected{{/if}}>{{roleSwitcher.basicLabel}}</option>
+                    {{#each roleSwitcher.ungrouped}}
+                    <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+                    {{/each}}
+                    {{#each roleSwitcher.groups}}
+                    <optgroup label="{{this.label}}">
+                        {{#each this.roles}}
+                        <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+                        {{/each}}
+                    </optgroup>
+                    {{/each}}
+                </select>
+                <button type="button" data-role-reset title="{{localize "DICESONICE.RoleResetTooltip"}}" {{#if roleSwitcher.basicSelected}}hidden{{/if}}>
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+            <p class="hint">{{localize "DICESONICE.RoleSwitcherHint"}}</p>
+        </div>
+        {{/if}}
         <div id="dice-configuration-canvas-container"></div>
         <div class="dsn-settings-container">
             <hr />

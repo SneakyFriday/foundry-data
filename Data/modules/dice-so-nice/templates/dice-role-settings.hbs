@@ -1,0 +1,44 @@
+<div class="dice-role-settings">
+    {{#if isCustom}}
+    <div class="form-group">
+        <label>{{localize "DICESONICE.DiceRolesFieldLabel"}}</label>
+        <div class="form-fields">
+            <input type="text" name="label" value="{{label}}" placeholder="{{localize 'DICESONICE.DiceRolesLabelPlaceholder'}}" autofocus />
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.DiceRolesFieldId"}}</label>
+        <div class="form-fields">
+            <input type="text" name="id" value="{{id}}" placeholder="{{localize 'DICESONICE.DiceRolesIdPlaceholder'}}" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.DiceRolesFieldTypes"}}</label>
+        <div class="form-fields">
+            <input type="text" name="types" value="{{typesText}}" placeholder="{{localize 'DICESONICE.DiceRolesTypesPlaceholder'}}" />
+        </div>
+        <p class="hint">{{localize "DICESONICE.DiceRolesDetectorTypes"}}</p>
+    </div>
+    {{else}}
+    <div class="form-group">
+        <label>{{localize "DICESONICE.DiceRolesColumnRole"}}</label>
+        <div class="form-fields">
+            <span class="role-label">{{label}}</span> <code>{{id}}</code>
+        </div>
+    </div>
+    {{/if}}
+    <div class="form-group">
+        <label>{{localize "DICESONICE.DiceRolesCustomizable"}}</label>
+        <div class="form-fields">
+            <input type="checkbox" name="customizable" {{#if customizable}}checked{{/if}} />
+        </div>
+        <p class="hint">{{localize "DICESONICE.DiceRolesCustomizableHint"}}</p>
+    </div>
+    <div class="form-group">
+        <label>{{localize "DICESONICE.DiceRolesOptional"}}</label>
+        <div class="form-fields">
+            <input type="checkbox" name="optional" {{#if optional}}checked{{/if}} />
+        </div>
+        <p class="hint">{{localize "DICESONICE.DiceRolesOptionalHint"}}</p>
+    </div>
+</div>

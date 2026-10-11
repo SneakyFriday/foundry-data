@@ -21,6 +21,25 @@
         <span>{{localize "DICESONICE.protectPersistent"}}</span>
     </label>
     {{/if}}
+    {{#if isGM}}
+    <div class="dsn-toolbox-visibility-row" title="{{localize "DICESONICE.interactiveThrowsHint"}}">
+        <label class="dsn-toolbox-label">{{localize "DICESONICE.interactiveThrowsWorld"}}</label>
+        <select data-action="setInteractiveWorld" class="dsn-toolbox-select">
+            <option value="0" {{#if interactive.world0}}selected{{/if}}>{{localize "DICESONICE.interactiveThrowsDisabled"}}</option>
+            <option value="1" {{#if interactive.world1}}selected{{/if}}>{{localize "DICESONICE.interactiveThrowsAllowedOff"}}</option>
+            <option value="2" {{#if interactive.world2}}selected{{/if}}>{{localize "DICESONICE.interactiveThrowsAllowedOn"}}</option>
+        </select>
+    </div>
+    {{/if}}
+    <div class="dsn-toolbox-visibility-row" title="{{localize "DICESONICE.interactiveThrowsUserHint"}}">
+        <label class="dsn-toolbox-label">{{localize "DICESONICE.interactiveThrowsUser"}}</label>
+        <select data-action="setInteractiveUser" class="dsn-toolbox-select" {{#unless interactive.available}}disabled{{/unless}}>
+            <option value="default" {{#if interactive.userDefault}}selected{{/if}}>{{localize "DICESONICE.interactiveThrowsUserDefault"}}</option>
+            <option value="disabled" {{#if interactive.userDisabled}}selected{{/if}}>{{localize "DICESONICE.interactiveThrowsUserDisabled"}}</option>
+            <option value="off" {{#if interactive.userOff}}selected{{/if}}>{{localize "DICESONICE.interactiveThrowsUserOff"}}</option>
+            <option value="on" {{#if interactive.userOn}}selected{{/if}}>{{localize "DICESONICE.interactiveThrowsUserOn"}}</option>
+        </select>
+    </div>
 </section>
 
 {{#if persistentDiceEnabled}}

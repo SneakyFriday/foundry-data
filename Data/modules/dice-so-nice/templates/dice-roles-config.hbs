@@ -1,0 +1,100 @@
+<section class="dice-roles-config-body">
+    <p class="hint">{{localize "DICESONICE.DiceRolesConfigHint"}}</p>
+
+    <div class="dice-roles-config-table-wrap">
+        <table class="dice-roles-config-table">
+            <thead>
+                <tr>
+                    <th class="col-label">{{localize "DICESONICE.DiceRolesColumnRole"}}</th>
+                    <th class="col-group">{{localize "DICESONICE.DiceRolesColumnGroup"}}</th>
+                    <th class="col-origin">{{localize "DICESONICE.DiceRolesColumnOrigin"}}</th>
+                    <th class="col-detectors">{{localize "DICESONICE.DiceRolesColumnDetectors"}}</th>
+                    <th class="col-players" data-tooltip="{{localize 'DICESONICE.DiceRolesColumnPlayersHint'}}">{{localize "DICESONICE.DiceRolesColumnCustomizable"}}</th>
+                    <th class="col-preset">{{localize "DICESONICE.DiceRolesColumnPreset"}}</th>
+                    <th class="col-theme">{{localize "DICESONICE.DiceRolesColumnTheme"}}</th>
+                    <th class="col-actions"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each rows as |row|}}
+                <tr class="dice-roles-row{{#if row.deleted}} deleted{{/if}}" data-key="{{row.key}}">
+                    <td class="col-label">
+                        <span class="role-label">{{row.label}}</span>
+                        <span class="dice-roles-id">{{row.id}}</span>
+                    </td>
+                    <td class="col-group">{{row.group}}</td>
+                    <td class="col-origin">
+                        <span>{{row.origin}}</span>
+                        {{#if row.package}}<span class="dice-roles-package">{{row.package}}</span>{{/if}}
+                    </td>
+                    <td class="col-detectors">
+                        {{#if row.hasModifiers}}
+                            <span class="dice-roles-detector" data-tooltip="{{localize 'DICESONICE.DiceRolesDetectorModifiers'}}">
+                                <i class="fa-solid fa-code"></i>
+                                {{#each row.modifiers as |m|}}<code>{{m}}</code> {{/each}}
+                            </span>
+                        {{/if}}
+                        {{#if row.typesText}}
+                            <span class="dice-roles-detector" data-tooltip="{{localize 'DICESONICE.DiceRolesDetectorTypes'}}">
+                                <i class="fa-solid fa-tag"></i> {{row.typesText}}
+                            </span>
+                        {{/if}}
+                    </td>
+                    <td class="col-players">
+                        <i class="fa-solid fa-user-pen{{#if row.customizable}} on{{/if}}" data-tooltip="{{#if row.customizable}}{{localize 'DICESONICE.DiceRolesCustomizableOn'}}{{else}}{{localize 'DICESONICE.DiceRolesCustomizableOff'}}{{/if}}"></i>
+                        <i class="fa-solid fa-toggle-off{{#if row.optional}} on{{/if}}" data-tooltip="{{#if row.optional}}{{localize 'DICESONICE.DiceRolesOptionalOn'}}{{else}}{{localize 'DICESONICE.DiceRolesOptionalOff'}}{{/if}}"></i>
+                    </td>
+                    <td class="col-preset">
+                        <select name="preset-{{row.key}}" {{#if row.deleted}}disabled{{/if}}>
+                            {{#if row.isCustomScope}}<option value="custom" selected>{{localize "DICESONICE.DiceRolesCustomOption"}}</option>{{/if}}
+                            <option value="" {{#if row.presetBlankSelected}}selected{{/if}}>{{localize "DICESONICE.DiceRolesInherit"}}</option>
+                            {{#each row.presets as |p|}}
+                            <option value="{{p.id}}" {{#if p.selected}}selected{{/if}}>{{p.name}}</option>
+                            {{/each}}
+                        </select>
+                    </td>
+                    <td class="col-theme">
+                        <select name="colorset-{{row.key}}" {{#if row.deleted}}disabled{{/if}}>
+                            {{#if row.isCustomScope}}<option value="custom" selected>{{localize "DICESONICE.DiceRolesCustomOption"}}</option>{{/if}}
+                            <option value="" {{#if row.colorsetBlankSelected}}selected{{/if}}>{{localize "DICESONICE.DiceRolesInherit"}}</option>
+                            {{#each row.colorsetGroups as |grp|}}
+                            <optgroup label="{{grp.group}}">
+                                {{#each grp.items as |cs|}}
+                                <option value="{{cs.id}}" {{#if cs.selected}}selected{{/if}}>{{cs.label}}</option>
+                                {{/each}}
+                            </optgroup>
+                            {{/each}}
+                        </select>
+                    </td>
+                    <td class="col-actions">
+                        {{#if row.deleted}}
+                            <button type="button" data-action="restoreRow" data-key="{{row.key}}" data-tooltip="{{localize 'DICESONICE.DiceRolesRestore'}}" aria-label="{{localize 'DICESONICE.DiceRolesRestore'}}">
+                                <i class="fa-solid fa-trash-arrow-up"></i>
+                            </button>
+                        {{else}}
+                            <button type="button" data-action="editRow" data-key="{{row.key}}" data-tooltip="{{localize 'DICESONICE.DiceRolesSettings'}}" aria-label="{{localize 'DICESONICE.DiceRolesSettings'}}">
+                                <i class="fa-solid fa-gear"></i>
+                            </button>
+                            <button type="button" data-action="editAppearance" data-key="{{row.key}}" data-role="{{row.id}}" data-tooltip="{{localize 'DICESONICE.DiceRolesAppearance'}}" aria-label="{{localize 'DICESONICE.DiceRolesAppearance'}}" {{#if row.appearanceDisabled}}disabled{{/if}}>
+                                <i class="fa-solid fa-palette"></i>
+                            </button>
+                            <button type="button" data-action="resetRow" data-key="{{row.key}}" data-tooltip="{{localize 'DICESONICE.DiceRolesReset'}}" aria-label="{{localize 'DICESONICE.DiceRolesReset'}}" {{#if row.resetDisabled}}disabled{{/if}}>
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                            <button type="button" data-action="deleteRow" data-key="{{row.key}}" data-tooltip="{{localize 'DICESONICE.DiceRolesDelete'}}" aria-label="{{localize 'DICESONICE.DiceRolesDelete'}}">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        {{/if}}
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="dice-roles-config-actions">
+        <button type="button" data-action="addRow">
+            <i class="fa-solid fa-plus"></i> {{localize "DICESONICE.DiceRolesAdd"}}
+        </button>
+    </div>
+</section>

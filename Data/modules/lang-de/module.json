@@ -6,68 +6,92 @@
   "authors": [
     {
       "name": "Hydroxi",
-      "discord": "@hydroxi"
+      "discord": "@hydroxi",
+      "flags": {}
     },
     {
       "name": "Lutece",
-      "discord": "@nagetiermann"
+      "discord": "@nagetiermann",
+      "flags": {}
     },
     {
       "name": "henry4k",
-      "discord": "@henry4k"
+      "discord": "@henry4k",
+      "flags": {}
     },
     {
       "name": "ElCamino",
-      "discord": "@e1camino"
+      "discord": "@e1camino",
+      "flags": {}
     },
     {
       "name": "Sir Gawain",
-      "discord": "@_sirgawain"
+      "discord": "@_sirgawain",
+      "flags": {}
     },
     {
       "name": "Kosmos",
-      "discord": "@kosmos.ac"
+      "discord": "@kosmos.ac",
+      "flags": {}
     },
     {
       "name": "Manni",
-      "discord": "@manni.mammut"
+      "discord": "@manni.mammut",
+      "flags": {}
+    },
+    {
+      "name": "Max Hilbrunner",
+      "discord": "@mhilbrunner",
+      "flags": {}
+    },
+    {
+      "name": "CePeU",
+      "discord": "@cepeu1",
+      "flags": {}
     }
   ],
   "languages": [
     {
       "lang": "de",
       "name": "Deutsch (German)",
-      "path": "translations/de/core.json"
+      "path": "translations/de/core.json",
+      "flags": {}
     },
     {
       "lang": "de",
       "name": "Tour: Spielflächen-Bedienelemente",
-      "path": "translations/de/tours/canvas-controls.json"
+      "path": "translations/de/tours/canvas-controls.json",
+      "flags": {}
     },
     {
       "lang": "de",
       "name": "Tour: Eine Welt erstellen",
-      "path": "translations/de/tours/creating-a-world.json"
+      "path": "translations/de/tours/creating-a-world.json",
+      "flags": {}
     },
     {
       "lang": "de",
       "name": "Tour: Ein System installieren",
-      "path": "translations/de/tours/installing-a-system.json"
+      "path": "translations/de/tours/installing-a-system.json",
+      "flags": {}
     },
     {
       "lang": "de",
       "name": "Tour: Die Seitenleiste",
-      "path": "translations/de/tours/sidebar.json"
+      "path": "translations/de/tours/sidebar.json",
+      "flags": {}
     },
     {
       "lang": "de",
       "name": "Tour: UI Übersicht",
-      "path": "translations/de/tours/ui-overview.json"
+      "path": "translations/de/tours/ui-overview.json",
+      "flags": {}
     },
     {
       "lang": "de",
       "name": "Tour: Willkommen zu Foundry Virtual Tabletop",
-      "path": "translations/de/tours/welcome.json"
+      "path": "translations/de/tours/welcome.json",
+      "flags": {}
     }
   ],
   "coreTranslation": true,
@@ -80,5 +104,6 @@
     "minimum": "14",
     "verified": "14",
     "maximum": "14"
-  }
+  },
+  "flags": {}
 }
