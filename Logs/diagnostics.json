@@ -1,5 +1,5 @@
 {
-  "timestamp": 1791633554353,
+  "timestamp": 1791807216245,
   "os": {
     "platform": "linux",
     "version": "Debian GNU/Linux 13 (trixie)",
@@ -19,7 +19,7 @@
       "version": "2.9.1"
     },
     "color-picker": {
-      "version": "1.7"
+      "version": "1.8"
     },
     "dae": {
       "version": "14.0.13"
@@ -31,10 +31,10 @@
       "version": "4.0.5"
     },
     "dice-so-nice": {
-      "version": "6.2.9"
+      "version": "6.4.4"
     },
     "fxmaster": {
-      "version": "8.3.5"
+      "version": "8.4.1"
     },
     "item-piles": {
       "version": "3.3.4"
