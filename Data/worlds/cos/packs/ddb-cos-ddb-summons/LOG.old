@@ -1,3 +1,7 @@
-2026/08/15-23:56:58.004353 7fc87d3fd6c0 Recovering log #117
-2026/08/15-23:56:58.006707 7fc87d3fd6c0 Delete type=0 #117
-2026/08/15-23:56:58.006790 7fc87d3fd6c0 Delete type=3 #116
+2026/10/21-21:25:16.172055 7f21edbfd6c0 Recovering log #121
+2026/10/21-21:25:16.174403 7f21edbfd6c0 Delete type=3 #120
+2026/10/21-21:25:16.174436 7f21edbfd6c0 Delete type=0 #121
+2026/10/21-21:42:31.268488 7f1fcdfff6c0 Level-0 table #125: started
+2026/10/21-21:42:31.268509 7f1fcdfff6c0 Level-0 table #125: 0 bytes OK
+2026/10/21-21:42:31.269503 7f1fcdfff6c0 Delete type=0 #123
+2026/10/21-21:42:31.272270 7f1fcdfff6c0 Manual compaction at level-0 from '!actors!ddbSumArcaHanRed' @ 72057594037927935 : 1 .. '!folders!xk80ePc72M82Tw4V' @ 0 : 0; will stop at (end)

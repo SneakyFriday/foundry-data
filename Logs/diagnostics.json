@@ -1,9 +1,9 @@
 {
-  "timestamp": 1791807216245,
+  "timestamp": 1792611954716,
   "os": {
     "platform": "linux",
     "version": "Debian GNU/Linux 13 (trixie)",
-    "node": "24.19.0"
+    "node": "24.22.1"
   },
   "foundry": {
     "generation": 14,
@@ -28,13 +28,13 @@
       "version": "7.4.1"
     },
     "dice-calculator": {
-      "version": "4.0.5"
+      "version": "4.0.6"
     },
     "dice-so-nice": {
       "version": "6.4.4"
     },
     "fxmaster": {
-      "version": "8.4.1"
+      "version": "8.4.2"
     },
     "item-piles": {
       "version": "3.3.4"
@@ -67,7 +67,7 @@
       "version": "0.12.0"
     },
     "theripper-premium-hub": {
-      "version": "6.0.1"
+      "version": "6.0.2"
     },
     "wall-height": {
       "version": "7.0.8"
@@ -76,12 +76,12 @@
   "systems": {
     "dnd5e": {
       "version": "5.3.3",
-      "playtime": 8050805
+      "playtime": 8051827
     }
   },
   "worlds": {},
   "playtime": {
-    "total": 8050805,
-    "max": 8050805
+    "total": 8051827,
+    "max": 8051827
   }
 }

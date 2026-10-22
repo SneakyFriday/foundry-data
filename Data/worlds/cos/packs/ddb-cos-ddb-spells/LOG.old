@@ -1,3 +1,7 @@
-2026/08/15-23:56:57.988905 7fc87dbfe6c0 Recovering log #255
-2026/08/15-23:56:57.991524 7fc87dbfe6c0 Delete type=0 #255
-2026/08/15-23:56:57.991597 7fc87dbfe6c0 Delete type=3 #254
+2026/10/21-21:25:16.155040 7f21edbfd6c0 Recovering log #259
+2026/10/21-21:25:16.157464 7f21edbfd6c0 Delete type=0 #259
+2026/10/21-21:25:16.157486 7f21edbfd6c0 Delete type=3 #258
+2026/10/21-21:42:31.264281 7f1fcdfff6c0 Level-0 table #263: started
+2026/10/21-21:42:31.264304 7f1fcdfff6c0 Level-0 table #263: 0 bytes OK
+2026/10/21-21:42:31.265415 7f1fcdfff6c0 Delete type=0 #261
+2026/10/21-21:42:31.268378 7f1fcdfff6c0 Manual compaction at level-0 from 'undefined' @ 72057594037927935 : 1 .. 'undefined' @ 0 : 0; will stop at (end)
